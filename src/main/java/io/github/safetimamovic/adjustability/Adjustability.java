@@ -2,6 +2,7 @@ package io.github.safetimamovic.adjustability;
 import io.github.safetimamovic.adjustability.enchantments_logic.AnvilHandler;
 
 import com.mojang.logging.LogUtils;
+import io.github.safetimamovic.adjustability.render_core.CustomTooltip;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -34,5 +35,6 @@ public class Adjustability
         LOGGER.info("HELLO FROM COMMON SETUP");
 
         MinecraftForge.EVENT_BUS.register(new AnvilHandler());
+        MinecraftForge.EVENT_BUS.register(new CustomTooltip());
     }
 }
