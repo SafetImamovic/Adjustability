@@ -1,11 +1,10 @@
 package io.github.safetimamovic.adjustability.render_core;
 
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import io.github.safetimamovic.adjustability.Adjustability;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
-import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
@@ -13,7 +12,6 @@ import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
-import org.joml.Matrix4f;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
@@ -88,9 +86,12 @@ public class CustomTooltip
                 102
         );
 
-        boolean check = (rendering && ((xMouseEvent > correctedPosition.x() - PADDING && xMouseEvent < correctedPosition.x() - PADDING + 102) && (yMouseEvent > correctedPosition.y() - PADDING && yMouseEvent < correctedPosition.y() - PADDING + 102))) ? true : false;
-        // System.out.println(check);
-        return check;
+        return (rendering
+                && ((xMouseEvent > correctedPosition.x() - PADDING
+                && xMouseEvent < correctedPosition.x() - PADDING + 102)
+                && (yMouseEvent > correctedPosition.y() - PADDING
+                && yMouseEvent < correctedPosition.y() - PADDING + 102)))
+                ? true : false;
     }
 
     @SubscribeEvent
@@ -127,7 +128,7 @@ public class CustomTooltip
         );
 
 
-        drawRectangle(
+        RenderCore.drawRectangle(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - PADDING,
                 correctedPosition.y() - PADDING,
@@ -138,7 +139,7 @@ public class CustomTooltip
                 900
         );
 
-        drawBoxBorders(
+        RenderCore.drawBoxBorders(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - PADDING,
                 correctedPosition.y() - PADDING,
@@ -150,7 +151,7 @@ public class CustomTooltip
                 900
         );
 
-        drawBoxBorders(
+        RenderCore.drawBoxBorders(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - 1 - PADDING,
                 correctedPosition.y() - 1 - PADDING,
@@ -166,7 +167,7 @@ public class CustomTooltip
         int horizontalDecorLength = 16;
 
         // Top Left Vertical Decor
-        drawBoxBorders(
+        RenderCore.drawBoxBorders(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - PADDING - 5,
                 correctedPosition.y() - PADDING - 5,
@@ -179,7 +180,7 @@ public class CustomTooltip
         );
 
         // Top Left Horizontal Decor
-        drawBoxBorders(
+        RenderCore.drawBoxBorders(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - PADDING - 5,
                 correctedPosition.y() - PADDING - 5,
@@ -192,7 +193,7 @@ public class CustomTooltip
         );
 
         // Top Right Vertical Decor
-        drawBoxBorders(
+        RenderCore.drawBoxBorders(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - PADDING + 100 + 5 - 3,
                 correctedPosition.y() - PADDING - 5,
@@ -205,7 +206,7 @@ public class CustomTooltip
         );
 
         // Top Right Horizontal Decor
-        drawBoxBorders(
+        RenderCore.drawBoxBorders(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,
                 correctedPosition.y() - PADDING - 5,
@@ -218,7 +219,7 @@ public class CustomTooltip
         );
 
         // Bottom Left Vertical Decor
-        drawBoxBorders(
+        RenderCore.drawBoxBorders(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - PADDING - 5,
                 correctedPosition.y() - PADDING - verticalDecorLength + 5 + 100,
@@ -231,7 +232,7 @@ public class CustomTooltip
         );
 
         // Bottom Left Horizontal Decor
-        drawBoxBorders(
+        RenderCore.drawBoxBorders(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - PADDING - 5,
                 correctedPosition.y() - PADDING + 5 + 100 - 3,
@@ -244,7 +245,7 @@ public class CustomTooltip
         );
 
         // Bottom Right Vertical Decor
-        drawBoxBorders(
+        RenderCore.drawBoxBorders(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - PADDING + 100 + 5 - 3,
                 correctedPosition.y() - PADDING + 5 + 100 - verticalDecorLength,
@@ -257,7 +258,7 @@ public class CustomTooltip
         );
 
         // Bottom Right Horizontal Decor
-        drawBoxBorders(
+        RenderCore.drawBoxBorders(
                 event.getGuiGraphics().pose(),
                 correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,
                 correctedPosition.y() - PADDING + 5 + 100 - 3,
@@ -268,95 +269,16 @@ public class CustomTooltip
                 false,
                 900
         );
-    }
 
-    public static void drawBoxBorders(PoseStack poseStack, int x, int y, int width, int height, int colorPrimary, int colorSecondary, boolean drawCorner, int zIndex)
-    {
-        int additionalPixel = 1;
-
-        if (drawCorner)
-            additionalPixel = 0;
-
-        // Top Horizontal Line
-        drawRectangle(
-                poseStack,
-                x + (additionalPixel),
-                y,
-                width - (2 * additionalPixel),
-                1,
-                colorPrimary,
-                colorPrimary,
-                zIndex
-        );
-
-        // Bottom Horizontal Line
-        drawRectangle(
-                poseStack,
-                x + (additionalPixel),
-                y + height - 1,
-                width - (2 * additionalPixel),
-                1,
-                colorSecondary,
-                colorSecondary,
-                zIndex
-        );
-
-        // Left Vertical Line
-        drawRectangle(
-                poseStack,
+        RenderCore.renderText(
+                "Example",
                 x,
-                y + 1,
-                1,
-                height - 2,
-                colorPrimary,
-                colorSecondary,
-                zIndex
+                y,
+                1003,
+                0xFFFFFFFF,
+                true,
+                event.getGuiGraphics()
         );
-
-        // Right Vertical Line
-        drawRectangle(
-                poseStack,
-                x + width - 1,
-                y + 1,
-                1,
-                height - 2,
-                colorPrimary,
-                colorSecondary,
-                zIndex
-        );
-    }
-
-    public static void drawRectangle(PoseStack poseStack, int x, int y, int width, int height, int colorPrimary, int colorSecondary, int zIndex)
-    {
-        poseStack.pushPose();
-        Matrix4f matrix = poseStack.last().pose();
-        drawGradientRectangle(matrix, zIndex, x, y, x + width, y + height, colorPrimary, colorSecondary);
-        poseStack.popPose();
-    }
-
-    public static void drawGradientRectangle(Matrix4f matrix, int zLevel, int left, int top, int right, int bottom, int colorPrimary, int colorSecondary)
-    {
-        RenderSystem.enableDepthTest();
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
-        RenderSystem.setShader(GameRenderer::getPositionColorShader);
-
-        Tesselator tessellator = Tesselator.getInstance();
-        BufferBuilder bufferBuilder = tessellator.getBuilder();
-        bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
-
-        drawGradientRectangle(matrix, bufferBuilder, left, top, right, bottom, colorPrimary, colorSecondary, zLevel);
-        BufferUploader.drawWithShader(bufferBuilder.end());
-
-        RenderSystem.disableBlend();
-    }
-
-    public static void drawGradientRectangle(Matrix4f matrix, BufferBuilder bufferBuilder, int left, int top, int right, int bottom, int colorPrimary, int colorSecondary, int zIndex)
-    {
-        bufferBuilder.vertex(matrix, right, top, zIndex).color(colorPrimary).endVertex();
-        bufferBuilder.vertex(matrix, left, top, zIndex).color(colorPrimary).endVertex();
-        bufferBuilder.vertex(matrix, left, bottom, zIndex).color(colorSecondary).endVertex();
-        bufferBuilder.vertex(matrix, right, bottom, zIndex).color(colorSecondary).endVertex();
     }
 
     public static Vector2ic positionTooltip(int pScreenWidth, int pScreenHeight, int pMouseX, int pMouseY, int pTooltipWidth, int pTooltipHeight)
