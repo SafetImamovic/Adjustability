@@ -1,5 +1,7 @@
 # Adjustability
 
+[Official Documentation Link](https://safetimamovic.github.io/Adjustability/starter.html)
+
 Have you ever found yourself frustrated by Minecraft's limitation of only allowing **one mutually exclusive enchantment** per item?
 
 For instance, you can't have both **Fortune** and **Silk Touch** on a pickaxe or multiple types of **Protection** on your armor at the same time.
