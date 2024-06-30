@@ -1,18 +1,32 @@
 package io.github.safetimamovic.adjustability;
 
+import com.sun.jna.platform.win32.Wincon;
 import io.github.safetimamovic.adjustability.gui_elements.Button;
 import io.github.safetimamovic.adjustability.render_core.RenderCore;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.MouseHandler;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.network.chat.Component;
+import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.ScreenEvent;
+import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
+import net.minecraftforge.client.event.InputEvent;
+
+import javax.swing.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * The <code>CustomTooltip</code> class draws the custom tooltip while the player is holding down a certain key:
@@ -47,6 +61,14 @@ public class CustomTooltip
 	static final int BLENDED_COLOR = 0xFF410040;
 	static boolean rendering = false;
 	static int x, y;
+	private boolean clickActive = false;
+	private List<Button> Buttons;
+	private boolean arraySet = false;
+
+	public CustomTooltip ()
+	{
+		this.Buttons = new ArrayList<>();
+	}
 
 	/**
 	 * This method cancels the default tooltip when the player pressed or is holding down a particular character
@@ -66,10 +88,10 @@ public class CustomTooltip
 	@SubscribeEvent
 	public static void onClickTickWise (InputEvent.MouseButton event)
 	{
-		System.out.println("Action: ");
-		System.out.println(event.getAction());
-		System.out.println("Button: ");
-		System.out.println(event.getButton());
+//		System.out.println("Action: ");
+//		System.out.println(event.getAction());
+//		System.out.println("Button: ");
+//		System.out.println(event.getButton());
 	}
 
 	/**
@@ -87,51 +109,6 @@ public class CustomTooltip
 	}
 
 	/**
-	 * This method cancels the <code>MouseDragged</code> event within the
-	 * <code>Screen</code> if the cursors is hovering over the boundaries
-	 * of the <code>CustomTooltip</code>.
-	 * @param event
-	 */
-	@SubscribeEvent
-	public static void blockScreenInputMouseDragged (ScreenEvent.MouseDragged.Pre event)
-	{
-		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-	}
-
-	/**
-	 * This method cancels the <code>MouseButtonPressed</code> event within the
-	 * <code>Screen</code> if the cursors is hovering over the boundaries
-	 * @param event
-	 */
-	@SubscribeEvent
-	public static void blockScreenInputMouseClick (ScreenEvent.MouseButtonPressed.Pre event)
-	{
-		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-	}
-
-	/**
-	 * This method cancels the <code>MouseButtonReleased</code> event within the
-	 * <code>Screen</code> if the cursors is hovering over the boundaries
-	 * @param event
-	 */
-	@SubscribeEvent
-	public static void blockScreenInputMouseClickRelease (ScreenEvent.MouseButtonReleased.Pre event)
-	{
-		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-	}
-
-	/**
-	 * This method cancels the <code>MouseScrolled</code> event within the
-	 * <code>Screen</code> if the cursors is hovering over the boundaries
-	 * @param event
-	 */
-	@SubscribeEvent
-	public static void blockScreenInputMouseScroll (ScreenEvent.MouseScrolled.Pre event)
-	{
-		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-	}
-
-	/**
 	 * The <code>mouseEventHelper</code> method determines if a mouse event occurred within the area of the tooltip
 	 *
 	 * @param xMouseEvent <code>x</code> coordinate of the mouse position
@@ -140,7 +117,7 @@ public class CustomTooltip
 	 * @param height      the GUI's height in pixels
 	 * @return <code>true</code> if the cursor is within the tooltip boundaries, otherwise <code>false</code>
 	 */
-	public static boolean mouseEventHelper (int xMouseEvent, int yMouseEvent, int width, int height)
+	public static boolean isCursorWithinGUIBoundaries (int xMouseEvent, int yMouseEvent, int width, int height)
 	{
 		Vector2ic correctedPosition = positionTooltip(
 			width,
@@ -151,13 +128,65 @@ public class CustomTooltip
 			102
 		);
 
-		return (rendering
-			&& ((xMouseEvent > correctedPosition.x() - PADDING
-			&& xMouseEvent < correctedPosition.x() - PADDING + 102)
-			&& (yMouseEvent > correctedPosition.y() - PADDING
-			&& yMouseEvent < correctedPosition.y() - PADDING + 102)))
-			? true : false;
+		return RenderCore.isCursorWithinGUIBoundaries(
+			xMouseEvent,
+			yMouseEvent,
+			correctedPosition.x() - PADDING,
+			correctedPosition.y() - PADDING,
+			102,
+			102
+		);
 	}
+
+	/**
+	 * This method cancels the <code>MouseDragged</code> event within the
+	 * <code>Screen</code> if the cursors is hovering over the boundaries
+	 * of the <code>CustomTooltip</code>.
+	 *
+	 * @param event
+	 */
+	@SubscribeEvent
+	public static void blockScreenInputMouseDragged (ScreenEvent.MouseDragged.Pre event)
+	{
+		event.setCanceled(isCursorWithinGUIBoundaries((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+	}
+
+	/**
+	 * This method cancels the <code>MouseButtonPressed</code> event within the
+	 * <code>Screen</code> if the cursors is hovering over the boundaries
+	 *
+	 * @param event
+	 */
+	@SubscribeEvent
+	public static void blockScreenInputMouseClick (ScreenEvent.MouseButtonPressed.Pre event)
+	{
+		event.setCanceled(isCursorWithinGUIBoundaries((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+	}
+
+	/**
+	 * This method cancels the <code>MouseButtonReleased</code> event within the
+	 * <code>Screen</code> if the cursors is hovering over the boundaries
+	 *
+	 * @param event
+	 */
+	@SubscribeEvent
+	public static void blockScreenInputMouseClickRelease (ScreenEvent.MouseButtonReleased.Pre event)
+	{
+		event.setCanceled(isCursorWithinGUIBoundaries((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+	}
+
+	/**
+	 * This method cancels the <code>MouseScrolled</code> event within the
+	 * <code>Screen</code> if the cursors is hovering over the boundaries
+	 *
+	 * @param event
+	 */
+	@SubscribeEvent
+	public static void blockScreenInputMouseScroll (ScreenEvent.MouseScrolled.Pre event)
+	{
+		event.setCanceled(isCursorWithinGUIBoundaries((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+	}
+
 
 	/**
 	 * The <code>letGoOfKey</code> method checks when the player let's go of the key, then sets the <code>rendering</code>
@@ -201,10 +230,12 @@ public class CustomTooltip
 
 	/**
 	 * This method draws the base rectangle, including the rectangle shape with the borders for the <code>CustomToolip</code>
+	 *
 	 * @param event
 	 * @param position
 	 */
-	public static void drawBaseRectangleWithBorders(ScreenEvent.Render event, Vector2ic position) {
+	public static void drawBaseRectangleWithBorders (ScreenEvent.Render event, Vector2ic position)
+	{
 		int x = position.x() - PADDING;
 		int y = position.y() - PADDING;
 		int size = 100;
@@ -249,6 +280,7 @@ public class CustomTooltip
 	/**
 	 * This method draws the little corner decorations for the <code>CustomTooltip</code>.<br>
 	 * TODO: Add configuration options for designing this
+	 *
 	 * @param event
 	 * @param correctedPosition
 	 */
@@ -365,11 +397,14 @@ public class CustomTooltip
 	/**
 	 * This method calls the other underlying render methods to draw the different elements, such as
 	 * rectangles, lines, text...
+	 *
 	 * @param event
 	 */
 	@SubscribeEvent
-	public static void drawBoxBorders (ScreenEvent.Render event)
+	public void drawBoxBorders (ScreenEvent.Render event)
 	{
+		int numberOfButtons = 2;
+
 		if ( !shouldRender(event.getMouseX(), event.getMouseY()) )
 		{
 			return;
@@ -390,16 +425,63 @@ public class CustomTooltip
 
 		RenderCore.renderText(
 			"Example",
-			x,
-			y,
+			correctedPosition.x(),
+			correctedPosition.y(),
 			901,
 			0xFFFFFFFF,
 			true,
 			event.getGuiGraphics()
 		);
 
-		Button B = new Button();
-		B.render(event.getGuiGraphics().pose());
+		if ( this.arraySet == false )
+		{
+			for ( int i = 0; i < numberOfButtons; i++ )
+			{
+				this.Buttons.add(new Button());
+			}
+			this.arraySet = true;
+		}
+
+		for ( int i = 0; i < 1; i++ )
+		{
+			this.Buttons.get(i).setProperties(
+				correctedPosition.x(),
+				correctedPosition.y() + 100 - 12 - PADDING - 3,
+				12,
+				12,
+				BACKGROUND_COLOR,
+				"NICE"
+			);
+
+			this.Buttons.get(i + 1).setProperties(
+				correctedPosition.x() - 12 + 100 - 2 * 3,
+				correctedPosition.y() + 100 - 12 - PADDING - 3,
+				12,
+				12,
+				BACKGROUND_COLOR,
+				"NICE"
+			);
+
+			this.Buttons.get(i).render(event.getGuiGraphics().pose());
+			this.Buttons.get(i).hover(event.getMouseX(), event.getMouseY());
+
+			this.Buttons.get(i + 1).render(event.getGuiGraphics().pose());
+			this.Buttons.get(i + 1).hover(event.getMouseX(), event.getMouseY());
+		}
+
+		if ( this.clickActive )
+		{
+			//B.click(event.getMouseX(), event.getMouseY());
+			this.clickActive = false;
+		}
+
+		System.out.println("SIZE: " + this.Buttons.size());
+	}
+
+	@SubscribeEvent
+	public void click (ScreenEvent.MouseButtonPressed event)
+	{
+		this.clickActive = true;
 	}
 
 	/**

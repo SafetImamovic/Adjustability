@@ -9,6 +9,7 @@ import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import org.joml.Matrix4f;
+import org.joml.Vector2ic;
 
 /**
  * The RenderCore class provides static methods for rendering various graphical elements
@@ -19,6 +20,26 @@ import org.joml.Matrix4f;
  */
 public class RenderCore
 {
+	/**
+	 * The <code>mouseEventHelper</code> method determines if a mouse event occurred within the area of the tooltip
+	 *
+	 * @param mouseX <code>x</code> coordinate of the mouse position
+	 * @param mouseY <code>y</code> coordinate of the mouse position
+	 * @param x
+	 * @param y
+	 * @param width       the GUI's width in pixels
+	 * @param height      the GUI's height in pixels
+	 * @return <code>true</code> if the cursor is within the tooltip boundaries, otherwise <code>false</code>
+	 */
+	public static boolean isCursorWithinGUIBoundaries (int mouseX, int mouseY, int x, int y, int width, int height)
+	{
+		return (((mouseX > x
+			&& mouseX < x + width)
+			&& (mouseY > y
+			&& mouseY < y + height)))
+			? true : false;
+	}
+
 	/**
 	 * Renders a text string on the screen with specified parameters.
 	 *
