@@ -9,9 +9,9 @@
     <toc-element topic="starter.md"/>
     <toc-element topic="UML-Diagrams.md">
         <toc-element topic="Class-Diagram.md">
-            <toc-element topic="Structural-Name-Only-Class-Diagram.md"/>
             <toc-element topic="Data-Only-Class-Diagram.md"/>
             <toc-element topic="Full-Class-Diagram.md"/>
+            <toc-element topic="Structural-Name-Only-Class-Diagram.md"/>
         </toc-element>
     </toc-element>
 </instance-profile>
