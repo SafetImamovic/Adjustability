@@ -1,14 +1,15 @@
 package io.github.safetimamovic.adjustability;
+
 import net.minecraftforge.common.ForgeConfigSpec;
 import net.minecraftforge.fml.common.Mod;
 
 // An example config class. This is not required, but it's a good idea to have one to keep your config organized.
 // Demonstrates how to use Forge's config APIs
-@Mod.EventBusSubscriber(modid = Adjustability.MODID, bus = Mod.EventBusSubscriber.Bus.MOD)
+@Mod.EventBusSubscriber( modid = Adjustability.MODID, bus = Mod.EventBusSubscriber.Bus.MOD )
 public class Config
 {
-    private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
-//
+	private static final ForgeConfigSpec.Builder BUILDER = new ForgeConfigSpec.Builder();
+	//
 //    private static final ForgeConfigSpec.BooleanValue LOG_DIRT_BLOCK = BUILDER
 //            .comment("Whether to log the dirt block on common setup")
 //            .define("logDirtBlock", true);
@@ -26,7 +27,7 @@ public class Config
 //            .comment("A list of items to log on common setup.")
 //            .defineListAllowEmpty("items", List.of("minecraft:iron_ingot"), io.github.safetimamovic.adjustability.Config::validateItemName);
 //
-    static final ForgeConfigSpec SPEC = BUILDER.build();
+	static final ForgeConfigSpec SPEC = BUILDER.build();
 //
 //    public static boolean logDirtBlock;
 //    public static int magicNumber;

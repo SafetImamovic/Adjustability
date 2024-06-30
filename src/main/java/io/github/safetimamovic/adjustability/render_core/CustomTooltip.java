@@ -1,8 +1,6 @@
 package io.github.safetimamovic.adjustability.render_core;
 
-import com.mojang.blaze3d.vertex.*;
 import io.github.safetimamovic.adjustability.Adjustability;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.network.chat.Component;
@@ -15,290 +13,394 @@ import net.minecraftforge.fml.common.Mod;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
 
-@Mod.EventBusSubscriber(modid = Adjustability.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE)
+/**
+ * The <code>CustomTooltip</code> class draws the custom tooltip while the player is holding down a certain key:
+ * it's <code>CTRL</code> by default (as annotated within the default Minecraft tooltip) and handles the logic such as:
+ * <ul>
+ *         <li>
+ *                 Mousing over the tooltip
+ *         </li>
+ *         <li>
+ *                 Interacting with the tooltip
+ *         </li>
+ * </ul>
+ */
+@Mod.EventBusSubscriber( modid = Adjustability.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE )
 public class CustomTooltip
 {
-    static final int MOUSE_OFFSET = TooltipRenderUtil.MOUSE_OFFSET;
-    static final int PADDING = TooltipRenderUtil.PADDING_TOP;
-    static final int BACKGROUND_COLOR = 0xFF010000; // -267386864
-    static final int BORDER_COLOR_TOP = 0x40FF00FF; // 1347420415
-    static final int BORDER_COLOR_BOTTOM = 0x40DC0CB0; // 1344798847
-    static final int BLENDED_COLOR = 0xFF410040;
-    static boolean rendering = false;
-    static int x, y;
+	/**
+	 * Constants and variables used for tooltip rendering.
+	 * <br>
+	 * These fields define various properties such as offsets, padding, and colors
+	 * for rendering tooltips, as well as control the rendering state and position.
+	 * <br>
+	 * These fields are essentially copied over from the <code>TooltipRenderUtil</code> class
+	 *
+	 * @see TooltipRenderUtil
+	 */
+	static final int MOUSE_OFFSET = TooltipRenderUtil.MOUSE_OFFSET;
+	static final int PADDING = TooltipRenderUtil.PADDING_TOP;
+	static final int BACKGROUND_COLOR = 0xFF010000; // -267386864
+	static final int BORDER_COLOR_TOP = 0x40FF00FF; // 1347420415
+	static final int BORDER_COLOR_BOTTOM = 0x40DC0CB0; // 1344798847
+	static final int BLENDED_COLOR = 0xFF410040;
+	static boolean rendering = false;
+	static int x, y;
 
-    @SubscribeEvent
-    public static void cancelDefaultTooltip(RenderTooltipEvent event)
-    {
-        if (Screen.hasControlDown())
-            event.setCanceled(true);
-    }
+	/**
+	 * This method cancels the default tooltip when the player pressed or is holding down a particular character
+	 * or combination of characters
+	 *
+	 * @param event
+	 */
+	@SubscribeEvent
+	public static void cancelDefaultTooltip (RenderTooltipEvent event)
+	{
+		if ( Screen.hasControlDown() )
+		{
+			event.setCanceled(true);
+		}
+	}
 
-    @SubscribeEvent
-    public static void onClickTickWise(InputEvent.MouseButton event)
-    {
-        System.out.println("Action: ");
-        System.out.println(event.getAction());
-        System.out.println("Button: ");
-        System.out.println(event.getButton());
-    }
+	@SubscribeEvent
+	public static void onClickTickWise (InputEvent.MouseButton event)
+	{
+		System.out.println("Action: ");
+		System.out.println(event.getAction());
+		System.out.println("Button: ");
+		System.out.println(event.getButton());
+	}
 
-    @SubscribeEvent
-    public static void addBottomInformationToTheDefaultTooltipForOpeningTheNewTooltipGui(ItemTooltipEvent event)
-    {
-        event.getToolTip().addLast(Component.empty());
-        event.getToolTip().addLast(Component.literal("Hold [CTRL] for:"));
-        event.getToolTip().addLast(Component.literal("<<Enchantment Adjustments>>").withColor(0xFFFF00FF));
-    }
+	/**
+	 * This method just adds the description at the bottom of the default tooltip. It outlines which character
+	 * or combination of characters the player needs to press or hold down for the custom tooltip to appear
+	 *
+	 * @param event
+	 */
+	@SubscribeEvent
+	public static void addBottomInformationToTheDefaultTooltipForOpeningTheCustomTooltipGui (ItemTooltipEvent event)
+	{
+		event.getToolTip().addLast(Component.empty());
+		event.getToolTip().addLast(Component.literal("Hold [CTRL] for:"));
+		event.getToolTip().addLast(Component.literal("<<Enchantment Adjustments>>").withColor(0xFFFF00FF));
+	}
 
-    @SubscribeEvent
-    public static void blockScreenInputMouseDragged(ScreenEvent.MouseDragged.Pre event)
-    {
-        event.setCanceled(mouseEventHelper(((int) event.getMouseX()), ((int) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-    }
+	@SubscribeEvent
+	public static void blockScreenInputMouseDragged (ScreenEvent.MouseDragged.Pre event)
+	{
+		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+	}
 
-    @SubscribeEvent
-    public static void blockScreenInputMouseClick(ScreenEvent.MouseButtonPressed.Pre event)
-    {
-        event.setCanceled(mouseEventHelper(((int) event.getMouseX()), ((int) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-    }
+	@SubscribeEvent
+	public static void blockScreenInputMouseClick (ScreenEvent.MouseButtonPressed.Pre event)
+	{
+		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+	}
 
-    @SubscribeEvent
-    public static void blockScreenInputMouseClickRelease(ScreenEvent.MouseButtonReleased.Pre event)
-    {
-        event.setCanceled(mouseEventHelper(((int) event.getMouseX()), ((int) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-    }
+	@SubscribeEvent
+	public static void blockScreenInputMouseClickRelease (ScreenEvent.MouseButtonReleased.Pre event)
+	{
+		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+	}
 
-    @SubscribeEvent
-    public static void blockScreenInputMouseScroll(ScreenEvent.MouseScrolled.Pre event)
-    {
-        event.setCanceled(mouseEventHelper(((int) event.getMouseX()), ((int) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-    }
+	@SubscribeEvent
+	public static void blockScreenInputMouseScroll (ScreenEvent.MouseScrolled.Pre event)
+	{
+		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+	}
 
-    public static boolean mouseEventHelper(int xMouseEvent, int yMouseEvent, int width, int height)
-    {
-        Vector2ic correctedPosition = positionTooltip(
-                width,
-                height,
-                x,
-                y,
-                102,
-                102
-        );
+	/**
+	 * The <code>mouseEventHelper</code> method determines if a mouse event occurred within the area of the tooltip
+	 *
+	 * @param xMouseEvent <code>x</code> coordinate of the mouse position
+	 * @param yMouseEvent <code>y</code> coordinate of the mouse position
+	 * @param width       the GUI's width in pixels
+	 * @param height      the GUI's height in pixels
+	 * @return <code>true</code> if the cursor is within the tooltip boundaries, otherwise <code>false</code>
+	 */
+	public static boolean mouseEventHelper (int xMouseEvent, int yMouseEvent, int width, int height)
+	{
+		Vector2ic correctedPosition = positionTooltip(
+			width,
+			height,
+			x,
+			y,
+			102,
+			102
+		);
 
-        return (rendering
-                && ((xMouseEvent > correctedPosition.x() - PADDING
-                && xMouseEvent < correctedPosition.x() - PADDING + 102)
-                && (yMouseEvent > correctedPosition.y() - PADDING
-                && yMouseEvent < correctedPosition.y() - PADDING + 102)))
-                ? true : false;
-    }
+		return (rendering
+			&& ((xMouseEvent > correctedPosition.x() - PADDING
+			&& xMouseEvent < correctedPosition.x() - PADDING + 102)
+			&& (yMouseEvent > correctedPosition.y() - PADDING
+			&& yMouseEvent < correctedPosition.y() - PADDING + 102)))
+			? true : false;
+	}
 
-    @SubscribeEvent
-    public static void letGoOfKey(ScreenEvent.KeyReleased event)
-    {
-        if (event.getKeyCode() == 341)
-        {
-            rendering = false;
-            System.out.println(rendering);
-        }
-    }
+	/**
+	 * The <code>letGoOfKey</code> method checks when the player let's go of the key, then sets the <code>rendering</code>
+	 * variable to false
+	 *
+	 * @param event
+	 */
+	@SubscribeEvent
+	public static void letGoOfKey (ScreenEvent.KeyReleased event)
+	{
+		if ( event.getKeyCode() == 341 )
+		{
+			rendering = false;
+		}
+	}
 
-    @SubscribeEvent
-    public static void drawBoxBorders(ScreenEvent.Render event)
-    {
-        if (Screen.hasControlDown() && !rendering)
-        {
-            rendering = true;
-            System.out.println(rendering);
-
-            x = event.getMouseX();
-            y = event.getMouseY();
-        }
-        else if (!rendering)
-            return;
-
-        Vector2ic correctedPosition = positionTooltip(
-                event.getScreen().width,
-                event.getScreen().height,
-                x,
-                y,
-                102,
-                102
-        );
+	/**
+	 * The <code>shouldRender</code> method examines if the rendering process should proceed based on if the player is holding
+	 * down, or if the player pressed the correct key, or combination there of.
+	 *
+	 * @param mouseX is the last x coordinate of the cursor position when the player initiated the render
+	 * @param mouseY is the last y coordinate of the cursor position when the player initiated the render
+	 * @return <code>true</code> if the player is holding the the correct key and if the <code>rendering</code>
+	 * variable is set to false
+	 */
 
 
-        RenderCore.drawRectangle(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - PADDING,
-                correctedPosition.y() - PADDING,
-                100,
-                100,
-                BACKGROUND_COLOR,
-                BACKGROUND_COLOR,
-                900
-        );
+	private static boolean shouldRender (int mouseX, int mouseY)
+	{
+		if ( Screen.hasControlDown() && !rendering )
+		{
+			rendering = true;
+			x = mouseX;
+			y = mouseY;
+			return true;
+		}
+		else if ( !rendering )
+		{
+			return false;
+		}
+		return true;
+	}
 
-        RenderCore.drawBoxBorders(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - PADDING,
-                correctedPosition.y() - PADDING,
-                100,
-                100,
-                BORDER_COLOR_TOP,
-                BORDER_COLOR_BOTTOM,
-                true,
-                900
-        );
+	public static void drawBaseRectangleWithBorders (ScreenEvent.Render event, Vector2ic correctedPosition)
+	{
+		RenderCore.drawRectangle(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - PADDING,
+			correctedPosition.y() - PADDING,
+			100,
+			100,
+			BACKGROUND_COLOR,
+			BACKGROUND_COLOR,
+			900
+		);
 
-        RenderCore.drawBoxBorders(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - 1 - PADDING,
-                correctedPosition.y() - 1 - PADDING,
-                102,
-                102,
-                BACKGROUND_COLOR,
-                BACKGROUND_COLOR,
-                false,
-                900
-        );
+		RenderCore.drawBoxBorders(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - PADDING,
+			correctedPosition.y() - PADDING,
+			100,
+			100,
+			BORDER_COLOR_TOP,
+			BORDER_COLOR_BOTTOM,
+			true,
+			900
+		);
 
-        int verticalDecorLength = 16;
-        int horizontalDecorLength = 16;
+		RenderCore.drawBoxBorders(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - 1 - PADDING,
+			correctedPosition.y() - 1 - PADDING,
+			102,
+			102,
+			BACKGROUND_COLOR,
+			BACKGROUND_COLOR,
+			false,
+			900
+		);
+	}
 
-        // Top Left Vertical Decor
-        RenderCore.drawBoxBorders(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - PADDING - 5,
-                correctedPosition.y() - PADDING - 5,
-                3,
-                verticalDecorLength,
-                BLENDED_COLOR,
-                BLENDED_COLOR,
-                false,
-                900
-        );
+	public static void drawDecorationsAroundTooltip (ScreenEvent.Render event, Vector2ic correctedPosition)
+	{
+		int verticalDecorLength = 16;
+		int horizontalDecorLength = 16;
 
-        // Top Left Horizontal Decor
-        RenderCore.drawBoxBorders(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - PADDING - 5,
-                correctedPosition.y() - PADDING - 5,
-                horizontalDecorLength,
-                3,
-                BLENDED_COLOR,
-                BLENDED_COLOR,
-                false,
-                900
-        );
+		// Top Left Vertical Decor
+		RenderCore.drawBoxBorders(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - PADDING - 5,
+			correctedPosition.y() - PADDING - 5,
+			3,
+			verticalDecorLength,
+			BLENDED_COLOR,
+			BLENDED_COLOR,
+			false,
+			900
+		);
 
-        // Top Right Vertical Decor
-        RenderCore.drawBoxBorders(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - PADDING + 100 + 5 - 3,
-                correctedPosition.y() - PADDING - 5,
-                3,
-                verticalDecorLength,
-                BLENDED_COLOR,
-                BLENDED_COLOR,
-                false,
-                900
-        );
+		// Top Left Horizontal Decor
+		RenderCore.drawBoxBorders(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - PADDING - 5,
+			correctedPosition.y() - PADDING - 5,
+			horizontalDecorLength,
+			3,
+			BLENDED_COLOR,
+			BLENDED_COLOR,
+			false,
+			900
+		);
 
-        // Top Right Horizontal Decor
-        RenderCore.drawBoxBorders(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,
-                correctedPosition.y() - PADDING - 5,
-                horizontalDecorLength,
-                3,
-                BLENDED_COLOR,
-                BLENDED_COLOR,
-                false,
-                900
-        );
+		// Top Right Vertical Decor
+		RenderCore.drawBoxBorders(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - PADDING + 100 + 5 - 3,
+			correctedPosition.y() - PADDING - 5,
+			3,
+			verticalDecorLength,
+			BLENDED_COLOR,
+			BLENDED_COLOR,
+			false,
+			900
+		);
 
-        // Bottom Left Vertical Decor
-        RenderCore.drawBoxBorders(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - PADDING - 5,
-                correctedPosition.y() - PADDING - verticalDecorLength + 5 + 100,
-                3,
-                verticalDecorLength,
-                BLENDED_COLOR,
-                BLENDED_COLOR,
-                false,
-                900
-        );
+		// Top Right Horizontal Decor
+		RenderCore.drawBoxBorders(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,
+			correctedPosition.y() - PADDING - 5,
+			horizontalDecorLength,
+			3,
+			BLENDED_COLOR,
+			BLENDED_COLOR,
+			false,
+			900
+		);
 
-        // Bottom Left Horizontal Decor
-        RenderCore.drawBoxBorders(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - PADDING - 5,
-                correctedPosition.y() - PADDING + 5 + 100 - 3,
-                horizontalDecorLength,
-                3,
-                BLENDED_COLOR,
-                BLENDED_COLOR,
-                false,
-                900
-        );
+		// Bottom Left Vertical Decor
+		RenderCore.drawBoxBorders(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - PADDING - 5,
+			correctedPosition.y() - PADDING - verticalDecorLength + 5 + 100,
+			3,
+			verticalDecorLength,
+			BLENDED_COLOR,
+			BLENDED_COLOR,
+			false,
+			900
+		);
 
-        // Bottom Right Vertical Decor
-        RenderCore.drawBoxBorders(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - PADDING + 100 + 5 - 3,
-                correctedPosition.y() - PADDING + 5 + 100 - verticalDecorLength,
-                3,
-                verticalDecorLength,
-                BLENDED_COLOR,
-                BLENDED_COLOR,
-                false,
-                900
-        );
+		// Bottom Left Horizontal Decor
+		RenderCore.drawBoxBorders(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - PADDING - 5,
+			correctedPosition.y() - PADDING + 5 + 100 - 3,
+			horizontalDecorLength,
+			3,
+			BLENDED_COLOR,
+			BLENDED_COLOR,
+			false,
+			900
+		);
 
-        // Bottom Right Horizontal Decor
-        RenderCore.drawBoxBorders(
-                event.getGuiGraphics().pose(),
-                correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,
-                correctedPosition.y() - PADDING + 5 + 100 - 3,
-                horizontalDecorLength,
-                3,
-                BLENDED_COLOR,
-                BLENDED_COLOR,
-                false,
-                900
-        );
+		// Bottom Right Vertical Decor
+		RenderCore.drawBoxBorders(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - PADDING + 100 + 5 - 3,
+			correctedPosition.y() - PADDING + 5 + 100 - verticalDecorLength,
+			3,
+			verticalDecorLength,
+			BLENDED_COLOR,
+			BLENDED_COLOR,
+			false,
+			900
+		);
 
-        RenderCore.renderText(
-                "Example",
-                x,
-                y,
-                1003,
-                0xFFFFFFFF,
-                true,
-                event.getGuiGraphics()
-        );
-    }
+		// Bottom Right Horizontal Decor
+		RenderCore.drawBoxBorders(
+			event.getGuiGraphics().pose(),
+			correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,
+			correctedPosition.y() - PADDING + 5 + 100 - 3,
+			horizontalDecorLength,
+			3,
+			BLENDED_COLOR,
+			BLENDED_COLOR,
+			false,
+			900
+		);
+	}
 
-    public static Vector2ic positionTooltip(int pScreenWidth, int pScreenHeight, int pMouseX, int pMouseY, int pTooltipWidth, int pTooltipHeight)
-    {
-        Vector2i $$6 = (new Vector2i(pMouseX, pMouseY)).add(12, -12);
-        positionTooltip(pScreenWidth, pScreenHeight, $$6, pTooltipWidth, pTooltipHeight);
-        return $$6;
-    }
+	@SubscribeEvent
+	public static void drawBoxBorders (ScreenEvent.Render event)
+	{
+		if ( !shouldRender(event.getMouseX(), event.getMouseY()) )
+		{
+			return;
+		}
 
-    public static void positionTooltip(int pScreenWidth, int pScreenHeight, Vector2i pTooltipPos, int pTooltipWidth, int pTooltipHeight)
-    {
-        if (pTooltipPos.x + pTooltipWidth > pScreenWidth)
-        {
-            pTooltipPos.x = Math.max(pTooltipPos.x - 24 - pTooltipWidth, 4);
-        }
+		Vector2ic correctedPosition = positionTooltip(
+			event.getScreen().width,
+			event.getScreen().height,
+			x,
+			y,
+			102,
+			102
+		);
 
-        int $$5 = pTooltipHeight + 3;
-        if (pTooltipPos.y + $$5 > pScreenHeight)
-        {
-            pTooltipPos.y = pScreenHeight - $$5;
-        }
-    }
+		drawBaseRectangleWithBorders(event, correctedPosition);
+
+		drawDecorationsAroundTooltip(event, correctedPosition);
+
+		RenderCore.renderText(
+			"Example",
+			x,
+			y,
+			901,
+			0xFFFFFFFF,
+			true,
+			event.getGuiGraphics()
+		);
+	}
+
+	/**
+	 * The <code>positionTooltip</code> method repositions the custom tooltip based on it's current position in relation to the screen height and width.
+	 * So if the tooltip crosses the boundaries of the screen it gets repositioned to be rendered within the boundaries of the screen.
+	 * Much like how the default tooltip repositioner works
+	 *
+	 * @param pScreenWidth
+	 * @param pScreenHeight
+	 * @param pMouseX
+	 * @param pMouseY
+	 * @param pTooltipWidth
+	 * @param pTooltipHeight
+	 * @return Vector2ic for the corrected position
+	 */
+	public static Vector2ic positionTooltip (int pScreenWidth, int pScreenHeight, int pMouseX, int pMouseY, int pTooltipWidth, int pTooltipHeight)
+	{
+		Vector2i $$6 = (new Vector2i(pMouseX, pMouseY)).add(12, -12);
+		positionTooltip(pScreenWidth, pScreenHeight, $$6, pTooltipWidth, pTooltipHeight);
+		return $$6;
+	}
+
+	/**
+	 * The <code>positionTooltip</code> method repositions the custom tooltip based on it's current position in relation to the screen height and width.
+	 * So if the tooltip crosses the boundaries of the screen it gets repositioned to be rendered within the boundaries of the screen.
+	 * Much like how the default tooltip repositioner works
+	 *
+	 * @param pScreenWidth
+	 * @param pScreenHeight
+	 * @param pTooltipPos
+	 * @param pTooltipWidth
+	 * @param pTooltipHeight
+	 */
+	public static void positionTooltip (int pScreenWidth, int pScreenHeight, Vector2i pTooltipPos, int pTooltipWidth, int pTooltipHeight)
+	{
+		if ( pTooltipPos.x + pTooltipWidth > pScreenWidth )
+		{
+			pTooltipPos.x = Math.max(pTooltipPos.x - 24 - pTooltipWidth, 4);
+		}
+
+		int $$5 = pTooltipHeight + 3;
+		if ( pTooltipPos.y + $$5 > pScreenHeight )
+		{
+			pTooltipPos.y = pScreenHeight - $$5;
+		}
+	}
 }
