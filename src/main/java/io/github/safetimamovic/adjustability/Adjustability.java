@@ -1,7 +1,6 @@
 package io.github.safetimamovic.adjustability;
 
 import io.github.safetimamovic.adjustability.enchantments_logic.AnvilHandler;
-import io.github.safetimamovic.adjustability.render_core.CustomTooltip;
 import com.mojang.logging.LogUtils;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;

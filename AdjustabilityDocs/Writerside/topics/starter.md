@@ -12,7 +12,7 @@ What if you could seamlessly switch between these enchantments without needing m
 
 This mod allows players to toggle between **mutually exclusive enchantments** on their items, giving you the flexibility to adapt to different tasks on the fly.
 
-Whether you're mining diamonds and need Fortune or harvesting blocks with Silk Touch, **Adjustability** lets you do it all with just one tool or piece of armor.
+Whether you're mining diamonds and need Fortune or harvesting grass blocks with Silk Touch, **Adjustability** lets you do it all with just one tool or piece of armor.
 
 ## Key Features
 
@@ -50,12 +50,12 @@ Interested in contributing to Adjustability or have feedback?
 
 ## Contact Information
 
-Reach out via email at `safet.imaovic.22@size.ba` or find me in Minecraft as `SS_P_I_NN`.
+Reach out via email at `safet.imamovic.22@size.ba` or find me in Minecraft as `SS_P_I_NN`.
 
 ## Conclusion
 
 Adjustability is my personal project aimed at deepening my Java and Minecraft modding skills while providing players, modpack developers, and mod creators with a powerful tool for enchantment management in Minecraft.
 
-> I'm not an expert or professional Java developer, but I'm passionate about creating mods that enhance the Minecraft experience. I hope Adjustability will be a valuable addition to your gameplay and modpacks.
+> I'm not an expert or professional Java developer, I'm a beginner at learning Java, but I'm passionate about creating mods that enhance the Minecraft experience. I hope Adjustability will be a valuable addition to your gameplay and modpacks.
 
 *Thank you for exploring Adjustability! I'm excited to hear your thoughts and suggestions.*

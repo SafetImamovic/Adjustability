@@ -10,17 +10,24 @@ import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import org.joml.Matrix4f;
 
+/**
+ * The RenderCore class provides static methods for rendering various graphical elements
+ * on the screen using Minecraft's rendering system.
+ *
+ * This class includes methods for rendering text, drawing box borders, and drawing filled
+ * rectangles with gradient colors.
+ */
 public class RenderCore
 {
 	/**
 	 * Renders a text string on the screen with specified parameters.
 	 *
-	 * @param text The text to render.
-	 * @param x The x-coordinate position where the text should be rendered.
-	 * @param y The y-coordinate position where the text should be rendered.
-	 * @param zIndex The z-index or layering order of the text in 3D space.
-	 * @param color The color of the text in ARGB format (0xAARRGGBB).
-	 * @param dropShadow Whether to render the text with a drop shadow.
+	 * @param text        The text to render.
+	 * @param x           The x-coordinate position where the text should be rendered.
+	 * @param y           The y-coordinate position where the text should be rendered.
+	 * @param zIndex      The z-index or layering order of the text in 3D space.
+	 * @param color       The color of the text in ARGB format (0xAARRGGBB).
+	 * @param dropShadow  Whether to render the text with a drop shadow.
 	 * @param guiGraphics The GUI graphics context used for rendering.
 	 */
 	public static void renderText (String text, float x, float y, int zIndex, int color, boolean dropShadow, GuiGraphics guiGraphics)
@@ -46,64 +53,47 @@ public class RenderCore
 		//RenderSystem.disableBlend();
 	}
 
+	/**
+	 * This method draws the Box Borders for the <code>CustomTooltip</code> GUI.
+	 * @param poseStack     	The PoseStack used for rendering transformations.
+	 * @param x             	The x-coordinate of the top-left corner of the box.
+	 * @param y             	The y-coordinate of the top-left corner of the box.
+	 * @param width         	The width of the box.
+	 * @param height        	The height of the box.
+	 * @param colorPrimary  	The color of the primary borders (top and left).
+	 * @param colorSecondary 	The color of the secondary borders (bottom and right).
+	 * @param drawCorner    	If true, the corners of the box are drawn; otherwise, they are not drawn.
+	 * @param zIndex        	The rendering priority or depth index.
+	 */
 	public static void drawBoxBorders (PoseStack poseStack, int x, int y, int width, int height, int colorPrimary, int colorSecondary, boolean drawCorner, int zIndex)
 	{
-		int additionalPixel = 1;
-
-		if ( drawCorner )
-		{
-			additionalPixel = 0;
-		}
+		int offset = drawCorner ? 0 : 1;
 
 		// Top Horizontal Line
-		RenderCore.drawRectangle(
-			poseStack,
-			x + (additionalPixel),
-			y,
-			width - (2 * additionalPixel),
-			1,
-			colorPrimary,
-			colorPrimary,
-			zIndex
-		);
+		RenderCore.drawRectangle(poseStack, x + offset, y, width - 2 * offset, 1, colorPrimary, colorPrimary, zIndex);
 
 		// Bottom Horizontal Line
-		RenderCore.drawRectangle(
-			poseStack,
-			x + (additionalPixel),
-			y + height - 1,
-			width - (2 * additionalPixel),
-			1,
-			colorSecondary,
-			colorSecondary,
-			zIndex
-		);
+		RenderCore.drawRectangle(poseStack, x + offset, y + height - 1, width - 2 * offset, 1, colorSecondary, colorSecondary, zIndex);
 
 		// Left Vertical Line
-		RenderCore.drawRectangle(
-			poseStack,
-			x,
-			y + 1,
-			1,
-			height - 2,
-			colorPrimary,
-			colorSecondary,
-			zIndex
-		);
+		RenderCore.drawRectangle(poseStack, x, y + 1, 1, height - 2, colorPrimary, colorSecondary, zIndex);
 
 		// Right Vertical Line
-		RenderCore.drawRectangle(
-			poseStack,
-			x + width - 1,
-			y + 1,
-			1,
-			height - 2,
-			colorPrimary,
-			colorSecondary,
-			zIndex
-		);
+		RenderCore.drawRectangle(poseStack, x + width - 1, y + 1, 1, height - 2, colorPrimary, colorSecondary, zIndex);
 	}
 
+	/**
+	 * Draws a filled rectangle with gradient colors on the screen.
+	 *
+	 * @param poseStack     	The PoseStack used for rendering transformations.
+	 * @param x             	The x-coordinate of the top-left corner of the rectangle.
+	 * @param y             	The y-coordinate of the top-left corner of the rectangle.
+	 * @param width         	The width of the rectangle.
+	 * @param height        	The height of the rectangle.
+	 * @param colorPrimary  	The color of the top-left corner (starting gradient color).
+	 * @param colorSecondary 	The color of the bottom-right corner (ending gradient color).
+	 * @param zIndex        	The rendering priority or depth index.
+	 */
 	public static void drawRectangle (PoseStack poseStack, int x, int y, int width, int height, int colorPrimary, int colorSecondary, int zIndex)
 	{
 		poseStack.pushPose();
@@ -112,6 +102,18 @@ public class RenderCore
 		poseStack.popPose();
 	}
 
+	/**
+	 * Draws a filled rectangle with gradient colors using specified rendering parameters.
+	 *
+	 * @param matrix         The transformation matrix for rendering.
+	 * @param zIndex         The rendering priority or depth index.
+	 * @param left           The x-coordinate of the left edge of the rectangle.
+	 * @param top            The y-coordinate of the top edge of the rectangle.
+	 * @param right          The x-coordinate of the right edge of the rectangle.
+	 * @param bottom         The y-coordinate of the bottom edge of the rectangle.
+	 * @param colorPrimary   The color of the top-left corner (starting gradient color).
+	 * @param colorSecondary The color of the bottom-right corner (ending gradient color).
+	 */
 	public static void drawGradientRectangle (Matrix4f matrix, int zIndex, int left, int top, int right, int bottom, int colorPrimary, int colorSecondary)
 	{
 		RenderSystem.enableDepthTest();
@@ -129,6 +131,19 @@ public class RenderCore
 		RenderSystem.disableBlend();
 	}
 
+	/**
+	 * Draws a filled rectangle with gradient colors using specified rendering parameters.
+	 *
+	 * @param matrix         The transformation matrix for rendering.
+	 * @param bufferBuilder  The BufferBuilder instance for vertex data.
+	 * @param left           The x-coordinate of the left edge of the rectangle.
+	 * @param top            The y-coordinate of the top edge of the rectangle.
+	 * @param right          The x-coordinate of the right edge of the rectangle.
+	 * @param bottom         The y-coordinate of the bottom edge of the rectangle.
+	 * @param colorPrimary   The color of the top-left corner (starting gradient color).
+	 * @param colorSecondary The color of the bottom-right corner (ending gradient color).
+	 * @param zIndex         The rendering priority or depth index.
+	 */
 	public static void drawGradientRectangle (Matrix4f matrix, BufferBuilder bufferBuilder, int left, int top, int right, int bottom, int colorPrimary, int colorSecondary, int zIndex)
 	{
 		bufferBuilder.vertex(matrix, right, top, zIndex).color(colorPrimary).endVertex();

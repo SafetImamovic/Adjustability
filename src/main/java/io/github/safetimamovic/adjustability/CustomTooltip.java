@@ -1,6 +1,7 @@
-package io.github.safetimamovic.adjustability.render_core;
+package io.github.safetimamovic.adjustability;
 
-import io.github.safetimamovic.adjustability.Adjustability;
+import io.github.safetimamovic.adjustability.gui_elements.Button;
+import io.github.safetimamovic.adjustability.render_core.RenderCore;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.network.chat.Component;
@@ -85,24 +86,45 @@ public class CustomTooltip
 		event.getToolTip().addLast(Component.literal("<<Enchantment Adjustments>>").withColor(0xFFFF00FF));
 	}
 
+	/**
+	 * This method cancels the <code>MouseDragged</code> event within the
+	 * <code>Screen</code> if the cursors is hovering over the boundaries
+	 * of the <code>CustomTooltip</code>.
+	 * @param event
+	 */
 	@SubscribeEvent
 	public static void blockScreenInputMouseDragged (ScreenEvent.MouseDragged.Pre event)
 	{
 		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
 	}
 
+	/**
+	 * This method cancels the <code>MouseButtonPressed</code> event within the
+	 * <code>Screen</code> if the cursors is hovering over the boundaries
+	 * @param event
+	 */
 	@SubscribeEvent
 	public static void blockScreenInputMouseClick (ScreenEvent.MouseButtonPressed.Pre event)
 	{
 		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
 	}
 
+	/**
+	 * This method cancels the <code>MouseButtonReleased</code> event within the
+	 * <code>Screen</code> if the cursors is hovering over the boundaries
+	 * @param event
+	 */
 	@SubscribeEvent
 	public static void blockScreenInputMouseClickRelease (ScreenEvent.MouseButtonReleased.Pre event)
 	{
 		event.setCanceled(mouseEventHelper((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
 	}
 
+	/**
+	 * This method cancels the <code>MouseScrolled</code> event within the
+	 * <code>Screen</code> if the cursors is hovering over the boundaries
+	 * @param event
+	 */
 	@SubscribeEvent
 	public static void blockScreenInputMouseScroll (ScreenEvent.MouseScrolled.Pre event)
 	{
@@ -161,8 +183,6 @@ public class CustomTooltip
 	 * @return <code>true</code> if the player is holding the the correct key and if the <code>rendering</code>
 	 * variable is set to false
 	 */
-
-
 	private static boolean shouldRender (int mouseX, int mouseY)
 	{
 		if ( Screen.hasControlDown() && !rendering )
@@ -179,14 +199,23 @@ public class CustomTooltip
 		return true;
 	}
 
-	public static void drawBaseRectangleWithBorders (ScreenEvent.Render event, Vector2ic correctedPosition)
-	{
+	/**
+	 * This method draws the base rectangle, including the rectangle shape with the borders for the <code>CustomToolip</code>
+	 * @param event
+	 * @param position
+	 */
+	public static void drawBaseRectangleWithBorders(ScreenEvent.Render event, Vector2ic position) {
+		int x = position.x() - PADDING;
+		int y = position.y() - PADDING;
+		int size = 100;
+		int borderSize = 102;
+
 		RenderCore.drawRectangle(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING,
-			correctedPosition.y() - PADDING,
-			100,
-			100,
+			x,
+			y,
+			size,
+			size,
 			BACKGROUND_COLOR,
 			BACKGROUND_COLOR,
 			900
@@ -194,10 +223,10 @@ public class CustomTooltip
 
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING,
-			correctedPosition.y() - PADDING,
-			100,
-			100,
+			x,
+			y,
+			size,
+			size,
 			BORDER_COLOR_TOP,
 			BORDER_COLOR_BOTTOM,
 			true,
@@ -206,10 +235,10 @@ public class CustomTooltip
 
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - 1 - PADDING,
-			correctedPosition.y() - 1 - PADDING,
-			102,
-			102,
+			x - 1,
+			y - 1,
+			borderSize,
+			borderSize,
 			BACKGROUND_COLOR,
 			BACKGROUND_COLOR,
 			false,
@@ -217,6 +246,12 @@ public class CustomTooltip
 		);
 	}
 
+	/**
+	 * This method draws the little corner decorations for the <code>CustomTooltip</code>.<br>
+	 * TODO: Add configuration options for designing this
+	 * @param event
+	 * @param correctedPosition
+	 */
 	public static void drawDecorationsAroundTooltip (ScreenEvent.Render event, Vector2ic correctedPosition)
 	{
 		int verticalDecorLength = 16;
@@ -327,6 +362,11 @@ public class CustomTooltip
 		);
 	}
 
+	/**
+	 * This method calls the other underlying render methods to draw the different elements, such as
+	 * rectangles, lines, text...
+	 * @param event
+	 */
 	@SubscribeEvent
 	public static void drawBoxBorders (ScreenEvent.Render event)
 	{
@@ -357,6 +397,9 @@ public class CustomTooltip
 			true,
 			event.getGuiGraphics()
 		);
+
+		Button B = new Button();
+		B.render(event.getGuiGraphics().pose());
 	}
 
 	/**
