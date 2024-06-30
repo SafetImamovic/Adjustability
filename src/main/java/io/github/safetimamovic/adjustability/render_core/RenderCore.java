@@ -9,12 +9,10 @@ import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import org.joml.Matrix4f;
-import org.joml.Vector2ic;
 
 /**
  * The RenderCore class provides static methods for rendering various graphical elements
  * on the screen using Minecraft's rendering system.
- *
  * This class includes methods for rendering text, drawing box borders, and drawing filled
  * rectangles with gradient colors.
  */
@@ -25,33 +23,29 @@ public class RenderCore
 	 *
 	 * @param mouseX <code>x</code> coordinate of the mouse position
 	 * @param mouseY <code>y</code> coordinate of the mouse position
-	 * @param x
-	 * @param y
+	 * @param x x coordinate
+	 * @param y y coordinate
 	 * @param width       the GUI's width in pixels
 	 * @param height      the GUI's height in pixels
 	 * @return <code>true</code> if the cursor is within the tooltip boundaries, otherwise <code>false</code>
 	 */
 	public static boolean isCursorWithinGUIBoundaries (int mouseX, int mouseY, int x, int y, int width, int height)
 	{
-		return (((mouseX > x
+		return (mouseX > x
 			&& mouseX < x + width)
 			&& (mouseY > y
-			&& mouseY < y + height)))
-			? true : false;
+			&& mouseY < y + height);
 	}
 
 	/**
 	 * Renders a text string on the screen with specified parameters.
 	 *
-	 * @param text        The text to render.
 	 * @param x           The x-coordinate position where the text should be rendered.
 	 * @param y           The y-coordinate position where the text should be rendered.
 	 * @param zIndex      The z-index or layering order of the text in 3D space.
-	 * @param color       The color of the text in ARGB format (0xAARRGGBB).
-	 * @param dropShadow  Whether to render the text with a drop shadow.
 	 * @param guiGraphics The GUI graphics context used for rendering.
 	 */
-	public static void renderText (String text, float x, float y, int zIndex, int color, boolean dropShadow, GuiGraphics guiGraphics)
+	public static void renderText (float x, float y, int zIndex, GuiGraphics guiGraphics)
 	{
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.translate(0, 0, zIndex); // Set the Z-index
@@ -142,8 +136,8 @@ public class RenderCore
 		RenderSystem.defaultBlendFunc();
 		RenderSystem.setShader(GameRenderer::getPositionColorShader);
 
-		Tesselator tessellator = Tesselator.getInstance();
-		BufferBuilder bufferBuilder = tessellator.getBuilder();
+		Tesselator tesselator = Tesselator.getInstance();
+		BufferBuilder bufferBuilder = tesselator.getBuilder();
 		bufferBuilder.begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
 
 		drawGradientRectangle(matrix, bufferBuilder, left, top, right, bottom, colorPrimary, colorSecondary, zIndex);

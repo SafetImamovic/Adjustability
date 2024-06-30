@@ -1,30 +1,19 @@
 package io.github.safetimamovic.adjustability;
 
-import com.sun.jna.platform.win32.Wincon;
 import io.github.safetimamovic.adjustability.gui_elements.Button;
 import io.github.safetimamovic.adjustability.render_core.RenderCore;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.MouseHandler;
-import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.client.ForgeHooksClient;
 import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.ScreenEvent;
-import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import org.joml.Vector2i;
 import org.joml.Vector2ic;
-import net.minecraftforge.client.event.InputEvent;
 
-import javax.swing.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,7 +42,7 @@ public class CustomTooltip
 	 *
 	 * @see TooltipRenderUtil
 	 */
-	static final int MOUSE_OFFSET = TooltipRenderUtil.MOUSE_OFFSET;
+	//static final int MOUSE_OFFSET = TooltipRenderUtil.MOUSE_OFFSET;
 	static final int PADDING = TooltipRenderUtil.PADDING_TOP;
 	static final int BACKGROUND_COLOR = 0xFF010000; // -267386864
 	static final int BORDER_COLOR_TOP = 0x40FF00FF; // 1347420415
@@ -62,7 +51,7 @@ public class CustomTooltip
 	static boolean rendering = false;
 	static int x, y;
 	private boolean clickActive = false;
-	private List<Button> Buttons;
+	private final List<Button> Buttons;
 	private boolean arraySet = false;
 
 	public CustomTooltip ()
@@ -74,7 +63,7 @@ public class CustomTooltip
 	 * This method cancels the default tooltip when the player pressed or is holding down a particular character
 	 * or combination of characters
 	 *
-	 * @param event
+	 * @param event RenderTooltipEvent
 	 */
 	@SubscribeEvent
 	public static void cancelDefaultTooltip (RenderTooltipEvent event)
@@ -98,7 +87,7 @@ public class CustomTooltip
 	 * This method just adds the description at the bottom of the default tooltip. It outlines which character
 	 * or combination of characters the player needs to press or hold down for the custom tooltip to appear
 	 *
-	 * @param event
+	 * @param event ItemTooltipEvent
 	 */
 	@SubscribeEvent
 	public static void addBottomInformationToTheDefaultTooltipForOpeningTheCustomTooltipGui (ItemTooltipEvent event)
@@ -143,7 +132,7 @@ public class CustomTooltip
 	 * <code>Screen</code> if the cursors is hovering over the boundaries
 	 * of the <code>CustomTooltip</code>.
 	 *
-	 * @param event
+	 * @param event ScreenEvent.MouseDragged.Pre
 	 */
 	@SubscribeEvent
 	public static void blockScreenInputMouseDragged (ScreenEvent.MouseDragged.Pre event)
@@ -155,7 +144,7 @@ public class CustomTooltip
 	 * This method cancels the <code>MouseButtonPressed</code> event within the
 	 * <code>Screen</code> if the cursors is hovering over the boundaries
 	 *
-	 * @param event
+	 * @param event ScreenEvent.MouseButtonPressed.Pre
 	 */
 	@SubscribeEvent
 	public static void blockScreenInputMouseClick (ScreenEvent.MouseButtonPressed.Pre event)
@@ -167,7 +156,7 @@ public class CustomTooltip
 	 * This method cancels the <code>MouseButtonReleased</code> event within the
 	 * <code>Screen</code> if the cursors is hovering over the boundaries
 	 *
-	 * @param event
+	 * @param event ScreenEvent.MouseButtonReleased.Pre
 	 */
 	@SubscribeEvent
 	public static void blockScreenInputMouseClickRelease (ScreenEvent.MouseButtonReleased.Pre event)
@@ -179,7 +168,7 @@ public class CustomTooltip
 	 * This method cancels the <code>MouseScrolled</code> event within the
 	 * <code>Screen</code> if the cursors is hovering over the boundaries
 	 *
-	 * @param event
+	 * @param event ScreenEvent.MouseScrolled.Pre
 	 */
 	@SubscribeEvent
 	public static void blockScreenInputMouseScroll (ScreenEvent.MouseScrolled.Pre event)
@@ -192,7 +181,7 @@ public class CustomTooltip
 	 * The <code>letGoOfKey</code> method checks when the player let's go of the key, then sets the <code>rendering</code>
 	 * variable to false
 	 *
-	 * @param event
+	 * @param event ScreenEvent.KeyReleased
 	 */
 	@SubscribeEvent
 	public static void letGoOfKey (ScreenEvent.KeyReleased event)
@@ -209,7 +198,7 @@ public class CustomTooltip
 	 *
 	 * @param mouseX is the last x coordinate of the cursor position when the player initiated the render
 	 * @param mouseY is the last y coordinate of the cursor position when the player initiated the render
-	 * @return <code>true</code> if the player is holding the the correct key and if the <code>rendering</code>
+	 * @return <code>true</code> if the player is holding the correct key and if the <code>rendering</code>
 	 * variable is set to false
 	 */
 	private static boolean shouldRender (int mouseX, int mouseY)
@@ -221,18 +210,17 @@ public class CustomTooltip
 			y = mouseY;
 			return true;
 		}
-		else if ( !rendering )
+		else
 		{
-			return false;
+			return rendering;
 		}
-		return true;
 	}
 
 	/**
-	 * This method draws the base rectangle, including the rectangle shape with the borders for the <code>CustomToolip</code>
+	 * This method draws the base rectangle, including the rectangle shape with the borders for the <code>CustomTooltip</code>
 	 *
-	 * @param event
-	 * @param position
+	 * @param event ScreenEvent.Render
+	 * @param position <code>Vector2ic</code> position for the rectangle
 	 */
 	public static void drawBaseRectangleWithBorders (ScreenEvent.Render event, Vector2ic position)
 	{
@@ -281,8 +269,8 @@ public class CustomTooltip
 	 * This method draws the little corner decorations for the <code>CustomTooltip</code>.<br>
 	 * TODO: Add configuration options for designing this
 	 *
-	 * @param event
-	 * @param correctedPosition
+	 * @param event ScreenEvent.Render
+	 * @param correctedPosition corrected position for the decorations
 	 */
 	public static void drawDecorationsAroundTooltip (ScreenEvent.Render event, Vector2ic correctedPosition)
 	{
@@ -398,7 +386,8 @@ public class CustomTooltip
 	 * This method calls the other underlying render methods to draw the different elements, such as
 	 * rectangles, lines, text...
 	 *
-	 * @param event
+	 * @param event ScreenEvent.Render
+	 * @see ScreenEvent.Render
 	 */
 	@SubscribeEvent
 	public void drawBoxBorders (ScreenEvent.Render event)
@@ -424,16 +413,13 @@ public class CustomTooltip
 		drawDecorationsAroundTooltip(event, correctedPosition);
 
 		RenderCore.renderText(
-			"Example",
 			correctedPosition.x(),
 			correctedPosition.y(),
 			901,
-			0xFFFFFFFF,
-			true,
 			event.getGuiGraphics()
 		);
 
-		if ( this.arraySet == false )
+		if ( !this.arraySet )
 		{
 			for ( int i = 0; i < numberOfButtons; i++ )
 			{
@@ -485,17 +471,17 @@ public class CustomTooltip
 	}
 
 	/**
-	 * The <code>positionTooltip</code> method repositions the custom tooltip based on it's current position in relation to the screen height and width.
+	 * The <code>positionTooltip</code> method repositions the custom tooltip based on its current position in relation to the screen height and width.
 	 * So if the tooltip crosses the boundaries of the screen it gets repositioned to be rendered within the boundaries of the screen.
-	 * Much like how the default tooltip repositioner works
+	 * Much like how the default tooltip re-positioner works
 	 *
-	 * @param pScreenWidth
-	 * @param pScreenHeight
-	 * @param pMouseX
-	 * @param pMouseY
-	 * @param pTooltipWidth
-	 * @param pTooltipHeight
-	 * @return Vector2ic for the corrected position
+	 * @param pScreenWidth width of the <code>Screen</code>
+	 * @param pScreenHeight height of the <code>Screen</code>
+	 * @param pMouseX mouse x coordinate
+	 * @param pMouseY mouse y coordinate
+	 * @param pTooltipWidth width of the tooltip
+	 * @param pTooltipHeight height of the tooltip
+	 * @return <code>Vector2ic</code> for the corrected position
 	 */
 	public static Vector2ic positionTooltip (int pScreenWidth, int pScreenHeight, int pMouseX, int pMouseY, int pTooltipWidth, int pTooltipHeight)
 	{
@@ -505,15 +491,15 @@ public class CustomTooltip
 	}
 
 	/**
-	 * The <code>positionTooltip</code> method repositions the custom tooltip based on it's current position in relation to the screen height and width.
+	 * The <code>positionTooltip</code> method repositions the custom tooltip based on its current position in relation to the screen height and width.
 	 * So if the tooltip crosses the boundaries of the screen it gets repositioned to be rendered within the boundaries of the screen.
-	 * Much like how the default tooltip repositioner works
+	 * Much like how the default tooltip re-positioner works
 	 *
-	 * @param pScreenWidth
-	 * @param pScreenHeight
-	 * @param pTooltipPos
-	 * @param pTooltipWidth
-	 * @param pTooltipHeight
+	 * @param pScreenWidth width of the <code>Screen</code>
+	 * @param pScreenHeight height of the <code>Screen</code>
+	 * @param pTooltipPos <code>Vector2i</code> of the tooltip position
+	 * @param pTooltipWidth width of the tooltip
+	 * @param pTooltipHeight height of the tooltip
 	 */
 	public static void positionTooltip (int pScreenWidth, int pScreenHeight, Vector2i pTooltipPos, int pTooltipWidth, int pTooltipHeight)
 	{

@@ -14,53 +14,66 @@
 ```plantuml
 @startuml
 top to bottom direction
-package adjustability
-{
+
+skinparam linetype ortho
+
 class Adjustability {
-  - LOGGER: Logger
   + MODID: String
+  - LOGGER: Logger
 }
-package enchantments_logic
-{
-class AnvilHandler
+
+package enchantments_logic {
+  class AnvilHandler {
+  }
+
 }
+
+package gui_elements {
+  class Button {
+    - height: int
+    - bgColor: int
+    - text: String
+    - width: int
+    - y: int
+    - BORDER_COLOR_BOTTOM: int
+    - x: int
+    - BORDER_COLOR_TOP: int
+  }
+}
+
 class Config {
   - BUILDER: Builder
   ~ SPEC: ForgeConfigSpec
 }
-package render_core
-{
-class RenderCore
-}
-  package gui_elements{
-class Button {
-  - x: int
-  - width: int
-  - text: String
-  - height: int
-  - y: int
-  - bgColor: int
-}
-}
 class CustomTooltip {
-  ~ BACKGROUND_COLOR: int
-  ~ PADDING: int
+  - arraySet: boolean
   ~ MOUSE_OFFSET: int
-  ~ x: int
-  ~ BLENDED_COLOR: int
+  ~ PADDING: int
   ~ BORDER_COLOR_TOP: int
-  ~ y: int
+  - Buttons: List<Button>
+  ~ BACKGROUND_COLOR: int
   ~ BORDER_COLOR_BOTTOM: int
+  ~ BLENDED_COLOR: int
+  - clickActive: boolean
+  ~ x: int
+  ~ y: int
   ~ rendering: boolean
 }
+
+package render_core {
+  class RenderCore {
+  }
 }
-Adjustability  -[#595959,dashed]->  AnvilHandler  : "«create»"
-Adjustability  -[#595959,dashed]->  CustomTooltip : "«create»"
-AnvilHandler   -[#595959,dashed]->  Adjustability 
-Config         -[#595959,dashed]->  Adjustability 
-CustomTooltip  -[#595959,dashed]->  Adjustability 
-CustomTooltip --> RenderCore : <<uses>>
-CustomTooltip --[#595959,dashed]-> Button : "«create»"
-Button --> RenderCore : <<uses>>
+
+Adjustability  --->  AnvilHandler  : <<create>>
+Adjustability  --->  CustomTooltip : <<create>>
+AnvilHandler   --->  Adjustability 
+Button         --->  RenderCore    
+Config         --->  Adjustability 
+CustomTooltip  --->  Adjustability 
+CustomTooltip  --->  Button        : <<create>>
+CustomTooltip "1" *---> "Buttons\n*" Button        
+CustomTooltip  --->  RenderCore : <<uses>>
+Button  --->  RenderCore : <<uses>>
 @enduml
 ```

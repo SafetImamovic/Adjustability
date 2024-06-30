@@ -3,39 +3,35 @@
 ```plantuml
 @startuml
 top to bottom direction
-package adjustability
-{
+
+skinparam linetype ortho
+
 class Adjustability
-package enchantments_logic
-{
-class AnvilHandler
+
+package enchantments_logic {
+  class AnvilHandler 
+}
+
+package gui_elements {
+  class Button
 }
 
 class Config
-
-package render_core
-{
-
-class RenderCore
-}
-  package gui_elements{
-class Button 
-}
 class CustomTooltip
+
+package render_core {
+  class RenderCore
 }
 
-Adjustability  -[#595959,dashed]->  AnvilHandler  : <<create>>
-
-Adjustability  -[#595959,dashed]->  CustomTooltip : <<create>>
-
-AnvilHandler   -[#595959,dashed]->  Adjustability
-
-Config         -[#595959,dashed]->  Adjustability
-
-CustomTooltip  -[#595959,dashed]->  Adjustability
-
-CustomTooltip  -->  RenderCore : <<uses>>
-CustomTooltip --[#595959,dashed]-> Button : "«create»"
-Button --> RenderCore : <<uses>>
+Adjustability  --->  AnvilHandler  : <<create>>
+Adjustability  --->  CustomTooltip : <<create>>
+AnvilHandler   --->  Adjustability 
+Button         --->  RenderCore    
+Config         --->  Adjustability 
+CustomTooltip  --->  Adjustability 
+CustomTooltip  --->  Button        : <<create>>
+CustomTooltip "1" *---> "Buttons\n*" Button        
+CustomTooltip  --->  RenderCore : <<uses>>
+Button  --->  RenderCore : <<uses>>
 @enduml
 ```

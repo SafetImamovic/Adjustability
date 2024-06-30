@@ -21,3 +21,31 @@ Characters that define the visibility:
 | `~`       | &#9651;        | &#9650;         | `package private`  |
 | `+`       | &#9675;        | &#9679;         | `public`           |
 
+Every mod specific class will have a `MODID` field that is `public` and `final` which is defined in the main `Adjustability` java file.
+
+Also all of the classes are within the `java.io.github.safetimamovic.adjustability` package:
+
+
+
+```plantuml
+@startuml
+
+package java
+{
+    package io
+    {
+        package github
+        {
+            package safetimamovic
+            {
+                package adjustability
+                {
+
+                }
+            }
+        }
+    }
+}
+
+@enduml
+```
