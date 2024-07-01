@@ -13,67 +13,83 @@
 
 ```plantuml
 @startuml
-top to bottom direction
 
+top to bottom direction
 skinparam linetype ortho
 
 class Adjustability {
   + MODID: String
   - LOGGER: Logger
 }
-
-package enchantments_logic {
-  class AnvilHandler {
-  }
-
+package enchantments_logic
+{
+class AnvilHandler {
+}
 }
 
-package gui_elements {
-  class Button {
-    - height: int
-    - bgColor: int
-    - text: String
-    - width: int
-    - y: int
-    - BORDER_COLOR_BOTTOM: int
-    - x: int
-    - BORDER_COLOR_TOP: int
-  }
+package gui_elements
+{
+class Button {
+  - bgColor: int
+  - x: int
+  - BORDER_COLOR_BOTTOM: int
+  - y: int
+  - width: int
+  - height: int
+}
 }
 
 class Config {
-  - BUILDER: Builder
   ~ SPEC: ForgeConfigSpec
+  - BUILDER: Builder
 }
 class CustomTooltip {
-  - arraySet: boolean
-  ~ MOUSE_OFFSET: int
-  ~ PADDING: int
-  ~ BORDER_COLOR_TOP: int
-  - Buttons: List<Button>
-  ~ BACKGROUND_COLOR: int
-  ~ BORDER_COLOR_BOTTOM: int
-  ~ BLENDED_COLOR: int
-  - clickActive: boolean
-  ~ x: int
   ~ y: int
+  - clickActive: boolean
+  - arraySet: boolean
+  ~ x: int
+  - Buttons: List<Button>
   ~ rendering: boolean
 }
-
-package render_core {
-  class RenderCore {
-  }
+class CustomTooltipConfig {
+  + BLENDED_COLOR: int
+  + BORDER_HEIGHT: int
+  + VERTICAL_DECOR_LENGTH: int
+  + DRAW_CORNERS: boolean
+  + VERTICAL_DECOR_HEIGHT: int
+  + VERTICAL_DECOR_OFFSET: int
+  + Z_INDEX_BUTTONS_TEXT: int
+  + DRAW_CORNERS_INNER: boolean
+  + BORDER_COLOR_TOP: int
+  + WIDTH: int
+  + Z_INDEX_BASE: int
+  + HORIZONTAL_DECOR_LENGTH: int
+  + BORDER_COLOR_BOTTOM: int
+  + HORIZONTAL_DECOR_HEIGHT: int
+  + HORIZONTAL_DECOR_OFFSET: int
+  + PADDING: int
+  + BACKGROUND_COLOR: int
+  + MOUSE_OFFSET: int
+  + BORDER_WIDTH: int
+  + HEIGHT: int
+}
+package render_core
+{
+class RenderCore {
 }
 
-Adjustability  --->  AnvilHandler  : <<create>>
-Adjustability  --->  CustomTooltip : <<create>>
-AnvilHandler   --->  Adjustability 
-Button         --->  RenderCore    
-Config         --->  Adjustability 
-CustomTooltip  --->  Adjustability 
-CustomTooltip  --->  Button        : <<create>>
-CustomTooltip "1" *---> "Buttons\n*" Button        
-CustomTooltip  --->  RenderCore : <<uses>>
-Button  --->  RenderCore : <<uses>>
+}
+
+Adjustability        -[#595959,dashed]->  AnvilHandler        : "«create»"
+Adjustability        -[#595959,dashed]->  CustomTooltip       : "«create»"
+AnvilHandler         -[#595959,dashed]->  Adjustability       
+Button               -[#595959,dashed]->  RenderCore          
+Config               -[#595959,dashed]->  Adjustability       
+CustomTooltip        -[#595959,dashed]->  Adjustability       
+CustomTooltip        -[#595959,dashed]->  Button              : "«create»"
+CustomTooltip       "1" *-[#595959,plain]-> "Buttons\n*" Button              
+CustomTooltip        -[#595959,dashed]->  CustomTooltipConfig 
+CustomTooltip        -[#595959,dashed]->  RenderCore
+@enduml
 @enduml
 ```

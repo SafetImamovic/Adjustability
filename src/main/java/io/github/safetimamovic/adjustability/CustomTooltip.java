@@ -37,8 +37,8 @@ public class CustomTooltip
 	private boolean clickActive = false; // set momentarily if the player clicked a mouse button
 	private final List<Button> Buttons; // stores the buttons relative to the custom tooltip that's being drawn
 	private boolean arraySet = false; // when the button count has been set within the Buttons array this is set to true
-	                                  // preventing instantiation of new buttons during runtime
-			                  // the array is cleared when the custom tooltip is destroyed
+	// preventing instantiation of new buttons during runtime
+	// the array is cleared when the custom tooltip is destroyed
 
 	public CustomTooltip ()
 	{
@@ -49,6 +49,7 @@ public class CustomTooltip
 	 * This method cancels the default tooltip when the player pressed or is holding down a particular character
 	 * or combination of characters
 	 * TODO: change the key from being hardcoded for ctrl
+	 *
 	 * @param event RenderTooltipEvent
 	 */
 	@SubscribeEvent
@@ -86,21 +87,21 @@ public class CustomTooltip
 	/**
 	 * The <code>mouseEventHelper</code> method determines if a mouse event occurred within the area of the tooltip
 	 *
-	 * @param xMouseEvent <code>x</code> coordinate of the mouse position
-	 * @param yMouseEvent <code>y</code> coordinate of the mouse position
-	 * @param width       the GUI's width in pixels
-	 * @param height      the GUI's height in pixels
+	 * @param xMouseEvent   <code>x</code> coordinate of the mouse position
+	 * @param yMouseEvent   <code>y</code> coordinate of the mouse position
+	 * @param pScreenWidth  the Screens width in pixels
+	 * @param pScreenHeight the Screens height in pixels
 	 * @return <code>true</code> if the cursor is within the tooltip boundaries, otherwise <code>false</code>
 	 */
-	public static boolean isCursorWithinGUIBoundaries (int xMouseEvent, int yMouseEvent, int width, int height)
+	public static boolean isCursorWithinGUIBoundariesRelativeToScreen (int xMouseEvent, int yMouseEvent, int pScreenWidth, int pScreenHeight)
 	{
 		Vector2ic correctedPosition = positionTooltip(
-			width,
-			height,
+			pScreenWidth,
+			pScreenHeight,
 			x,
 			y,
-			102, //TODO: Get rid of magic numbers
-			102 //TODO: Get rid of magic numbers
+			CustomTooltipConfig.WIDTH,
+			CustomTooltipConfig.HEIGHT
 		);
 
 		return RenderCore.isCursorWithinGUIBoundaries(
@@ -108,8 +109,8 @@ public class CustomTooltip
 			yMouseEvent,
 			correctedPosition.x() - CustomTooltipConfig.PADDING,
 			correctedPosition.y() - CustomTooltipConfig.PADDING,
-			102, //TODO: Get rid of magic numbers
-			102 //TODO: Get rid of magic numbers
+			CustomTooltipConfig.WIDTH,
+			CustomTooltipConfig.HEIGHT
 		);
 	}
 
@@ -123,7 +124,10 @@ public class CustomTooltip
 	@SubscribeEvent
 	public static void blockScreenInputMouseDragged (ScreenEvent.MouseDragged.Pre event)
 	{
-		event.setCanceled(isCursorWithinGUIBoundaries((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		if ( rendering )
+		{
+			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		}
 	}
 
 	/**
@@ -135,7 +139,10 @@ public class CustomTooltip
 	@SubscribeEvent
 	public static void blockScreenInputMouseClick (ScreenEvent.MouseButtonPressed.Pre event)
 	{
-		event.setCanceled(isCursorWithinGUIBoundaries((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		if ( rendering )
+		{
+			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		}
 	}
 
 	/**
@@ -147,7 +154,10 @@ public class CustomTooltip
 	@SubscribeEvent
 	public static void blockScreenInputMouseClickRelease (ScreenEvent.MouseButtonReleased.Pre event)
 	{
-		event.setCanceled(isCursorWithinGUIBoundaries((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		if ( rendering )
+		{
+			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		}
 	}
 
 	/**
@@ -159,7 +169,10 @@ public class CustomTooltip
 	@SubscribeEvent
 	public static void blockScreenInputMouseScroll (ScreenEvent.MouseScrolled.Pre event)
 	{
-		event.setCanceled(isCursorWithinGUIBoundaries((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		if ( rendering )
+		{
+			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		}
 	}
 
 	/**
@@ -205,49 +218,47 @@ public class CustomTooltip
 	/**
 	 * This method draws the base rectangle, including the rectangle shape with the borders for the <code>CustomTooltip</code>
 	 *
-	 * @param event ScreenEvent.Render
+	 * @param event    ScreenEvent.Render
 	 * @param position <code>Vector2ic</code> position for the rectangle
 	 */
 	public static void drawBaseRectangleWithBorders (ScreenEvent.Render event, Vector2ic position)
 	{
 		int x = position.x() - CustomTooltipConfig.PADDING;
 		int y = position.y() - CustomTooltipConfig.PADDING;
-		int size = 100; //TODO: Get rid of magic numbers
-		int borderSize = 102; //TODO: Get rid of magic numbers
 
 		RenderCore.drawRectangle(
 			event.getGuiGraphics().pose(),
 			x,
 			y,
-			size,
-			size,
+			CustomTooltipConfig.WIDTH,
+			CustomTooltipConfig.HEIGHT,
 			CustomTooltipConfig.BACKGROUND_COLOR,
 			CustomTooltipConfig.BACKGROUND_COLOR,
-			900 //TODO: Get rid of magic numbers
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
 			x,
 			y,
-			size,
-			size,
+			CustomTooltipConfig.WIDTH,
+			CustomTooltipConfig.HEIGHT,
 			CustomTooltipConfig.BORDER_COLOR_TOP,
 			CustomTooltipConfig.BORDER_COLOR_BOTTOM,
-			true,
-			900 //TODO: Get rid of magic numbers
+			CustomTooltipConfig.DRAW_CORNERS_INNER,
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			x - 1,
-			y - 1,
-			borderSize,
-			borderSize,
+			x - CustomTooltipConfig.BORDER_WIDTH,
+			y - CustomTooltipConfig.BORDER_HEIGHT,
+			CustomTooltipConfig.WIDTH + 2 * CustomTooltipConfig.BORDER_WIDTH,
+			CustomTooltipConfig.HEIGHT + 2 * CustomTooltipConfig.BORDER_HEIGHT,
 			CustomTooltipConfig.BACKGROUND_COLOR,
 			CustomTooltipConfig.BACKGROUND_COLOR,
-			false,
-			900 //TODO: Get rid of magic numbers
+			CustomTooltipConfig.DRAW_CORNERS,
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 	}
 
@@ -255,116 +266,113 @@ public class CustomTooltip
 	 * This method draws the little corner decorations for the <code>CustomTooltip</code>.<br>
 	 * TODO: Add configuration options for designing this
 	 *
-	 * @param event ScreenEvent.Render
+	 * @param event             ScreenEvent.Render
 	 * @param correctedPosition corrected position for the decorations
 	 */
 	public static void drawDecorationsAroundTooltip (ScreenEvent.Render event, Vector2ic correctedPosition)
 	{
-		int verticalDecorLength = 16; //TODO: Get rid of magic numbers
-		int horizontalDecorLength = 16; //TODO: Get rid of magic numbers
-
 		// Top Left Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - CustomTooltipConfig.PADDING - 5, //TODO: Get rid of magic numbers
-			correctedPosition.y() - CustomTooltipConfig.PADDING - 5, //TODO: Get rid of magic numbers
-			3, //TODO: Get rid of magic numbers
-			verticalDecorLength,
+			correctedPosition.x() - CustomTooltipConfig.PADDING - CustomTooltipConfig.VERTICAL_DECOR_OFFSET,
+			correctedPosition.y() - CustomTooltipConfig.PADDING - CustomTooltipConfig.VERTICAL_DECOR_OFFSET,
+			CustomTooltipConfig.VERTICAL_DECOR_HEIGHT,
+			CustomTooltipConfig.VERTICAL_DECOR_LENGTH,
 			CustomTooltipConfig.BLENDED_COLOR,
 			CustomTooltipConfig.BLENDED_COLOR,
-			false,
-			900 //TODO: Get rid of magic numbers
+			CustomTooltipConfig.DRAW_CORNERS,
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 
 		// Top Left Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - CustomTooltipConfig.PADDING - 5, //TODO: Get rid of magic numbers
-			correctedPosition.y() - CustomTooltipConfig.PADDING - 5, //TODO: Get rid of magic numbers
-			horizontalDecorLength,
-			3, //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING - CustomTooltipConfig.HORIZONTAL_DECOR_OFFSET,
+			correctedPosition.y() - CustomTooltipConfig.PADDING - CustomTooltipConfig.HORIZONTAL_DECOR_OFFSET,
+			CustomTooltipConfig.HORIZONTAL_DECOR_LENGTH,
+			CustomTooltipConfig.HORIZONTAL_DECOR_HEIGHT,
 			CustomTooltipConfig.BLENDED_COLOR,
 			CustomTooltipConfig.BLENDED_COLOR,
-			false,
-			900  //TODO: Get rid of magic numbers
+			CustomTooltipConfig.DRAW_CORNERS,
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 
 		// Top Right Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - CustomTooltipConfig.PADDING + 100 + 5 - 3,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - CustomTooltipConfig.PADDING - 5,  //TODO: Get rid of magic numbers
-			3,  //TODO: Get rid of magic numbers
-			verticalDecorLength,
+			correctedPosition.x() - CustomTooltipConfig.PADDING + CustomTooltipConfig.WIDTH + CustomTooltipConfig.VERTICAL_DECOR_OFFSET - CustomTooltipConfig.HORIZONTAL_DECOR_HEIGHT,
+			correctedPosition.y() - CustomTooltipConfig.PADDING - CustomTooltipConfig.VERTICAL_DECOR_OFFSET,
+			CustomTooltipConfig.VERTICAL_DECOR_HEIGHT,
+			CustomTooltipConfig.VERTICAL_DECOR_LENGTH,
 			CustomTooltipConfig.BLENDED_COLOR,
 			CustomTooltipConfig.BLENDED_COLOR,
-			false,
-			900  //TODO: Get rid of magic numbers
+			CustomTooltipConfig.DRAW_CORNERS,
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 
 		// Top Right Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - CustomTooltipConfig.PADDING + 100 - horizontalDecorLength + 5,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - CustomTooltipConfig.PADDING - 5,  //TODO: Get rid of magic numbers
-			horizontalDecorLength,
-			3,  //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING + CustomTooltipConfig.WIDTH - CustomTooltipConfig.HORIZONTAL_DECOR_LENGTH + CustomTooltipConfig.HORIZONTAL_DECOR_OFFSET,
+			correctedPosition.y() - CustomTooltipConfig.PADDING - CustomTooltipConfig.HORIZONTAL_DECOR_OFFSET,
+			CustomTooltipConfig.HORIZONTAL_DECOR_LENGTH,
+			CustomTooltipConfig.HORIZONTAL_DECOR_HEIGHT,
 			CustomTooltipConfig.BLENDED_COLOR,
 			CustomTooltipConfig.BLENDED_COLOR,
-			false,
-			900  //TODO: Get rid of magic numbers
+			CustomTooltipConfig.DRAW_CORNERS,
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 
 		// Bottom Left Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - CustomTooltipConfig.PADDING - 5,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - CustomTooltipConfig.PADDING - verticalDecorLength + 5 + 100,  //TODO: Get rid of magic numbers
-			3,  //TODO: Get rid of magic numbers
-			verticalDecorLength,
+			correctedPosition.x() - CustomTooltipConfig.PADDING - CustomTooltipConfig.VERTICAL_DECOR_OFFSET,
+			correctedPosition.y() - CustomTooltipConfig.PADDING - CustomTooltipConfig.VERTICAL_DECOR_LENGTH + CustomTooltipConfig.VERTICAL_DECOR_OFFSET + CustomTooltipConfig.HEIGHT,
+			CustomTooltipConfig.VERTICAL_DECOR_HEIGHT,
+			CustomTooltipConfig.VERTICAL_DECOR_LENGTH,
 			CustomTooltipConfig.BLENDED_COLOR,
 			CustomTooltipConfig.BLENDED_COLOR,
-			false,
-			900  //TODO: Get rid of magic numbers
+			CustomTooltipConfig.DRAW_CORNERS,
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 
 		// Bottom Left Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - CustomTooltipConfig.PADDING - 5,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - CustomTooltipConfig.PADDING + 5 + 100 - 3,  //TODO: Get rid of magic numbers
-			horizontalDecorLength,
-			3,  //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING - CustomTooltipConfig.HORIZONTAL_DECOR_OFFSET,
+			correctedPosition.y() - CustomTooltipConfig.PADDING + CustomTooltipConfig.HORIZONTAL_DECOR_OFFSET + CustomTooltipConfig.HEIGHT - CustomTooltipConfig.HORIZONTAL_DECOR_HEIGHT,
+			CustomTooltipConfig.HORIZONTAL_DECOR_LENGTH,
+			CustomTooltipConfig.HORIZONTAL_DECOR_HEIGHT,
 			CustomTooltipConfig.BLENDED_COLOR,
 			CustomTooltipConfig.BLENDED_COLOR,
-			false,
-			900  //TODO: Get rid of magic numbers
+			CustomTooltipConfig.DRAW_CORNERS,
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 
 		// Bottom Right Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - CustomTooltipConfig.PADDING + 100 + 5 - 3,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - CustomTooltipConfig.PADDING + 5 + 100 - verticalDecorLength,  //TODO: Get rid of magic numbers
-			3, //TODO: Get rid of magic numbers
-			verticalDecorLength,
+			correctedPosition.x() - CustomTooltipConfig.PADDING + CustomTooltipConfig.WIDTH + CustomTooltipConfig.VERTICAL_DECOR_OFFSET - CustomTooltipConfig.VERTICAL_DECOR_HEIGHT,
+			correctedPosition.y() - CustomTooltipConfig.PADDING + CustomTooltipConfig.VERTICAL_DECOR_OFFSET + CustomTooltipConfig.HEIGHT - CustomTooltipConfig.VERTICAL_DECOR_LENGTH,
+			CustomTooltipConfig.VERTICAL_DECOR_HEIGHT,
+			CustomTooltipConfig.VERTICAL_DECOR_LENGTH,
 			CustomTooltipConfig.BLENDED_COLOR,
 			CustomTooltipConfig.BLENDED_COLOR,
-			false,
-			900  //TODO: Get rid of magic numbers
+			CustomTooltipConfig.DRAW_CORNERS,
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 
 		// Bottom Right Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - CustomTooltipConfig.PADDING + 100 - horizontalDecorLength + 5,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - CustomTooltipConfig.PADDING + 5 + 100 - 3,  //TODO: Get rid of magic numbers
-			horizontalDecorLength,
-			3,  //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING + CustomTooltipConfig.WIDTH - CustomTooltipConfig.HORIZONTAL_DECOR_LENGTH + CustomTooltipConfig.HORIZONTAL_DECOR_OFFSET,
+			correctedPosition.y() - CustomTooltipConfig.PADDING + CustomTooltipConfig.HORIZONTAL_DECOR_OFFSET + CustomTooltipConfig.HEIGHT - CustomTooltipConfig.HORIZONTAL_DECOR_HEIGHT,
+			CustomTooltipConfig.HORIZONTAL_DECOR_LENGTH,
+			CustomTooltipConfig.HORIZONTAL_DECOR_HEIGHT,
 			CustomTooltipConfig.BLENDED_COLOR,
 			CustomTooltipConfig.BLENDED_COLOR,
-			false,
-			900  //TODO: Get rid of magic numbers
+			CustomTooltipConfig.DRAW_CORNERS,
+			CustomTooltipConfig.Z_INDEX_BASE
 		);
 	}
 
@@ -390,8 +398,8 @@ public class CustomTooltip
 			event.getScreen().height,
 			x,
 			y,
-			102, //TODO: Get rid of magic numbers
-			102 //TODO: Get rid of magic numbers
+			CustomTooltipConfig.WIDTH + CustomTooltipConfig.BORDER_WIDTH + CustomTooltipConfig.BORDER_HEIGHT,
+			CustomTooltipConfig.HEIGHT + CustomTooltipConfig.BORDER_WIDTH + CustomTooltipConfig.BORDER_HEIGHT
 		);
 
 		drawBaseRectangleWithBorders(event, correctedPosition);
@@ -401,7 +409,7 @@ public class CustomTooltip
 		RenderCore.renderText(
 			correctedPosition.x(),
 			correctedPosition.y(),
-			901, //TODO: Get rid of magic numbers
+			CustomTooltipConfig.Z_INDEX_BUTTONS_TEXT,
 			event.getGuiGraphics()
 		);
 
@@ -418,18 +426,18 @@ public class CustomTooltip
 		{
 			this.Buttons.get(i).setProperties(
 				correctedPosition.x(),
-				correctedPosition.y() + 100 - 12 - CustomTooltipConfig.PADDING - 3,  //TODO: Get rid of magic numbers
-				12,  //TODO: Get rid of magic numbers
-				12,  //TODO: Get rid of magic numbers
+				correctedPosition.y() + CustomTooltipConfig.HEIGHT - CustomTooltipConfig.MOUSE_OFFSET - 2 * CustomTooltipConfig.PADDING,
+				CustomTooltipConfig.MOUSE_OFFSET,
+				CustomTooltipConfig.MOUSE_OFFSET,
 				CustomTooltipConfig.BACKGROUND_COLOR,
 				"NICE"
 			);
 
 			this.Buttons.get(i + 1).setProperties(
-				correctedPosition.x() - 12 + 100 - 2 * 3,  //TODO: Get rid of magic numbers
-				correctedPosition.y() + 100 - 12 - CustomTooltipConfig.PADDING - 3,  //TODO: Get rid of magic numbers
-				12,  //TODO: Get rid of magic numbers
-				12,  //TODO: Get rid of magic numbers
+				correctedPosition.x() - CustomTooltipConfig.MOUSE_OFFSET + CustomTooltipConfig.WIDTH - 2 * CustomTooltipConfig.PADDING,
+				correctedPosition.y() + CustomTooltipConfig.HEIGHT - CustomTooltipConfig.MOUSE_OFFSET - 2 * CustomTooltipConfig.PADDING,
+				CustomTooltipConfig.MOUSE_OFFSET,
+				CustomTooltipConfig.MOUSE_OFFSET,
 				CustomTooltipConfig.BACKGROUND_COLOR,
 				"NICE"
 			);
@@ -443,7 +451,6 @@ public class CustomTooltip
 
 		if ( this.clickActive )
 		{
-			//B.click(event.getMouseX(), event.getMouseY());
 			this.clickActive = false;
 		}
 
@@ -461,19 +468,19 @@ public class CustomTooltip
 	 * So if the tooltip crosses the boundaries of the screen it gets repositioned to be rendered within the boundaries of the screen.
 	 * Much like how the default tooltip re-positioner works
 	 *
-	 * @param pScreenWidth width of the <code>Screen</code>
-	 * @param pScreenHeight height of the <code>Screen</code>
-	 * @param pMouseX mouse x coordinate
-	 * @param pMouseY mouse y coordinate
-	 * @param pTooltipWidth width of the tooltip
+	 * @param pScreenWidth   width of the <code>Screen</code>
+	 * @param pScreenHeight  height of the <code>Screen</code>
+	 * @param pMouseX        mouse x coordinate
+	 * @param pMouseY        mouse y coordinate
+	 * @param pTooltipWidth  width of the tooltip
 	 * @param pTooltipHeight height of the tooltip
 	 * @return <code>Vector2ic</code> for the corrected position
 	 */
 	public static Vector2ic positionTooltip (int pScreenWidth, int pScreenHeight, int pMouseX, int pMouseY, int pTooltipWidth, int pTooltipHeight)
 	{
-		Vector2i $$6 = (new Vector2i(pMouseX, pMouseY)).add(12, -12);  //TODO: Get rid of magic numbers
-		positionTooltip(pScreenWidth, pScreenHeight, $$6, pTooltipWidth, pTooltipHeight);
-		return $$6;
+		Vector2i correction = (new Vector2i(pMouseX, pMouseY)).add(CustomTooltipConfig.MOUSE_OFFSET, -CustomTooltipConfig.MOUSE_OFFSET);
+		positionTooltip(pScreenWidth, pScreenHeight, correction, pTooltipWidth, pTooltipHeight);
+		return correction;
 	}
 
 	/**
@@ -481,20 +488,20 @@ public class CustomTooltip
 	 * So if the tooltip crosses the boundaries of the screen it gets repositioned to be rendered within the boundaries of the screen.
 	 * Much like how the default tooltip re-positioner works
 	 *
-	 * @param pScreenWidth width of the <code>Screen</code>
-	 * @param pScreenHeight height of the <code>Screen</code>
-	 * @param pTooltipPos <code>Vector2i</code> of the tooltip position
-	 * @param pTooltipWidth width of the tooltip
+	 * @param pScreenWidth   width of the <code>Screen</code>
+	 * @param pScreenHeight  height of the <code>Screen</code>
+	 * @param pTooltipPos    <code>Vector2i</code> of the tooltip position
+	 * @param pTooltipWidth  width of the tooltip
 	 * @param pTooltipHeight height of the tooltip
 	 */
 	public static void positionTooltip (int pScreenWidth, int pScreenHeight, Vector2i pTooltipPos, int pTooltipWidth, int pTooltipHeight)
 	{
 		if ( pTooltipPos.x + pTooltipWidth > pScreenWidth )
 		{
-			pTooltipPos.x = Math.max(pTooltipPos.x - 24 - pTooltipWidth, 4);  //TODO: Get rid of magic numbers
+			pTooltipPos.x = Math.max(pTooltipPos.x - 2 * CustomTooltipConfig.MOUSE_OFFSET - pTooltipWidth, CustomTooltipConfig.PADDING);
 		}
 
-		int $$5 = pTooltipHeight + 3;  //TODO: Get rid of magic numbers
+		int $$5 = pTooltipHeight + CustomTooltipConfig.PADDING;
 		if ( pTooltipPos.y + $$5 > pScreenHeight )
 		{
 			pTooltipPos.y = pScreenHeight - $$5;

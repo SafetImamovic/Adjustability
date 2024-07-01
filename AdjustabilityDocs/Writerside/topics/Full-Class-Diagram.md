@@ -13,6 +13,7 @@
 
 ```plantuml
 @startuml
+
 top to bottom direction
 skinparam linetype ortho
 
@@ -24,97 +25,109 @@ class Adjustability {
 }
 package enchantments_logic
 {
-class AnvilHandler
-{
+class AnvilHandler {
   + AnvilHandler(): 
   + onAnvilUpdate(AnvilUpdateEvent): void
-  + getEnchantment(ItemStack): Enchantment?
-  - areMutuallyExclusive(ItemStack, ItemStack): boolean
-  + getEnchantmentsList(ItemStack): List<Enchantment>
   - hasEnchantments(ItemStack): boolean
-  }
+  - areMutuallyExclusive(ItemStack, ItemStack): boolean
+  + getEnchantment(ItemStack): Enchantment?
+  + getEnchantmentsList(ItemStack): List<Enchantment>
+}
 }
 
 package gui_elements
 {
 class Button {
-  + Button(int, int, int, int, int, String): 
   + Button(): 
-  - height: int
   - bgColor: int
-  - text: String
-  - width: int
-  - y: int
-  - BORDER_COLOR_BOTTOM: int
   - x: int
-  - BORDER_COLOR_TOP: int
-  + hover(double, double): void
+  - BORDER_COLOR_BOTTOM: int
+  - y: int
+  - width: int
+  - height: int
   + click(double, double): void
-  + setProperties(int, int, int, int, int, String): void
-  + setPosition(int, int): void
+  + hover(double, double): void
   + render(PoseStack): void
+  + setPosition(int, int): void
+  + setProperties(int, int, int, int, int, String): void
 }
 }
 
 class Config {
   + Config(): 
-  - BUILDER: Builder
   ~ SPEC: ForgeConfigSpec
+  - BUILDER: Builder
 }
 class CustomTooltip {
   + CustomTooltip(): 
-  - arraySet: boolean
-  ~ MOUSE_OFFSET: int
-  ~ PADDING: int
-  ~ BORDER_COLOR_TOP: int
-  - Buttons: List<Button>
-  ~ BACKGROUND_COLOR: int
-  ~ BORDER_COLOR_BOTTOM: int
-  ~ BLENDED_COLOR: int
-  - clickActive: boolean
-  ~ x: int
   ~ y: int
+  - clickActive: boolean
+  - arraySet: boolean
+  ~ x: int
+  - Buttons: List<Button>
   ~ rendering: boolean
   + drawBaseRectangleWithBorders(Render, Vector2ic): void
   + positionTooltip(int, int, Vector2i, int, int): void
-  + drawDecorationsAroundTooltip(Render, Vector2ic): void
-  + click(MouseButtonPressed): void
-  + onClickTickWise(MouseButton): void
-  + letGoOfKey(KeyReleased): void
-  + blockScreenInputMouseClickRelease(Pre): void
-  + blockScreenInputMouseDragged(Pre): void
-  + drawBoxBorders(Render): void
-  - shouldRender(int, int): boolean
-  + positionTooltip(int, int, int, int, int, int): Vector2ic
-  + blockScreenInputMouseScroll(Pre): void
-  + cancelDefaultTooltip(RenderTooltipEvent): void
-  + addBottomInformationToTheDefaultTooltipForOpeningTheCustomTooltipGui(ItemTooltipEvent): void
   + blockScreenInputMouseClick(Pre): void
-  + isCursorWithinGUIBoundaries(int, int, int, int): boolean
+  + positionTooltip(int, int, int, int, int, int): Vector2ic
+  + addBottomInformationToTheDefaultTooltipForOpeningTheCustomTooltipGui(ItemTooltipEvent): void
+  + click(MouseButtonPressed): void
+  + isCursorWithinGUIBoundariesRelativeToScreen(int, int, int, int): boolean
+  + drawBoxBorders(Render): void
+  + cancelDefaultTooltip(RenderTooltipEvent): void
+  + blockScreenInputMouseDragged(Pre): void
+  + blockScreenInputMouseClickRelease(Pre): void
+  + letGoOfKey(KeyReleased): void
+  - shouldRender(int, int): boolean
+  + blockScreenInputMouseScroll(Pre): void
+  + drawDecorationsAroundTooltip(Render, Vector2ic): void
+}
+class CustomTooltipConfig {
+  + CustomTooltipConfig(): 
+  + BLENDED_COLOR: int
+  + BORDER_HEIGHT: int
+  + VERTICAL_DECOR_LENGTH: int
+  + DRAW_CORNERS: boolean
+  + VERTICAL_DECOR_HEIGHT: int
+  + VERTICAL_DECOR_OFFSET: int
+  + Z_INDEX_BUTTONS_TEXT: int
+  + DRAW_CORNERS_INNER: boolean
+  + BORDER_COLOR_TOP: int
+  + WIDTH: int
+  + Z_INDEX_BASE: int
+  + HORIZONTAL_DECOR_LENGTH: int
+  + BORDER_COLOR_BOTTOM: int
+  + HORIZONTAL_DECOR_HEIGHT: int
+  + HORIZONTAL_DECOR_OFFSET: int
+  + PADDING: int
+  + BACKGROUND_COLOR: int
+  + MOUSE_OFFSET: int
+  + BORDER_WIDTH: int
+  + HEIGHT: int
 }
 package render_core
 {
 class RenderCore {
   + RenderCore(): 
-  + renderText(String, float, float, int, int, boolean, GuiGraphics): void
+  + isCursorWithinGUIBoundaries(int, int, int, int, int, int): boolean
+  + renderText(float, float, int, GuiGraphics): void
   + drawGradientRectangle(Matrix4f, int, int, int, int, int, int, int): void
+  + drawGradientRectangle(Matrix4f, BufferBuilder, int, int, int, int, int, int, int): void
   + drawBoxBorders(PoseStack, int, int, int, int, int, int, boolean, int): void
   + drawRectangle(PoseStack, int, int, int, int, int, int, int): void
-  + drawGradientRectangle(Matrix4f, BufferBuilder, int, int, int, int, int, int, int): void
-  + isCursorWithinGUIBoundaries(int, int, int, int, int, int): boolean
-}
 }
 
+}
 
-Adjustability  --->  AnvilHandler  : <<create>>
-Adjustability  --->  CustomTooltip : <<create>>
-AnvilHandler   --->  Adjustability 
-Button         --->  RenderCore    
-Config         --->  Adjustability 
-CustomTooltip  --->  Adjustability 
-CustomTooltip  --->  Button        : <<create>>
-CustomTooltip "1" *---> "Buttons\n*" Button        
-CustomTooltip  --->  RenderCore : <<uses>>
-Button  --->  RenderCore : <<uses>>
+Adjustability        -[#595959,dashed]->  AnvilHandler        : "«create»"
+Adjustability        -[#595959,dashed]->  CustomTooltip       : "«create»"
+AnvilHandler         -[#595959,dashed]->  Adjustability       
+Button               -[#595959,dashed]->  RenderCore          
+Config               -[#595959,dashed]->  Adjustability       
+CustomTooltip        -[#595959,dashed]->  Adjustability       
+CustomTooltip        -[#595959,dashed]->  Button              : "«create»"
+CustomTooltip       "1" *-[#595959,plain]-> "Buttons\n*" Button              
+CustomTooltip        -[#595959,dashed]->  CustomTooltipConfig 
+CustomTooltip        -[#595959,dashed]->  RenderCore
 @enduml
 ```
