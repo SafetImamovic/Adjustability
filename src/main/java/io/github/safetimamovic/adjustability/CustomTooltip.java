@@ -32,27 +32,13 @@ import java.util.List;
 @Mod.EventBusSubscriber( modid = Adjustability.MODID, bus = Mod.EventBusSubscriber.Bus.FORGE )
 public class CustomTooltip
 {
-	/**
-	 * Constants and variables used for tooltip rendering.
-	 * <br>
-	 * These fields define various properties such as offsets, padding, and colors
-	 * for rendering tooltips, as well as control the rendering state and position.
-	 * <br>
-	 * These fields are essentially copied over from the <code>TooltipRenderUtil</code> class
-	 *
-	 * @see TooltipRenderUtil
-	 */
-	//static final int MOUSE_OFFSET = TooltipRenderUtil.MOUSE_OFFSET;
-	static final int PADDING = TooltipRenderUtil.PADDING_TOP;
-	static final int BACKGROUND_COLOR = 0xFF010000; // -267386864
-	static final int BORDER_COLOR_TOP = 0x40FF00FF; // 1347420415
-	static final int BORDER_COLOR_BOTTOM = 0x40DC0CB0; // 1344798847
-	static final int BLENDED_COLOR = 0xFF410040;
-	static boolean rendering = false;
-	static int x, y;
-	private boolean clickActive = false;
-	private final List<Button> Buttons;
-	private boolean arraySet = false;
+	static boolean rendering = false; // should the rendering be active
+	static int x, y; // x and y coordinates for the position
+	private boolean clickActive = false; // set momentarily if the player clicked a mouse button
+	private final List<Button> Buttons; // stores the buttons relative to the custom tooltip that's being drawn
+	private boolean arraySet = false; // when the button count has been set within the Buttons array this is set to true
+	                                  // preventing instantiation of new buttons during runtime
+			                  // the array is cleared when the custom tooltip is destroyed
 
 	public CustomTooltip ()
 	{
@@ -74,14 +60,14 @@ public class CustomTooltip
 		}
 	}
 
-	@SubscribeEvent
-	public static void onClickTickWise (InputEvent.MouseButton event)
-	{
-//		System.out.println("Action: ");
-//		System.out.println(event.getAction());
-//		System.out.println("Button: ");
-//		System.out.println(event.getButton());
-	}
+//	@SubscribeEvent
+//	public static void onClickTickWise (InputEvent.MouseButton event)
+//	{
+////		System.out.println("Action: ");
+////		System.out.println(event.getAction());
+////		System.out.println("Button: ");
+////		System.out.println(event.getButton());
+//	}
 
 	/**
 	 * This method just adds the description at the bottom of the default tooltip. It outlines which character
@@ -120,8 +106,8 @@ public class CustomTooltip
 		return RenderCore.isCursorWithinGUIBoundaries(
 			xMouseEvent,
 			yMouseEvent,
-			correctedPosition.x() - PADDING,
-			correctedPosition.y() - PADDING,
+			correctedPosition.x() - CustomTooltipConfig.PADDING,
+			correctedPosition.y() - CustomTooltipConfig.PADDING,
 			102, //TODO: Get rid of magic numbers
 			102 //TODO: Get rid of magic numbers
 		);
@@ -224,8 +210,8 @@ public class CustomTooltip
 	 */
 	public static void drawBaseRectangleWithBorders (ScreenEvent.Render event, Vector2ic position)
 	{
-		int x = position.x() - PADDING;
-		int y = position.y() - PADDING;
+		int x = position.x() - CustomTooltipConfig.PADDING;
+		int y = position.y() - CustomTooltipConfig.PADDING;
 		int size = 100; //TODO: Get rid of magic numbers
 		int borderSize = 102; //TODO: Get rid of magic numbers
 
@@ -235,8 +221,8 @@ public class CustomTooltip
 			y,
 			size,
 			size,
-			BACKGROUND_COLOR,
-			BACKGROUND_COLOR,
+			CustomTooltipConfig.BACKGROUND_COLOR,
+			CustomTooltipConfig.BACKGROUND_COLOR,
 			900 //TODO: Get rid of magic numbers
 		);
 
@@ -246,8 +232,8 @@ public class CustomTooltip
 			y,
 			size,
 			size,
-			BORDER_COLOR_TOP,
-			BORDER_COLOR_BOTTOM,
+			CustomTooltipConfig.BORDER_COLOR_TOP,
+			CustomTooltipConfig.BORDER_COLOR_BOTTOM,
 			true,
 			900 //TODO: Get rid of magic numbers
 		);
@@ -258,8 +244,8 @@ public class CustomTooltip
 			y - 1,
 			borderSize,
 			borderSize,
-			BACKGROUND_COLOR,
-			BACKGROUND_COLOR,
+			CustomTooltipConfig.BACKGROUND_COLOR,
+			CustomTooltipConfig.BACKGROUND_COLOR,
 			false,
 			900 //TODO: Get rid of magic numbers
 		);
@@ -280,12 +266,12 @@ public class CustomTooltip
 		// Top Left Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING - 5, //TODO: Get rid of magic numbers
-			correctedPosition.y() - PADDING - 5, //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING - 5, //TODO: Get rid of magic numbers
+			correctedPosition.y() - CustomTooltipConfig.PADDING - 5, //TODO: Get rid of magic numbers
 			3, //TODO: Get rid of magic numbers
 			verticalDecorLength,
-			BLENDED_COLOR,
-			BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
 			false,
 			900 //TODO: Get rid of magic numbers
 		);
@@ -293,12 +279,12 @@ public class CustomTooltip
 		// Top Left Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING - 5, //TODO: Get rid of magic numbers
-			correctedPosition.y() - PADDING - 5, //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING - 5, //TODO: Get rid of magic numbers
+			correctedPosition.y() - CustomTooltipConfig.PADDING - 5, //TODO: Get rid of magic numbers
 			horizontalDecorLength,
 			3, //TODO: Get rid of magic numbers
-			BLENDED_COLOR,
-			BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
 			false,
 			900  //TODO: Get rid of magic numbers
 		);
@@ -306,12 +292,12 @@ public class CustomTooltip
 		// Top Right Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING + 100 + 5 - 3,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - PADDING - 5,  //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING + 100 + 5 - 3,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - CustomTooltipConfig.PADDING - 5,  //TODO: Get rid of magic numbers
 			3,  //TODO: Get rid of magic numbers
 			verticalDecorLength,
-			BLENDED_COLOR,
-			BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
 			false,
 			900  //TODO: Get rid of magic numbers
 		);
@@ -319,12 +305,12 @@ public class CustomTooltip
 		// Top Right Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - PADDING - 5,  //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING + 100 - horizontalDecorLength + 5,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - CustomTooltipConfig.PADDING - 5,  //TODO: Get rid of magic numbers
 			horizontalDecorLength,
 			3,  //TODO: Get rid of magic numbers
-			BLENDED_COLOR,
-			BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
 			false,
 			900  //TODO: Get rid of magic numbers
 		);
@@ -332,12 +318,12 @@ public class CustomTooltip
 		// Bottom Left Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING - 5,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - PADDING - verticalDecorLength + 5 + 100,  //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING - 5,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - CustomTooltipConfig.PADDING - verticalDecorLength + 5 + 100,  //TODO: Get rid of magic numbers
 			3,  //TODO: Get rid of magic numbers
 			verticalDecorLength,
-			BLENDED_COLOR,
-			BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
 			false,
 			900  //TODO: Get rid of magic numbers
 		);
@@ -345,12 +331,12 @@ public class CustomTooltip
 		// Bottom Left Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING - 5,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - PADDING + 5 + 100 - 3,  //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING - 5,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - CustomTooltipConfig.PADDING + 5 + 100 - 3,  //TODO: Get rid of magic numbers
 			horizontalDecorLength,
 			3,  //TODO: Get rid of magic numbers
-			BLENDED_COLOR,
-			BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
 			false,
 			900  //TODO: Get rid of magic numbers
 		);
@@ -358,12 +344,12 @@ public class CustomTooltip
 		// Bottom Right Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING + 100 + 5 - 3,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - PADDING + 5 + 100 - verticalDecorLength,  //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING + 100 + 5 - 3,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - CustomTooltipConfig.PADDING + 5 + 100 - verticalDecorLength,  //TODO: Get rid of magic numbers
 			3, //TODO: Get rid of magic numbers
 			verticalDecorLength,
-			BLENDED_COLOR,
-			BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
 			false,
 			900  //TODO: Get rid of magic numbers
 		);
@@ -371,12 +357,12 @@ public class CustomTooltip
 		// Bottom Right Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,  //TODO: Get rid of magic numbers
-			correctedPosition.y() - PADDING + 5 + 100 - 3,  //TODO: Get rid of magic numbers
+			correctedPosition.x() - CustomTooltipConfig.PADDING + 100 - horizontalDecorLength + 5,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - CustomTooltipConfig.PADDING + 5 + 100 - 3,  //TODO: Get rid of magic numbers
 			horizontalDecorLength,
 			3,  //TODO: Get rid of magic numbers
-			BLENDED_COLOR,
-			BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
+			CustomTooltipConfig.BLENDED_COLOR,
 			false,
 			900  //TODO: Get rid of magic numbers
 		);
@@ -432,19 +418,19 @@ public class CustomTooltip
 		{
 			this.Buttons.get(i).setProperties(
 				correctedPosition.x(),
-				correctedPosition.y() + 100 - 12 - PADDING - 3,  //TODO: Get rid of magic numbers
+				correctedPosition.y() + 100 - 12 - CustomTooltipConfig.PADDING - 3,  //TODO: Get rid of magic numbers
 				12,  //TODO: Get rid of magic numbers
 				12,  //TODO: Get rid of magic numbers
-				BACKGROUND_COLOR,
+				CustomTooltipConfig.BACKGROUND_COLOR,
 				"NICE"
 			);
 
 			this.Buttons.get(i + 1).setProperties(
 				correctedPosition.x() - 12 + 100 - 2 * 3,  //TODO: Get rid of magic numbers
-				correctedPosition.y() + 100 - 12 - PADDING - 3,  //TODO: Get rid of magic numbers
+				correctedPosition.y() + 100 - 12 - CustomTooltipConfig.PADDING - 3,  //TODO: Get rid of magic numbers
 				12,  //TODO: Get rid of magic numbers
 				12,  //TODO: Get rid of magic numbers
-				BACKGROUND_COLOR,
+				CustomTooltipConfig.BACKGROUND_COLOR,
 				"NICE"
 			);
 
