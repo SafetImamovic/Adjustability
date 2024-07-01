@@ -62,13 +62,13 @@ public class CustomTooltip
 	/**
 	 * This method cancels the default tooltip when the player pressed or is holding down a particular character
 	 * or combination of characters
-	 *
+	 * TODO: change the key from being hardcoded for ctrl
 	 * @param event RenderTooltipEvent
 	 */
 	@SubscribeEvent
 	public static void cancelDefaultTooltip (RenderTooltipEvent event)
 	{
-		if ( Screen.hasControlDown() )
+		if ( Screen.hasControlDown() )  //TODO: Get rid of magic numbers
 		{
 			event.setCanceled(true);
 		}
@@ -93,8 +93,8 @@ public class CustomTooltip
 	public static void addBottomInformationToTheDefaultTooltipForOpeningTheCustomTooltipGui (ItemTooltipEvent event)
 	{
 		event.getToolTip().addLast(Component.empty());
-		event.getToolTip().addLast(Component.literal("Hold [CTRL] for:"));
-		event.getToolTip().addLast(Component.literal("<<Enchantment Adjustments>>").withColor(0xFFFF00FF));
+		event.getToolTip().addLast(Component.literal("Hold [CTRL] for:")); //TODO: Get rid of magic numbers
+		event.getToolTip().addLast(Component.literal("<<Enchantment Adjustments>>").withColor(0xFFFF00FF)); //TODO: Get rid of magic numbers
 	}
 
 	/**
@@ -113,8 +113,8 @@ public class CustomTooltip
 			height,
 			x,
 			y,
-			102,
-			102
+			102, //TODO: Get rid of magic numbers
+			102 //TODO: Get rid of magic numbers
 		);
 
 		return RenderCore.isCursorWithinGUIBoundaries(
@@ -122,8 +122,8 @@ public class CustomTooltip
 			yMouseEvent,
 			correctedPosition.x() - PADDING,
 			correctedPosition.y() - PADDING,
-			102,
-			102
+			102, //TODO: Get rid of magic numbers
+			102 //TODO: Get rid of magic numbers
 		);
 	}
 
@@ -176,7 +176,6 @@ public class CustomTooltip
 		event.setCanceled(isCursorWithinGUIBoundaries((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
 	}
 
-
 	/**
 	 * The <code>letGoOfKey</code> method checks when the player let's go of the key, then sets the <code>rendering</code>
 	 * variable to false
@@ -186,7 +185,7 @@ public class CustomTooltip
 	@SubscribeEvent
 	public static void letGoOfKey (ScreenEvent.KeyReleased event)
 	{
-		if ( event.getKeyCode() == 341 )
+		if ( event.getKeyCode() == 341 )  //TODO: Get rid of magic numbers
 		{
 			rendering = false;
 		}
@@ -195,6 +194,7 @@ public class CustomTooltip
 	/**
 	 * The <code>shouldRender</code> method examines if the rendering process should proceed based on if the player is holding
 	 * down, or if the player pressed the correct key, or combination there of.
+	 * TODO: Also change the key from being hardcoded as ctrl
 	 *
 	 * @param mouseX is the last x coordinate of the cursor position when the player initiated the render
 	 * @param mouseY is the last y coordinate of the cursor position when the player initiated the render
@@ -226,8 +226,8 @@ public class CustomTooltip
 	{
 		int x = position.x() - PADDING;
 		int y = position.y() - PADDING;
-		int size = 100;
-		int borderSize = 102;
+		int size = 100; //TODO: Get rid of magic numbers
+		int borderSize = 102; //TODO: Get rid of magic numbers
 
 		RenderCore.drawRectangle(
 			event.getGuiGraphics().pose(),
@@ -237,7 +237,7 @@ public class CustomTooltip
 			size,
 			BACKGROUND_COLOR,
 			BACKGROUND_COLOR,
-			900
+			900 //TODO: Get rid of magic numbers
 		);
 
 		RenderCore.drawBoxBorders(
@@ -249,7 +249,7 @@ public class CustomTooltip
 			BORDER_COLOR_TOP,
 			BORDER_COLOR_BOTTOM,
 			true,
-			900
+			900 //TODO: Get rid of magic numbers
 		);
 
 		RenderCore.drawBoxBorders(
@@ -261,7 +261,7 @@ public class CustomTooltip
 			BACKGROUND_COLOR,
 			BACKGROUND_COLOR,
 			false,
-			900
+			900 //TODO: Get rid of magic numbers
 		);
 	}
 
@@ -274,111 +274,111 @@ public class CustomTooltip
 	 */
 	public static void drawDecorationsAroundTooltip (ScreenEvent.Render event, Vector2ic correctedPosition)
 	{
-		int verticalDecorLength = 16;
-		int horizontalDecorLength = 16;
+		int verticalDecorLength = 16; //TODO: Get rid of magic numbers
+		int horizontalDecorLength = 16; //TODO: Get rid of magic numbers
 
 		// Top Left Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING - 5,
-			correctedPosition.y() - PADDING - 5,
-			3,
+			correctedPosition.x() - PADDING - 5, //TODO: Get rid of magic numbers
+			correctedPosition.y() - PADDING - 5, //TODO: Get rid of magic numbers
+			3, //TODO: Get rid of magic numbers
 			verticalDecorLength,
 			BLENDED_COLOR,
 			BLENDED_COLOR,
 			false,
-			900
+			900 //TODO: Get rid of magic numbers
 		);
 
 		// Top Left Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING - 5,
-			correctedPosition.y() - PADDING - 5,
+			correctedPosition.x() - PADDING - 5, //TODO: Get rid of magic numbers
+			correctedPosition.y() - PADDING - 5, //TODO: Get rid of magic numbers
 			horizontalDecorLength,
-			3,
+			3, //TODO: Get rid of magic numbers
 			BLENDED_COLOR,
 			BLENDED_COLOR,
 			false,
-			900
+			900  //TODO: Get rid of magic numbers
 		);
 
 		// Top Right Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING + 100 + 5 - 3,
-			correctedPosition.y() - PADDING - 5,
-			3,
+			correctedPosition.x() - PADDING + 100 + 5 - 3,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - PADDING - 5,  //TODO: Get rid of magic numbers
+			3,  //TODO: Get rid of magic numbers
 			verticalDecorLength,
 			BLENDED_COLOR,
 			BLENDED_COLOR,
 			false,
-			900
+			900  //TODO: Get rid of magic numbers
 		);
 
 		// Top Right Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,
-			correctedPosition.y() - PADDING - 5,
+			correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - PADDING - 5,  //TODO: Get rid of magic numbers
 			horizontalDecorLength,
-			3,
+			3,  //TODO: Get rid of magic numbers
 			BLENDED_COLOR,
 			BLENDED_COLOR,
 			false,
-			900
+			900  //TODO: Get rid of magic numbers
 		);
 
 		// Bottom Left Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING - 5,
-			correctedPosition.y() - PADDING - verticalDecorLength + 5 + 100,
-			3,
+			correctedPosition.x() - PADDING - 5,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - PADDING - verticalDecorLength + 5 + 100,  //TODO: Get rid of magic numbers
+			3,  //TODO: Get rid of magic numbers
 			verticalDecorLength,
 			BLENDED_COLOR,
 			BLENDED_COLOR,
 			false,
-			900
+			900  //TODO: Get rid of magic numbers
 		);
 
 		// Bottom Left Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING - 5,
-			correctedPosition.y() - PADDING + 5 + 100 - 3,
+			correctedPosition.x() - PADDING - 5,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - PADDING + 5 + 100 - 3,  //TODO: Get rid of magic numbers
 			horizontalDecorLength,
-			3,
+			3,  //TODO: Get rid of magic numbers
 			BLENDED_COLOR,
 			BLENDED_COLOR,
 			false,
-			900
+			900  //TODO: Get rid of magic numbers
 		);
 
 		// Bottom Right Vertical Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING + 100 + 5 - 3,
-			correctedPosition.y() - PADDING + 5 + 100 - verticalDecorLength,
-			3,
+			correctedPosition.x() - PADDING + 100 + 5 - 3,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - PADDING + 5 + 100 - verticalDecorLength,  //TODO: Get rid of magic numbers
+			3, //TODO: Get rid of magic numbers
 			verticalDecorLength,
 			BLENDED_COLOR,
 			BLENDED_COLOR,
 			false,
-			900
+			900  //TODO: Get rid of magic numbers
 		);
 
 		// Bottom Right Horizontal Decor
 		RenderCore.drawBoxBorders(
 			event.getGuiGraphics().pose(),
-			correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,
-			correctedPosition.y() - PADDING + 5 + 100 - 3,
+			correctedPosition.x() - PADDING + 100 - horizontalDecorLength + 5,  //TODO: Get rid of magic numbers
+			correctedPosition.y() - PADDING + 5 + 100 - 3,  //TODO: Get rid of magic numbers
 			horizontalDecorLength,
-			3,
+			3,  //TODO: Get rid of magic numbers
 			BLENDED_COLOR,
 			BLENDED_COLOR,
 			false,
-			900
+			900  //TODO: Get rid of magic numbers
 		);
 	}
 
@@ -404,8 +404,8 @@ public class CustomTooltip
 			event.getScreen().height,
 			x,
 			y,
-			102,
-			102
+			102, //TODO: Get rid of magic numbers
+			102 //TODO: Get rid of magic numbers
 		);
 
 		drawBaseRectangleWithBorders(event, correctedPosition);
@@ -415,7 +415,7 @@ public class CustomTooltip
 		RenderCore.renderText(
 			correctedPosition.x(),
 			correctedPosition.y(),
-			901,
+			901, //TODO: Get rid of magic numbers
 			event.getGuiGraphics()
 		);
 
@@ -432,18 +432,18 @@ public class CustomTooltip
 		{
 			this.Buttons.get(i).setProperties(
 				correctedPosition.x(),
-				correctedPosition.y() + 100 - 12 - PADDING - 3,
-				12,
-				12,
+				correctedPosition.y() + 100 - 12 - PADDING - 3,  //TODO: Get rid of magic numbers
+				12,  //TODO: Get rid of magic numbers
+				12,  //TODO: Get rid of magic numbers
 				BACKGROUND_COLOR,
 				"NICE"
 			);
 
 			this.Buttons.get(i + 1).setProperties(
-				correctedPosition.x() - 12 + 100 - 2 * 3,
-				correctedPosition.y() + 100 - 12 - PADDING - 3,
-				12,
-				12,
+				correctedPosition.x() - 12 + 100 - 2 * 3,  //TODO: Get rid of magic numbers
+				correctedPosition.y() + 100 - 12 - PADDING - 3,  //TODO: Get rid of magic numbers
+				12,  //TODO: Get rid of magic numbers
+				12,  //TODO: Get rid of magic numbers
 				BACKGROUND_COLOR,
 				"NICE"
 			);
@@ -485,7 +485,7 @@ public class CustomTooltip
 	 */
 	public static Vector2ic positionTooltip (int pScreenWidth, int pScreenHeight, int pMouseX, int pMouseY, int pTooltipWidth, int pTooltipHeight)
 	{
-		Vector2i $$6 = (new Vector2i(pMouseX, pMouseY)).add(12, -12);
+		Vector2i $$6 = (new Vector2i(pMouseX, pMouseY)).add(12, -12);  //TODO: Get rid of magic numbers
 		positionTooltip(pScreenWidth, pScreenHeight, $$6, pTooltipWidth, pTooltipHeight);
 		return $$6;
 	}
@@ -505,10 +505,10 @@ public class CustomTooltip
 	{
 		if ( pTooltipPos.x + pTooltipWidth > pScreenWidth )
 		{
-			pTooltipPos.x = Math.max(pTooltipPos.x - 24 - pTooltipWidth, 4);
+			pTooltipPos.x = Math.max(pTooltipPos.x - 24 - pTooltipWidth, 4);  //TODO: Get rid of magic numbers
 		}
 
-		int $$5 = pTooltipHeight + 3;
+		int $$5 = pTooltipHeight + 3;  //TODO: Get rid of magic numbers
 		if ( pTooltipPos.y + $$5 > pScreenHeight )
 		{
 			pTooltipPos.y = pScreenHeight - $$5;
