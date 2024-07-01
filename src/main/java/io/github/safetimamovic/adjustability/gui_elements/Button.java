@@ -1,7 +1,6 @@
 package io.github.safetimamovic.adjustability.gui_elements;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import io.github.safetimamovic.adjustability.CustomTooltipConfig;
+import io.github.safetimamovic.adjustability.custom_tooltip.CustomTooltipConfig;
 import io.github.safetimamovic.adjustability.render_core.RenderCore;
 import net.minecraft.client.gui.GuiGraphics;
 

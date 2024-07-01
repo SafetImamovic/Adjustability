@@ -1,11 +1,11 @@
-package io.github.safetimamovic.adjustability;
+package io.github.safetimamovic.adjustability.custom_tooltip;
 
+import io.github.safetimamovic.adjustability.Adjustability;
 import io.github.safetimamovic.adjustability.gui_elements.Button;
+import io.github.safetimamovic.adjustability.gui_elements.OptionToggle;
 import io.github.safetimamovic.adjustability.render_core.RenderCore;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 import net.minecraft.network.chat.Component;
-import net.minecraftforge.client.event.InputEvent;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -39,10 +39,12 @@ public class CustomTooltip
 	private boolean arraySet = false; // when the button count has been set within the Buttons array this is set to true
 	// preventing instantiation of new buttons during runtime
 	// the array is cleared when the custom tooltip is destroyed
+	private final List<OptionToggle> toggleableOptions;
 
 	public CustomTooltip ()
 	{
 		this.Buttons = new ArrayList<>();
+		this.toggleableOptions = new ArrayList<>();
 	}
 
 	/**
@@ -140,7 +142,9 @@ public class CustomTooltip
 	public static void blockScreenInputMouseClick (ScreenEvent.MouseButtonPressed.Pre event)
 	{
 		if ( rendering )
-		event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		{
+			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		}
 	}
 
 	/**
@@ -153,7 +157,9 @@ public class CustomTooltip
 	public static void blockScreenInputMouseClickRelease (ScreenEvent.MouseButtonReleased.Pre event)
 	{
 		if ( rendering )
-		event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		{
+			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		}
 	}
 
 	/**
@@ -166,7 +172,9 @@ public class CustomTooltip
 	public static void blockScreenInputMouseScroll (ScreenEvent.MouseScrolled.Pre event)
 	{
 		if ( rendering )
-		event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		{
+			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
+		}
 	}
 
 	/**
@@ -410,53 +418,33 @@ public class CustomTooltip
 
 		if ( !this.arraySet )
 		{
-			for ( int i = 0; i < numberOfButtons; i++ )
-			{
-				this.Buttons.add(new Button());
-			}
+			this.toggleableOptions.add(new OptionToggle(
+				0, 1,
+				this.x,
+				this.y,
+				"ENCHANTMENT!"
+			));
+
 			this.arraySet = true;
 		}
 
-		for ( int i = 0; i < 1; i++ )
+		for ( int i = 0; i < this.toggleableOptions.size(); i++ )
 		{
-			this.Buttons.get(i).setProperties(
-				0,
-				correctedPosition.x(),
-				correctedPosition.y(),
-				CustomTooltipConfig.BUTTON_WIDTH,
-				CustomTooltipConfig.BUTTON_HEIGHT,
-				CustomTooltipConfig.BACKGROUND_COLOR,
-				"<-",
-				true
-			);
+			this.toggleableOptions.get(0).update(correctedPosition.x(), correctedPosition.y(), event.getMouseX(), event.getMouseY());
 
-			this.Buttons.get(i + 1).setProperties(
-				1,
-				correctedPosition.x(),
-				correctedPosition.y(),
-				CustomTooltipConfig.BUTTON_WIDTH,
-				CustomTooltipConfig.BUTTON_HEIGHT,
-				CustomTooltipConfig.BACKGROUND_COLOR,
-				"->",
-				false
-			);
+			this.toggleableOptions.get(0).leftButton.render(event.getGuiGraphics());
+			this.toggleableOptions.get(0).rightButton.render(event.getGuiGraphics());
 
-			this.Buttons.get(i).render(event.getGuiGraphics());
-			this.Buttons.get(i).hover(event.getMouseX(), event.getMouseY());
+			System.out.println("SIZE: " + this.toggleableOptions.size());
 
-			this.Buttons.get(i + 1).render(event.getGuiGraphics());
-			this.Buttons.get(i + 1).hover(event.getMouseX(), event.getMouseY());
+			if ( this.clickActive )
+			{
+				this.toggleableOptions.get(0).leftButton.click(event.getMouseX(), event.getMouseY());
+				this.toggleableOptions.get(0).rightButton.click(event.getMouseX(), event.getMouseY());
+
+				this.clickActive = false;
+			}
 		}
-
-		if ( this.clickActive )
-		{
-			this.Buttons.get(0).click(event.getMouseX(), event.getMouseY());
-			this.Buttons.get(1).click(event.getMouseX(), event.getMouseY());
-
-			this.clickActive = false;
-		}
-
-		//System.out.println("SIZE: " + this.Buttons.size());
 	}
 
 	@SubscribeEvent

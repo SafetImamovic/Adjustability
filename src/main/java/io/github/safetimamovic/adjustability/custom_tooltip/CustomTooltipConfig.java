@@ -1,4 +1,4 @@
-package io.github.safetimamovic.adjustability;
+package io.github.safetimamovic.adjustability.custom_tooltip;
 
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 
