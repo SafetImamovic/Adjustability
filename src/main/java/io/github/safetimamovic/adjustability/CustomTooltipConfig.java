@@ -2,6 +2,10 @@ package io.github.safetimamovic.adjustability;
 
 import net.minecraft.client.gui.screens.inventory.tooltip.TooltipRenderUtil;
 
+/**
+ * The <code>CustomTooltipConfig</code> class defines the different properties for the <code>CustomTooltip</code>
+ * static wise.
+ */
 public class CustomTooltipConfig
 {
 	public static final int BORDER_WIDTH = 1;
@@ -13,8 +17,8 @@ public class CustomTooltipConfig
 	public static int BORDER_COLOR_TOP = 0x40FF00FF; // 1347420415
 	public static int BORDER_COLOR_BOTTOM = 0x40DC0CB0; // 1344798847
 	public static int BLENDED_COLOR = 0xFF410040;
-	public static int WIDTH = 100;
-	public static int HEIGHT = 100;
+	public static int WIDTH = 80;
+	public static int HEIGHT = 120;
 	public static int Z_INDEX_BASE = 900;
 	public static int Z_INDEX_BUTTONS_TEXT = 901;
 	public static boolean DRAW_CORNERS = false;
@@ -25,4 +29,6 @@ public class CustomTooltipConfig
 	public static int HORIZONTAL_DECOR_HEIGHT = 3;
 	public static int VERTICAL_DECOR_OFFSET = 5;
 	public static int HORIZONTAL_DECOR_OFFSET = 5;
+	public static int BUTTON_WIDTH = 16;
+	public static int BUTTON_HEIGHT = 14;
 }

@@ -140,9 +140,7 @@ public class CustomTooltip
 	public static void blockScreenInputMouseClick (ScreenEvent.MouseButtonPressed.Pre event)
 	{
 		if ( rendering )
-		{
-			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-		}
+		event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
 	}
 
 	/**
@@ -155,9 +153,7 @@ public class CustomTooltip
 	public static void blockScreenInputMouseClickRelease (ScreenEvent.MouseButtonReleased.Pre event)
 	{
 		if ( rendering )
-		{
-			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-		}
+		event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
 	}
 
 	/**
@@ -170,9 +166,7 @@ public class CustomTooltip
 	public static void blockScreenInputMouseScroll (ScreenEvent.MouseScrolled.Pre event)
 	{
 		if ( rendering )
-		{
-			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-		}
+		event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
 	}
 
 	/**
@@ -407,6 +401,7 @@ public class CustomTooltip
 		drawDecorationsAroundTooltip(event, correctedPosition);
 
 		RenderCore.renderText(
+			"Nice",
 			correctedPosition.x(),
 			correctedPosition.y(),
 			CustomTooltipConfig.Z_INDEX_BUTTONS_TEXT,
@@ -425,36 +420,43 @@ public class CustomTooltip
 		for ( int i = 0; i < 1; i++ )
 		{
 			this.Buttons.get(i).setProperties(
+				0,
 				correctedPosition.x(),
-				correctedPosition.y() + CustomTooltipConfig.HEIGHT - CustomTooltipConfig.MOUSE_OFFSET - 2 * CustomTooltipConfig.PADDING,
-				CustomTooltipConfig.MOUSE_OFFSET,
-				CustomTooltipConfig.MOUSE_OFFSET,
+				correctedPosition.y(),
+				CustomTooltipConfig.BUTTON_WIDTH,
+				CustomTooltipConfig.BUTTON_HEIGHT,
 				CustomTooltipConfig.BACKGROUND_COLOR,
-				"NICE"
+				"<-",
+				true
 			);
 
 			this.Buttons.get(i + 1).setProperties(
-				correctedPosition.x() - CustomTooltipConfig.MOUSE_OFFSET + CustomTooltipConfig.WIDTH - 2 * CustomTooltipConfig.PADDING,
-				correctedPosition.y() + CustomTooltipConfig.HEIGHT - CustomTooltipConfig.MOUSE_OFFSET - 2 * CustomTooltipConfig.PADDING,
-				CustomTooltipConfig.MOUSE_OFFSET,
-				CustomTooltipConfig.MOUSE_OFFSET,
+				1,
+				correctedPosition.x(),
+				correctedPosition.y(),
+				CustomTooltipConfig.BUTTON_WIDTH,
+				CustomTooltipConfig.BUTTON_HEIGHT,
 				CustomTooltipConfig.BACKGROUND_COLOR,
-				"NICE"
+				"->",
+				false
 			);
 
-			this.Buttons.get(i).render(event.getGuiGraphics().pose());
+			this.Buttons.get(i).render(event.getGuiGraphics());
 			this.Buttons.get(i).hover(event.getMouseX(), event.getMouseY());
 
-			this.Buttons.get(i + 1).render(event.getGuiGraphics().pose());
+			this.Buttons.get(i + 1).render(event.getGuiGraphics());
 			this.Buttons.get(i + 1).hover(event.getMouseX(), event.getMouseY());
 		}
 
 		if ( this.clickActive )
 		{
+			this.Buttons.get(0).click(event.getMouseX(), event.getMouseY());
+			this.Buttons.get(1).click(event.getMouseX(), event.getMouseY());
+
 			this.clickActive = false;
 		}
 
-		System.out.println("SIZE: " + this.Buttons.size());
+		//System.out.println("SIZE: " + this.Buttons.size());
 	}
 
 	@SubscribeEvent

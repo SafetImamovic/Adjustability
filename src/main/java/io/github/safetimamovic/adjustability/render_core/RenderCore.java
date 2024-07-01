@@ -45,7 +45,7 @@ public class RenderCore
 	 * @param zIndex      The z-index or layering order of the text in 3D space.
 	 * @param guiGraphics The GUI graphics context used for rendering.
 	 */
-	public static void renderText (float x, float y, int zIndex, GuiGraphics guiGraphics)
+	public static void renderText (String text, float x, float y, int zIndex, GuiGraphics guiGraphics)
 	{
 		PoseStack poseStack = guiGraphics.pose();
 		poseStack.translate(0, 0, zIndex); // Set the Z-index
@@ -53,7 +53,7 @@ public class RenderCore
 		RenderSystem.disableDepthTest();
 		//RenderSystem.enableBlend();
 		Minecraft.getInstance().font.drawInBatch(
-			"Example",
+			text,
 			x + TooltipRenderUtil.MOUSE_OFFSET + TooltipRenderUtil.PADDING_LEFT,
 			y - TooltipRenderUtil.MOUSE_OFFSET + TooltipRenderUtil.PADDING_TOP,
 			0xFFFFFF,
