@@ -171,6 +171,8 @@ CustomTooltip        -[#595959,dashed]->  RenderCore
     CustomTooltip       "1" *-[#595959,plain]-> "Buttons\n*" Button              
     CustomTooltip        -[#595959,dashed]->  CustomTooltipConfig
     CustomTooltip        -[#595959,dashed]->  RenderCore
+
 @enduml
+
 ```
 </chapter>

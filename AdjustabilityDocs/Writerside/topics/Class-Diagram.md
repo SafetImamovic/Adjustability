@@ -14,18 +14,17 @@ design of the mod.
 
 Characters that define the visibility:
 
-| Character | Icon for field | Icon for method | Visibility         |
-|-----------|----------------|-----------------|--------------------|
-| `-`       | &#9723;        | &#9724;         | `private`          |
-| `#`       | &#9671;        | &#9670;         | `protected`        |
-| `~`       | &#9651;        | &#9650;         | `package private`  |
-| `+`       | &#9675;        | &#9679;         | `public`           |
+| Character | Icon for field | Icon for method | Visibility        |
+|-----------|----------------|-----------------|-------------------|
+| `-`       | &#9723;        | &#9724;         | `private`         |
+| `#`       | &#9671;        | &#9670;         | `protected`       |
+| `~`       | &#9651;        | &#9650;         | `package private` |
+| `+`       | &#9675;        | &#9679;         | `public`          |
 
-Every mod specific class will have a `MODID` field that is `public` and `final` which is defined in the main `Adjustability` java file.
+Every mod specific class will have a `MODID` field that is `public` and `final` which is defined in the
+main `Adjustability` java file.
 
 Also all of the classes are within the `java.io.github.safetimamovic.adjustability` package:
-
-
 
 ```plantuml
 @startuml
