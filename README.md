@@ -63,7 +63,7 @@ Interested in contributing to Adjustability or have feedback?
 
 ## Contact Information
 
-Reach out via email at `safet.imaovic.22@size.ba` or find me in Minecraft as `SS_P_I_NN`.
+Reach out via email at `safet.imamovic.22@size.ba` or find me in Minecraft as `SS_P_I_NN`.
 
 ## Conclusion
 
