@@ -23,10 +23,10 @@ public class RenderCore
 	 *
 	 * @param mouseX <code>x</code> coordinate of the mouse position
 	 * @param mouseY <code>y</code> coordinate of the mouse position
-	 * @param x x coordinate
-	 * @param y y coordinate
-	 * @param width       the GUI's width in pixels
-	 * @param height      the GUI's height in pixels
+	 * @param x      x coordinate
+	 * @param y      y coordinate
+	 * @param width  the GUI's width in pixels
+	 * @param height the GUI's height in pixels
 	 * @return <code>true</code> if the cursor is within the tooltip boundaries, otherwise <code>false</code>
 	 */
 	public static boolean isCursorWithinGUIBoundaries (int mouseX, int mouseY, int x, int y, int width, int height)
@@ -70,15 +70,16 @@ public class RenderCore
 
 	/**
 	 * This method draws the Box Borders for the <code>CustomTooltip</code> GUI.
-	 * @param poseStack     	The PoseStack used for rendering transformations.
-	 * @param x             	The x-coordinate of the top-left corner of the box.
-	 * @param y             	The y-coordinate of the top-left corner of the box.
-	 * @param width         	The width of the box.
-	 * @param height        	The height of the box.
-	 * @param colorPrimary  	The color of the primary borders (top and left).
-	 * @param colorSecondary 	The color of the secondary borders (bottom and right).
-	 * @param drawCorner    	If true, the corners of the box are drawn; otherwise, they are not drawn.
-	 * @param zIndex        	The rendering priority or depth index.
+	 *
+	 * @param poseStack      The PoseStack used for rendering transformations.
+	 * @param x              The x-coordinate of the top-left corner of the box.
+	 * @param y              The y-coordinate of the top-left corner of the box.
+	 * @param width          The width of the box.
+	 * @param height         The height of the box.
+	 * @param colorPrimary   The color of the primary borders (top and left).
+	 * @param colorSecondary The color of the secondary borders (bottom and right).
+	 * @param drawCorner     If true, the corners of the box are drawn; otherwise, they are not drawn.
+	 * @param zIndex         The rendering priority or depth index.
 	 */
 	public static void drawBoxBorders (PoseStack poseStack, int x, int y, int width, int height, int colorPrimary, int colorSecondary, boolean drawCorner, int zIndex)
 	{
@@ -100,14 +101,14 @@ public class RenderCore
 	/**
 	 * Draws a filled rectangle with gradient colors on the screen.
 	 *
-	 * @param poseStack     	The PoseStack used for rendering transformations.
-	 * @param x             	The x-coordinate of the top-left corner of the rectangle.
-	 * @param y             	The y-coordinate of the top-left corner of the rectangle.
-	 * @param width         	The width of the rectangle.
-	 * @param height        	The height of the rectangle.
-	 * @param colorPrimary  	The color of the top-left corner (starting gradient color).
-	 * @param colorSecondary 	The color of the bottom-right corner (ending gradient color).
-	 * @param zIndex        	The rendering priority or depth index.
+	 * @param poseStack      The PoseStack used for rendering transformations.
+	 * @param x              The x-coordinate of the top-left corner of the rectangle.
+	 * @param y              The y-coordinate of the top-left corner of the rectangle.
+	 * @param width          The width of the rectangle.
+	 * @param height         The height of the rectangle.
+	 * @param colorPrimary   The color of the top-left corner (starting gradient color).
+	 * @param colorSecondary The color of the bottom-right corner (ending gradient color).
+	 * @param zIndex         The rendering priority or depth index.
 	 */
 	public static void drawRectangle (PoseStack poseStack, int x, int y, int width, int height, int colorPrimary, int colorSecondary, int zIndex)
 	{

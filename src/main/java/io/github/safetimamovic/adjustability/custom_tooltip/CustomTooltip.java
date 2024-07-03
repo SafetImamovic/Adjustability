@@ -1,11 +1,13 @@
 package io.github.safetimamovic.adjustability.custom_tooltip;
 
 import io.github.safetimamovic.adjustability.Adjustability;
+import io.github.safetimamovic.adjustability.enchantments_logic.EnchantmentUtil;
 import io.github.safetimamovic.adjustability.gui_elements.Button;
 import io.github.safetimamovic.adjustability.gui_elements.OptionToggle;
 import io.github.safetimamovic.adjustability.render_core.RenderCore;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
 import net.minecraftforge.client.event.RenderTooltipEvent;
 import net.minecraftforge.client.event.ScreenEvent;
 import net.minecraftforge.event.entity.player.ItemTooltipEvent;
@@ -34,43 +36,20 @@ public class CustomTooltip
 {
 	static boolean rendering = false; // should the rendering be active
 	static int x, y; // x and y coordinates for the position
-	private boolean clickActive = false; // set momentarily if the player clicked a mouse button
 	private final List<Button> Buttons; // stores the buttons relative to the custom tooltip that's being drawn
-	private boolean arraySet = false; // when the button count has been set within the Buttons array this is set to true
 	// preventing instantiation of new buttons during runtime
 	// the array is cleared when the custom tooltip is destroyed
 	private final List<OptionToggle> toggleableOptions;
+	private boolean clickActive = false; // set momentarily if the player clicked a mouse button
+	private boolean arraySet = false; // when the button count has been set within the Buttons array this is set to true
+	private ItemStack item;
+	private boolean itemSet = false;
 
 	public CustomTooltip ()
 	{
 		this.Buttons = new ArrayList<>();
 		this.toggleableOptions = new ArrayList<>();
 	}
-
-	/**
-	 * This method cancels the default tooltip when the player pressed or is holding down a particular character
-	 * or combination of characters
-	 * TODO: change the key from being hardcoded for ctrl
-	 *
-	 * @param event RenderTooltipEvent
-	 */
-	@SubscribeEvent
-	public static void cancelDefaultTooltip (RenderTooltipEvent event)
-	{
-		if ( Screen.hasControlDown() )  //TODO: Get rid of magic numbers
-		{
-			event.setCanceled(true);
-		}
-	}
-
-//	@SubscribeEvent
-//	public static void onClickTickWise (InputEvent.MouseButton event)
-//	{
-////		System.out.println("Action: ");
-////		System.out.println(event.getAction());
-////		System.out.println("Button: ");
-////		System.out.println(event.getButton());
-//	}
 
 	/**
 	 * This method just adds the description at the bottom of the default tooltip. It outlines which character
@@ -174,21 +153,6 @@ public class CustomTooltip
 		if ( rendering )
 		{
 			event.setCanceled(isCursorWithinGUIBoundariesRelativeToScreen((( int ) event.getMouseX()), (( int ) event.getMouseY()), event.getScreen().width, event.getScreen().height));
-		}
-	}
-
-	/**
-	 * The <code>letGoOfKey</code> method checks when the player let's go of the key, then sets the <code>rendering</code>
-	 * variable to false
-	 *
-	 * @param event ScreenEvent.KeyReleased
-	 */
-	@SubscribeEvent
-	public static void letGoOfKey (ScreenEvent.KeyReleased event)
-	{
-		if ( event.getKeyCode() == 341 )  //TODO: Get rid of magic numbers
-		{
-			rendering = false;
 		}
 	}
 
@@ -379,81 +343,6 @@ public class CustomTooltip
 	}
 
 	/**
-	 * This method calls the other underlying render methods to draw the different elements, such as
-	 * rectangles, lines, text...
-	 *
-	 * @param event ScreenEvent.Render
-	 * @see ScreenEvent.Render
-	 */
-	@SubscribeEvent
-	public void drawBoxBorders (ScreenEvent.Render event)
-	{
-		int numberOfButtons = 2;
-
-		if ( !shouldRender(event.getMouseX(), event.getMouseY()) )
-		{
-			return;
-		}
-
-		Vector2ic correctedPosition = positionTooltip(
-			event.getScreen().width,
-			event.getScreen().height,
-			x,
-			y,
-			CustomTooltipConfig.WIDTH + CustomTooltipConfig.BORDER_WIDTH + CustomTooltipConfig.BORDER_HEIGHT,
-			CustomTooltipConfig.HEIGHT + CustomTooltipConfig.BORDER_WIDTH + CustomTooltipConfig.BORDER_HEIGHT
-		);
-
-		drawBaseRectangleWithBorders(event, correctedPosition);
-
-		drawDecorationsAroundTooltip(event, correctedPosition);
-
-		RenderCore.renderText(
-			"Nice",
-			correctedPosition.x(),
-			correctedPosition.y(),
-			CustomTooltipConfig.Z_INDEX_BUTTONS_TEXT,
-			event.getGuiGraphics()
-		);
-
-		if ( !this.arraySet )
-		{
-			this.toggleableOptions.add(new OptionToggle(
-				0, 1,
-				this.x,
-				this.y,
-				"ENCHANTMENT!"
-			));
-
-			this.arraySet = true;
-		}
-
-		for ( int i = 0; i < this.toggleableOptions.size(); i++ )
-		{
-			this.toggleableOptions.get(0).update(correctedPosition.x(), correctedPosition.y(), event.getMouseX(), event.getMouseY());
-
-			this.toggleableOptions.get(0).leftButton.render(event.getGuiGraphics());
-			this.toggleableOptions.get(0).rightButton.render(event.getGuiGraphics());
-
-			System.out.println("SIZE: " + this.toggleableOptions.size());
-
-			if ( this.clickActive )
-			{
-				this.toggleableOptions.get(0).leftButton.click(event.getMouseX(), event.getMouseY());
-				this.toggleableOptions.get(0).rightButton.click(event.getMouseX(), event.getMouseY());
-
-				this.clickActive = false;
-			}
-		}
-	}
-
-	@SubscribeEvent
-	public void click (ScreenEvent.MouseButtonPressed event)
-	{
-		this.clickActive = true;
-	}
-
-	/**
 	 * The <code>positionTooltip</code> method repositions the custom tooltip based on its current position in relation to the screen height and width.
 	 * So if the tooltip crosses the boundaries of the screen it gets repositioned to be rendered within the boundaries of the screen.
 	 * Much like how the default tooltip re-positioner works
@@ -496,5 +385,123 @@ public class CustomTooltip
 		{
 			pTooltipPos.y = pScreenHeight - $$5;
 		}
+	}
+
+	/**
+	 * This method cancels the default tooltip when the player pressed or is holding down a particular character
+	 * or combination of characters
+	 * TODO: change the key from being hardcoded for ctrl
+	 *
+	 * @param event RenderTooltipEvent
+	 */
+	@SubscribeEvent
+	public void cancelDefaultTooltip (RenderTooltipEvent event)
+	{
+		if ( Screen.hasControlDown() )  //TODO: Get rid of magic numbers
+		{
+			if ( !this.itemSet )
+			{
+				this.item = event.getItemStack();
+//				System.out.println(this.item);
+//				System.out.println(this.item.getEnchantments());
+
+				EnchantmentUtil.setActiveEnchantment(this.item);
+				this.itemSet = true;
+			}
+			event.setCanceled(true);
+		}
+	}
+
+	/**
+	 * The <code>letGoOfKey</code> method checks when the player let's go of the key, then sets the <code>rendering</code>
+	 * variable to false
+	 *
+	 * @param event ScreenEvent.KeyReleased
+	 */
+	@SubscribeEvent
+	public void letGoOfKey (ScreenEvent.KeyReleased event)
+	{
+		if ( event.getKeyCode() == 341 )  //TODO: Get rid of magic numbers
+		{
+			this.rendering = false;
+			this.itemSet = false;
+		}
+	}
+
+	/**
+	 * This method calls the other underlying render methods to draw the different elements, such as
+	 * rectangles, lines, text...
+	 *
+	 * @param event ScreenEvent.Render
+	 * @see ScreenEvent.Render
+	 */
+	@SubscribeEvent
+	public void drawBoxBorders (ScreenEvent.Render event)
+	{
+
+		if ( !shouldRender(event.getMouseX(), event.getMouseY()) )
+		{
+			return;
+		}
+
+		Vector2ic correctedPosition = positionTooltip(
+			event.getScreen().width,
+			event.getScreen().height,
+			x,
+			y,
+			CustomTooltipConfig.WIDTH + CustomTooltipConfig.BORDER_WIDTH + CustomTooltipConfig.BORDER_HEIGHT,
+			CustomTooltipConfig.HEIGHT + CustomTooltipConfig.BORDER_WIDTH + CustomTooltipConfig.BORDER_HEIGHT
+		);
+
+		drawBaseRectangleWithBorders(event, correctedPosition);
+
+		drawDecorationsAroundTooltip(event, correctedPosition);
+
+		RenderCore.renderText(
+			"Nice",
+			correctedPosition.x() - CustomTooltipConfig.MOUSE_OFFSET - CustomTooltipConfig.PADDING,
+			correctedPosition.y() + CustomTooltipConfig.MOUSE_OFFSET - CustomTooltipConfig.PADDING,
+			CustomTooltipConfig.Z_INDEX_BUTTONS_TEXT,
+			event.getGuiGraphics()
+		);
+
+		if ( !this.arraySet )
+		{
+			this.toggleableOptions.add(new OptionToggle(
+				0, 1,
+				this.x,
+				this.y,
+				"ENCHANTMENT!"
+			));
+
+			this.arraySet = true;
+		}
+
+		for ( int i = 0; i < this.toggleableOptions.size(); i++ )
+		{
+			this.toggleableOptions.get(0).update(correctedPosition.x(), correctedPosition.y(), event.getMouseX(), event.getMouseY());
+
+			this.toggleableOptions.get(0).render(event.getGuiGraphics());
+
+			//.println("SIZE: " + this.toggleableOptions.size());
+
+			if ( this.clickActive )
+			{
+				this.toggleableOptions.get(0).click(event.getMouseX(), event.getMouseY());
+
+				this.clickActive = false;
+			}
+		}
+	}
+
+	@SubscribeEvent
+	public void click (ScreenEvent.MouseButtonPressed event)
+	{
+		this.clickActive = true;
+	}
+
+	public void stripEnchantments ()
+	{
+
 	}
 }

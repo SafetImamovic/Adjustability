@@ -11,13 +11,13 @@ import net.minecraft.client.gui.GuiGraphics;
  */
 public class Button
 {
+	private final int BORDER_COLOR_BOTTOM = 0x40DC0CB0;
 	private int ID;
 	private int x;
 	private int y;
 	private int height;
 	private int width;
 	private int bgColor = 0xFF010000;
-	private final int BORDER_COLOR_BOTTOM = 0x40DC0CB0;
 	private String text;
 	private String bias;
 

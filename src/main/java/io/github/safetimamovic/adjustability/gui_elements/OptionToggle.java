@@ -1,7 +1,6 @@
 package io.github.safetimamovic.adjustability.gui_elements;
 
 import io.github.safetimamovic.adjustability.custom_tooltip.CustomTooltipConfig;
-import io.github.safetimamovic.adjustability.render_core.RenderCore;
 import net.minecraft.client.gui.GuiGraphics;
 
 public class OptionToggle
@@ -12,7 +11,7 @@ public class OptionToggle
 	private int x;
 	private int y;
 
-	public OptionToggle(int ID1, int ID2, int x, int y, String text)
+	public OptionToggle (int ID1, int ID2, int x, int y, String text)
 	{
 		this.text = text;
 
@@ -39,25 +38,31 @@ public class OptionToggle
 		);
 	}
 
-	public void render(GuiGraphics pGuiGraphics)
+	public void render (GuiGraphics pGuiGraphics)
 	{
 		this.leftButton.render(pGuiGraphics);
 		this.rightButton.render(pGuiGraphics);
-		RenderCore.renderText(
-			this.text,
-			this.x + CustomTooltipConfig.BUTTON_WIDTH + CustomTooltipConfig.PADDING,
-			this.y,
-			CustomTooltipConfig.Z_INDEX_BUTTONS_TEXT,
-			pGuiGraphics
-		);
+//		RenderCore.renderText(
+//			this.text,
+//			this.x + CustomTooltipConfig.BUTTON_WIDTH + CustomTooltipConfig.PADDING,
+//			this.y,
+//			CustomTooltipConfig.Z_INDEX_BUTTONS_TEXT,
+//			pGuiGraphics
+//		);
 	}
 
-	public void update(int x, int y, int mouseX, int mouseY)
+	public void update (int x, int y, int mouseX, int mouseY)
 	{
 		leftButton.positionButtonLeft(x, y);
 		rightButton.positionButtonRight(x, y);
 
 		leftButton.hover(mouseX, mouseY);
 		rightButton.hover(mouseX, mouseY);
+	}
+
+	public void click (int mouseX, int mouseY)
+	{
+		leftButton.click(mouseX, mouseY);
+		rightButton.click(mouseX, mouseY);
 	}
 }
