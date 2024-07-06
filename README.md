@@ -1,14 +1,37 @@
-# Adjustability
 
-[Official Documentation Link](https://safetimamovic.github.io/Adjustability/starter.html)
+<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
 
-Have you ever found yourself frustrated by Minecraft's limitation of only allowing **one mutually exclusive enchantment
-** per item?
+<a href="https://github.com/SafetImamovic/Adjustability/blob/master/README.md"><img src="https://img.shields.io/badge/Lang-EN-red" alt="Project Documentation"></a> <a href="https://github.com/SafetImamovic/Adjustability/blob/master/README.bs.md"><img src="https://img.shields.io/badge/Lang-BS-blue" alt="Project Documentation"></a> <a href="https://safetimamovic.github.io/Adjustability/"><img src="https://img.shields.io/badge/Adjustability%20Documentation-black" alt="Adjustability Documentation"></a>
+
+</div>
+
+<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
+
+<p align="center"><img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/6/68/Enchanted_Netherite_Pickaxe.gif/revision/latest?cb=20201120003744" alt="Logo" width="200"></p>
+<h1 align="center"> Adjustability
+<br>
+<a href="https://github.com/safetimamovic/adjustability"><img src="https://img.shields.io/badge/Supported%20Versions-1.20-blue" alt="Supported Versions"></a>
+<br><br>
+</h1>
+
+</div>
+
+
+
+<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
+
+Have you ever found yourself frustrated by Minecraft's limitation of only allowing **one mutually exclusive enchantment** per item?
+
+
 
 For instance, you can't have both **Fortune** and **Silk Touch** on a pickaxe or multiple types of **Protection** on
 your armor at the same time.
 
 What if you could seamlessly switch between these enchantments without needing multiple tools or armor pieces?
+
+</div>
+
+<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
 
 ## Introducing Adjustability
 
@@ -20,6 +43,10 @@ to adapt to different tasks on the fly.
 Whether you're mining diamonds and need Fortune or harvesting grass blocks with Silk Touch, **Adjustability** lets you
 do it all with just one tool or piece of armor.
 
+</div>
+
+<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
+
 ## Key Features
 
 - **Toggle Enchantments**: Switch between enchantments like Fortune, Silk Touch, and different types of protection as
@@ -28,6 +55,10 @@ do it all with just one tool or piece of armor.
   gameplay.
 - **Modpack Integration**: Modpack developers can configure the mod with features like XP costs for toggling, enhancing
   gameplay customization.
+
+</div>
+
+<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
 
 ## Using Adjustability
 
@@ -42,6 +73,10 @@ do it all with just one tool or piece of armor.
    table.
 2. **Toggling Enchantments**: In-game, use the toggle function (default key: TBD) to switch between available
    enchantments on the item.
+
+</div>
+
+<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
 
 ## Developers
 
@@ -61,9 +96,17 @@ Interested in contributing to Adjustability or have feedback?
 
 - Fork the repository on [GitHub](https://github.com/SafetImamovic) and submit your enhancements via pull requests.
 
+</div>
+
+<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
+
 ## Contact Information
 
 Reach out via email at `safet.imamovic.22@size.ba` or find me in Minecraft as `SS_P_I_NN`.
+
+</div>
+
+<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
 
 ## Conclusion
 
