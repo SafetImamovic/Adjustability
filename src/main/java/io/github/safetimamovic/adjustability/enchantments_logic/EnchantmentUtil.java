@@ -2,7 +2,6 @@ package io.github.safetimamovic.adjustability.enchantments_logic;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponentMap;
-import net.minecraft.core.component.DataComponentType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
@@ -19,11 +18,11 @@ public class EnchantmentUtil
 	{
 		DataComponentMap DCM = itemStack.getComponents();
 
-		DataComponentType<ItemEnchantments> DCT = DCM.;
+
 
 		System.out.println("DCM Count:" + DCM.stream().count());
 
-		itemStack.getOrDefault(DCT)
+
 
 //		public static ItemEnchantments updateEnchantments(ItemStack pStack, Consumer<ItemEnchantments.Mutable> pUpdater) {
 //		DataComponentType<ItemEnchantments> datacomponenttype = getComponentType(pStack);

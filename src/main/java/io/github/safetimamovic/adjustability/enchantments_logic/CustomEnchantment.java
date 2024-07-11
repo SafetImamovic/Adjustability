@@ -12,5 +12,3 @@ public class CustomEnchantment extends Enchantment
 
 
 }
-
-ItemStack

@@ -1,6 +1,7 @@
 package io.github.safetimamovic.adjustability;
 
 import com.mojang.logging.LogUtils;
+import io.github.safetimamovic.adjustability.custom_data.PersistData;
 import io.github.safetimamovic.adjustability.custom_tooltip.CustomTooltip;
 import io.github.safetimamovic.adjustability.enchantments_logic.AnvilHandler;
 import net.minecraftforge.common.MinecraftForge;
@@ -8,7 +9,10 @@ import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.minecraftforge.fml.javafmlmod.FMLJavaModLoadingContext;
+import net.minecraftforge.registries.ForgeRegistries;
 import org.slf4j.Logger;
+
+import java.util.ArrayList;
 
 /**
  * The <code>Adjustability</code> class is the <strong>main</strong> class of the mod.
@@ -48,6 +52,38 @@ public class Adjustability
 
 		// Register ourselves for server and other game events we are interested in
 		MinecraftForge.EVENT_BUS.register(this);
+
+
+
+		for ( int i = 0; i <= 20; i++ )
+		{
+			System.out.println('-');
+		}
+
+		ArrayList<String> enchantmentData = new ArrayList<String>();
+
+		ForgeRegistries
+			.ENCHANTMENTS
+			.getEntries()
+			.forEach((e) ->
+				 {
+					 enchantmentData.add(e.getKey().location().toString());
+				 });
+
+		enchantmentData
+			.forEach((e) ->
+				 {
+					 System.out.println(e);
+				 });
+
+		PersistData.initialize();
+
+		PersistData.saveStringArray(enchantmentData);
+
+		for ( int i = 0; i <= 20; i++ )
+		{
+			System.out.println('-');
+		}
 	}
 
 	/**
@@ -69,5 +105,7 @@ public class Adjustability
 	{
 		MinecraftForge.EVENT_BUS.register(new AnvilHandler());
 		MinecraftForge.EVENT_BUS.register(new CustomTooltip());
+
+
 	}
 }
