@@ -3,7 +3,11 @@ package io.github.safetimamovic.adjustability.custom_data;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import io.github.safetimamovic.adjustability.Adjustability;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraftforge.registries.ForgeRegistries;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -12,17 +16,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * Class that handles writing data to a JSON file.
+ * Utility Class that handles writing data to different JSON files using Gson.
  */
 public class PersistData
 {
 
 	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-	private static final Path DATA_PATH = Paths.get("config/" + Adjustability.MODID + "/string_data.json");
+	private static final Path ENCHANTMENT_DATA_PATH = Paths.get("config/" + Adjustability.MODID + "/enchantment_data.json");
+	private static final Path MUTUALLY_EXCLUSIVE_DATA_PATH = Paths.get("config/" + Adjustability.MODID + "/mutually_exclusive_data.json");
 
-	// Method to save an array of strings to JSON
 	public static void saveStringArray (ArrayList<String> data)
 	{
 		JsonArray jsonArray = new JsonArray();
@@ -31,7 +37,7 @@ public class PersistData
 			jsonArray.add(str);
 		}
 
-		try ( FileWriter writer = new FileWriter(DATA_PATH.toFile()) )
+		try ( FileWriter writer = new FileWriter(ENCHANTMENT_DATA_PATH.toFile()) )
 		{
 			GSON.toJson(jsonArray, writer);
 		}
@@ -41,15 +47,14 @@ public class PersistData
 		}
 	}
 
-	// Method to load an array of strings from JSON
 	public static String[] loadStringArray ()
 	{
-		if ( !Files.exists(DATA_PATH) )
+		if ( !Files.exists(ENCHANTMENT_DATA_PATH) )
 		{
 			return new String[0];
 		}
 
-		try ( FileReader reader = new FileReader(DATA_PATH.toFile()) )
+		try ( FileReader reader = new FileReader(ENCHANTMENT_DATA_PATH.toFile()) )
 		{
 			JsonArray jsonArray = GSON.fromJson(reader, JsonArray.class);
 			String[] data = new String[jsonArray.size()];
@@ -77,18 +82,89 @@ public class PersistData
 	{
 		try
 		{
-			if ( !Files.exists(DATA_PATH.getParent()) )
+			if ( !Files.exists(ENCHANTMENT_DATA_PATH.getParent()) )
 			{
-				Files.createDirectories(DATA_PATH.getParent());
+				Files.createDirectories(ENCHANTMENT_DATA_PATH.getParent());
 			}
-			if ( !Files.exists(DATA_PATH) )
+			if ( !Files.exists(ENCHANTMENT_DATA_PATH) )
 			{
-				Files.createFile(DATA_PATH);
+				Files.createFile(ENCHANTMENT_DATA_PATH);
+			}
+			initializeMutuallyExclusiveData();
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
+	}
+
+	private static void initializeMutuallyExclusiveData ()
+	{
+		try
+		{
+			if ( !Files.exists(MUTUALLY_EXCLUSIVE_DATA_PATH) )
+			{
+				Files.createFile(MUTUALLY_EXCLUSIVE_DATA_PATH);
+
+				List<List<String>> mutuallyExclusiveData = Arrays.asList(
+					Arrays.asList("minecraft:protection", "minecraft:fire_protection", "minecraft:blast_protection", "minecraft:projectile_protection"),
+					Arrays.asList("minecraft:sharpness", "minecraft:smite", "minecraft:bane_of_arthropods"),
+					Arrays.asList("minecraft:depth_strider", "minecraft:frost_walker"),
+					Arrays.asList("minecraft:silk_touch", "minecraft:fortune"),
+					Arrays.asList("minecraft:multishot", "minecraft:piercing"),
+					Arrays.asList("minecraft:channeling", "minecraft:riptide")
+				);
+
+				JsonArray jsonArray = new JsonArray();
+				for ( List<String> group : mutuallyExclusiveData )
+				{
+					JsonArray groupArray = new JsonArray();
+					for ( String enchantment : group )
+					{
+						groupArray.add(enchantment);
+					}
+					jsonArray.add(groupArray);
+				}
+
+				try ( FileWriter writer = new FileWriter(MUTUALLY_EXCLUSIVE_DATA_PATH.toFile()) )
+				{
+					GSON.toJson(jsonArray, writer);
+				}
 			}
 		}
 		catch ( IOException e )
 		{
 			e.printStackTrace();
 		}
+	}
+
+	public static List<List<Enchantment>> loadMutuallyExclusiveData ()
+	{
+		if ( !Files.exists(MUTUALLY_EXCLUSIVE_DATA_PATH) )
+		{
+			return new ArrayList<>();
+		}
+
+		try ( FileReader reader = new FileReader(MUTUALLY_EXCLUSIVE_DATA_PATH.toFile()) )
+		{
+			JsonArray jsonArray = GSON.fromJson(reader, JsonArray.class);
+			List<List<Enchantment>> data = new ArrayList<>();
+			for ( JsonElement element : jsonArray )
+			{
+				JsonArray groupArray = element.getAsJsonArray();
+				List<Enchantment> group = new ArrayList<>();
+				for ( JsonElement enchantment : groupArray )
+				{
+					group.add(ForgeRegistries.ENCHANTMENTS.getValue(ResourceLocation.tryParse(enchantment.getAsString())));
+				}
+				data.add(group);
+			}
+			return data;
+		}
+		catch ( IOException e )
+		{
+			e.printStackTrace();
+		}
+		return new ArrayList<>();
 	}
 }

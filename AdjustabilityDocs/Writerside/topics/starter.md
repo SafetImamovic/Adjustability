@@ -1,22 +1,22 @@
 # Adjustability
 
-Have you ever found yourself frustrated by Minecraft's limitation of only allowing **one mutually exclusive enchantment
-** per item?
+Have you ever found yourself frustrated by Minecraft's limitation of only allowing
+**one mutually exclusive enchantment** per item?
 
 For instance, you can't have both **Fortune** and **Silk Touch** on a pickaxe or multiple types of **Protection** on
 your armor at the same time.
 
-What if you could seamlessly switch between these enchantments without needing multiple tools or armor pieces?
+What if you could seamlessly _adjust_ the enchantments without needing multiple tools or armor pieces?
 
 ## Introducing Adjustability
 
 **Adjustability** for **Minecraft 1.20** is here to solve that problem.
 
-This mod allows players to toggle between **mutually exclusive enchantments** on their items, giving you the flexibility
+This mod allows players to toggle between, or _adjust_, the **mutually exclusive enchantments** on their items, giving you the flexibility
 to adapt to different tasks on the fly.
 
 Whether you're mining diamonds and need Fortune or harvesting grass blocks with Silk Touch, **Adjustability** lets you
-do it all with just one tool or piece of armor.
+_adjust_ it all!
 
 ## Key Features
 
@@ -32,13 +32,12 @@ do it all with just one tool or piece of armor.
 ### Getting Started
 
 1. **Installation**: Download Adjustability from [GitHub](https://github.com/SafetImamovic) and install it into your
-   Minecraft 1.20 instance using your preferred mod loader.
+   Minecraft 1.20 instance.
 
 ### Using the Mod
 
-1. **Enchanting Items**: Enchant your item with mutually exclusive enchantments using the crafting table or enchanting
-   table.
-2. **Toggling Enchantments**: In-game, use the toggle function (default key: TBD) to switch between available
+1. **Enchanting Items**: Enchant your item with mutually exclusive enchantments using the Anvil.
+2. **Toggling Enchantments**: In-game, use the toggle function (default key: CTRL) to switch between available
    enchantments on the item.
 
 ## Developers

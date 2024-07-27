@@ -8,6 +8,8 @@
 
     <toc-element topic="starter.md"/>
     <toc-element topic="Storage.md"/>
+    <toc-element topic="Math.md"/>
+    <toc-element topic="Vanilla-Data.md"/>
     <toc-element topic="UML-Diagrams.md">
         <toc-element topic="Class-Diagram.md">
             <toc-element topic="Structural-Name-Only-Class-Diagram.md"/>

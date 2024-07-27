@@ -1,4 +1,4 @@
-# Storage
+# Mechanics
 
 ## Main Functionality
 
@@ -6,9 +6,9 @@
 
 <procedure title="Example">
 
-If an item, for instance Diamond Pickaxe, is enchanted with 2 Mutually Exclusive Enchantments, let's say **Fortune III** and **Silk Touch**, the mod should have a mechanism which chooses one of those Enchantments (More details on how that's chosen) to be active on the item (because Mutually Exclusive Enchantments shouldn't stack).
+If an item, for instance Diamond Pickaxe, is enchanted with 2 Mutually Exclusive Enchantments, let's say **Fortune III** and **Silk Touch**, the mod should have a mechanism which chooses one of those Enchantments (More details on how that's chosen later) to be active on the item (because Mutually Exclusive Enchantments shouldn't stack).
 
-So, some sort of **disable(_ItemStack item_)** method would be really helpful.
+So, some sort of _ItemStack.disable(Enchantment e)_ or _Enchantment.disable(ItemsStack i)_ method would be really helpful.
 
 The issue is the way **Minecraft** and the **Forge API** handle Enchantments.
 
@@ -28,73 +28,6 @@ Now, You might think:
 'Why don't you just create a custom enchantment class that inherits from the existing **Enchantment** class and implement that funcionality?'
 
 I don't like that solution because then the mod would have to copy over the objects from the **Enchantment** class and instatiate objects based off of my **CustomEnchantment** class. This just adds unecessary object's onto the memory and creates a middle-man between enchantable entities and base enchantments.
-
-<procedure title="Possible Solution">
-
-In this scenario, if some other mod wanted to interact with the enchantments on the item, they would have to go through the **CustomEnchantment** class, which is not ideal.
-
-<code-block lang="plantuml">
-<![CDATA[
-
-    @startuml
-    top to bottom direction
-    skinparam linetype ortho
-    
-    
-    entity Cost << record >> {
-    }
-    class CustomEnchantment {
-    + CustomEnchantment(EnchantmentDefinition):
-      + disable(ItemStack): void
-        }
-        class Enchantment
-        entity EnchantmentDefinition << record >>
-        interface FeatureElement << interface >>
-        interface IForgeEnchantment << interface >>
-    
-    CustomEnchantment      ---[#000082,plain]-^  Enchantment
-    
-    Cost                   +-[#820000,plain]-  Enchantment           
-    Enchantment            -[#008200,dashed]-^  FeatureElement        
-    Enchantment            -[#008200,dashed]-^  IForgeEnchantment     
-    EnchantmentDefinition  +-[#820000,plain]-  Enchantment
-    @enduml
-]]>
-</code-block>
-
-If that mod implemented 2 Enchantments which are Mutually Exclusive,
-they would have to be copied over to my **CustomEnchantment** class and then the
-**disable(_ItemStack item_)** method would be called when needed.
-
-<code-block lang="plantuml">
-<![CDATA[
-
-    @startuml
-    
-    top to bottom direction
-    
-    skinparam linetype ortho
-    
-    class CustomEnchantment {
-    + CustomEnchantment(EnchantmentDefinition):
-      + disable(ItemStack): void
-        }
-        class Enchantment
-        class ItemStack
-        {
-        +getEnchantments()
-        }
-    
-    CustomEnchantment      ---[#000082,plain]-^  Enchantment
-    Enchantment         --[#595959,dashed]->  CustomEnchantment : "«create»"
-    
-    @enduml
-
-]]>
-</code-block>
-
-</procedure>
-
 
 The approach is to come up with the least invasive way to handle data.
 
@@ -133,206 +66,125 @@ This is the approach that was chosen because:
 
 This is possible because each **ItemStack** object has a unique identifier (it's not universally unique like a UUID, it's unique in the context of the server/game instance), we can make entries to our custom '_table_' which stores the different mutually exclusive enchantments based off of the **ItemStack** it's asosciated with.
 
-<procedure title="ER Diagram">
+**Adjustability** essentially splits every **ItemStack** object into 2 distinct categories:
+- **ItemStack** objects with Mutually Exclusive Enchantments
+- **ItemStack** objects without Mutually Exclusive Enchantments
 
-    
-<code-block lang="plantuml">
-    <![CDATA[
-    @startuml
-
-    ' hide the spot
-    ' hide circle
-    
-    ' avoid problems with angled crows feet
-    skinparam linetype ortho
-    
-    entity "CMEED" as e01 {
-    *ID : number <<generated>>
-    --
-    *DATA : text
-    }
-    
-    entity "DISD" as e02 {
-    *ID : number <<generated>>
-    --
-    *DATA : text
-    }
-    
-    entity "ISMEED" as e03 {
-    *ID : number <<generated>>
-    --
-    *ItemStack_ID : number <<FK>>
-    *constant_MEED_ID : number <<FK>>
-    }
-    
-    
-    e01 }|..|| e03
-    e02 }|..|| e03
-    
-    @enduml
-    ]]>
-</code-block>
-
-</procedure>
-
-
-
-| **Table Abbreviation** | **Table Name**                                                         |
-|------------------------|------------------------------------------------------------------------|
-| **CMEED**              | **C**onstant **M**utually **E**xclusive **E**nchantment **D**ata       |
-| **ISMEED**             | **I**tem **S**tack **M**utually **E**xclusive **E**nchantment **D**ata |
-| **DISD**               | **D**efault **I**tem **S**tack **D**ata                                |
-
-The **CMEED** (**C**onstant **M**utually **E**xclusive **E**nchantment **D**ata) table will store the different Mutually Exclusive Enchantments that are available in the mod.
-
-| **ID** | **Data**                   |
-|--------|----------------------------|
-| **1**  | `Silk Touch`               |
-| **2**  | `Fortune`                  |
-| **3**  | `Protection`               |
-| **4**  | `Blast Protection`         |
-| **n**  | **n**-th Enchantment Entry |
-
-where:
-
-<code-block lang="tex" >
-n\epsilon \mathbb{N}
-</code-block>
-
-<procedure title="Practical Example">
+<procedure title="Practical Example of an ItemStack reaching the Mutually Exclusive ItemStack Category">
 <step>
     There exists a <strong>Diamond Pickaxe</strong> with exactly <strong>1</strong> Enchantment:
     <ol>
-        <li><strong>Silk Touch</strong></li>
+        <li><strong>Fortune</strong></li>
     </ol>
 </step>
 <step>
     The <strong>ItemStack</strong> object for this <strong>Diamond Pickaxe</strong> will have a unique identifier, let's say <strong>1</strong>.
 </step>
 <step>
-    The player then <strong>Enchants</strong> that Diamond Pickaxe with <strong>Fortune III</strong>.
+    The player then places that Diamond Pickaxe with <strong>Fortune</strong> in the left slot of the <strong>Anvil</strong> and an Enchantment book with only <strong>Silk Touch</strong> on it in the Anvil's right slot.
 </step>
+<step>
+    The vanilla enchantment mechanics block the action of combining Enchantments from these ItemStacks because <strong>Fortune</strong> and <strong>Silk Touch</strong> are Mutually Exclusive Enchantments.
+</step>
+<step>
+    The action of placing an item in the <strong>Anvil</strong> is a <strong>Game Event</strong>. This Event can be targeted by a custom method with the @EventSubscriber annotation.
+    
+</step>
+<step>
+    Using the Event, a custom method can check if combining the two items would result in an ItemStack with Mutually Exclusive Enchantments.
+    It checks against a Data Class which stores the Mutually Exclusive Enchantments and their relations (this is loaded into memory from persisted storage).
+</step>
+<step>
+    In this example, this process would result in a Diamond Pickaxe with <strong>Fortune</strong> and <strong>Silk Touch</strong>, which are Mutually Exclusive Enchantments.
+    Because this ItemStack would reach the Mutually Exclusive ItemStack Category, it's data related to the mod would be stored in a custom database.
+</step>
+<step>
+    The ItemStack with the unique identifier <strong>1</strong> would be stored in a custom database, alongside entries for it's Mutually Exclusive Enchantments.
+</step>
+<step>
+    Using the Event, the method can intercept the event and apply the Mutually Exclusive Enchantment anyway.
+</step>
+
 <step>
     Now there exists a <strong>Diamond Pickaxe</strong> with <strong>2</strong> Mutually Exclusive Enchantments:
     <ol>
         <li><strong>Silk Touch</strong></li>
-        <li><strong>Fortune III</strong></li>
+        <li><strong>Fortune</strong></li>
     </ol>
 </step>
 <step>
-    Because the action of <strong>Enchanting</strong> the Diamond Pickaxe with <strong>Fortune III</strong> is a <strong>Game Event</strong>, our static function is fired 
-    which checks if the <strong>ItemStack</strong> object with the unique identifier <strong>1</strong> has any <strong>Potential Mutually Exclusive Enchantments</strong>.
+    Suppose that these 2 enchantment have a unique identifier of <strong>1</strong> and <strong>2</strong> respectively.
+    The ItemStack with the unique identifier <strong>1</strong> would be stored in a custom database, alongside entries for it's Mutually Exclusive Enchantments. This 'file' will be present at the World level:
+    <code-block>
+    <![CDATA[
+    1: [1, 2]
+    ]]>
+    </code-block>
 </step>
-<step>
-    <strong>IF</strong> 
-</step>
+
 </procedure>
 
-<procedure title="Technical ER Diagram">
-<code-block lang="plantuml">
-    <![CDATA[
+```plantuml
+@startuml
+participant Player
+participant Anvil
+participant Game as "Game Event"
+participant Adjustability as "Adjustability Mod"
+participant Database
 
-    @startuml
-    !define Table(x) class x << (T, #FFAAAA) >>
-    !define PrimaryKey(x) <b>x</b>
-    !define ForeignKey(x) <u>x</u>
-    
-    Table(Enchantments) {
-        << PrimaryKey(enchantment_id) >>
-        + enchantment_id : int
-        + name : string
-        + description : string
-    }
-    
-    Table(MutuallyExclusiveEnchantments) {
-        << PrimaryKey(pair_id) >>
-        + pair_id : int
-        << ForeignKey(enchantment_id_1) >>
-        + enchantment_id_1 : int
-        << ForeignKey(enchantment_id_2) >>
-        + enchantment_id_2 : int
-        + reason : string
-    }
-    
-    Table(ItemStacks) {
-        << PrimaryKey(itemstack_id) >>
-        + itemstack_id : int
-        + item_name : string
-    }
-    
-    Table(EnchantmentsInItemStack) {
-        << PrimaryKey(itemstack_enchantment_id) >>
-        + itemstack_enchantment_id : int
-        << ForeignKey(itemstack_id) >>
-        + itemstack_id : int
-        << ForeignKey(enchantment_id) >>
-        + enchantment_id : int
-    }
-    
-    Enchantments ||..|{ MutuallyExclusiveEnchantments
-    ItemStacks ||..|{ EnchantmentsInItemStack
-    Enchantments ||..|{ EnchantmentsInItemStack
-    
-    @enduml
-    ]]>
-</code-block>
-</procedure>
+Player -> Anvil: Places Diamond Pickaxe with Fortune
+Player -> Anvil: Adds Enchantment Book with Silk Touch
+Anvil -> Game: Trigger Enchantment Event
+Game -> Adjustability: Handle Event
 
+Adjustability -> Adjustability: Check for Mutually Exclusive Enchantments
+Adjustability -> Database: Load Mutually Exclusive Enchantments
 
+alt Enchantments are mutually exclusive
+    Adjustability -> Anvil: Allow Enchantment
+    Adjustability -> Adjustability: Disable Fortune or Silk Touch
+    Adjustability -> Database: Store ItemStack and Enchantments
+    Database -> Database: Store item (ID: 1) with enchantments (IDs: 1, 2)
+else Enchantments are not mutually exclusive
+    Adjustability -> Anvil: Perform usual enchantment handling
+end
 
+Player -> Anvil: Retrieves enchanted Diamond Pickaxe
+@enduml
 
-<procedure title="Classical ER Diagram">
-<code-block lang="plantuml">
-    <![CDATA[
-    @startuml
-
-    ' hide the spot
-    ' hide circle
-    
-    ' avoid problems with angled crows feet
-    
-    entity "Enchantments" as e01 {
-    *enchantment_id : number <<generated>>
-    --
-    *name: string
-    *description: string
-    }
-
-    entity "MutuallyExclusiveEnchantments" as e04 {
-    *pair_id : number <<generated>>
-    --
-    *enchantment_id_1 : number <<FK>>
-    *enchantment_id_2 : number <<FK>>
-    *reason : string
-    }
-    
-    entity "ItemStacks" as e02 {
-    *itemstack_id : number <<generated>>
-    --
-    *item_name : string
-    }
-    
-    entity "EnchantmentsInItemStack" as e03 {
-    *itemstack_enchantment_id : number <<generated>>
-    --
-    *itemstack_id : number <<FK>>
-    *enchantment_id : number <<FK>>
-    }
-
-    
-
-    e01 "1" -- "m" e04
-    e01 "1" -- "n" e03
-    e02 "1" -- "o" e03
-    
-    @enduml
-    ]]>
-</code-block>
-    <p>where:</p>
-
-```tex
-m,n,o \epsilon \mathbb{N}\cup \{0\}
 ```
-</procedure>
 
+```plantuml
+@startuml
+actor User
+participant "Game Server" as Server
+participant "ForgeRegistries" as Registries
+participant "File System" as FS
+participant "ORM Data Class" as ORM
 
+User -> Server: Start Game Server
+activate Server
+
+Server -> Registries: Get all enchantments
+Registries --> Server: List of Enchantments
+Server -> FS: Persist enchantments to enchantment_data.json
+FS --> Server: Acknowledgement
+
+Server -> FS: Load mutually_exclusive.json
+FS --> Server: Mutual Exclusivity Data
+Server -> ORM: Load mutual exclusivity data into ORM data class
+ORM --> Server: Acknowledgement
+
+User -> Server: Enchant ItemStack with mutually exclusive enchantments
+activate Server
+Server -> ORM: Check for mutual exclusivity
+ORM --> Server: Mutual Exclusivity Status
+alt if mutually exclusive
+    Server -> FS: Create new JSON file on World level
+    FS --> Server: Acknowledgement
+end
+deactivate Server
+
+@enduml
+
+```

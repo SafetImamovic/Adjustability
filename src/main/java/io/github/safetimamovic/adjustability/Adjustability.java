@@ -4,6 +4,8 @@ import com.mojang.logging.LogUtils;
 import io.github.safetimamovic.adjustability.custom_data.PersistData;
 import io.github.safetimamovic.adjustability.custom_tooltip.CustomTooltip;
 import io.github.safetimamovic.adjustability.enchantments_logic.AnvilHandler;
+import io.github.safetimamovic.adjustability.enchantments_logic.MutuallyExclusive;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.common.Mod;
@@ -70,15 +72,22 @@ public class Adjustability
 					 enchantmentData.add(e.getKey().location().toString());
 				 });
 
-		enchantmentData
-			.forEach((e) ->
-				 {
-					 System.out.println(e);
-				 });
+
+
+//		enchantmentData
+//			.forEach((e) ->
+//				 {
+//					 System.out.println(e);
+//				 });
 
 		PersistData.initialize();
 
 		PersistData.saveStringArray(enchantmentData);
+
+
+		MutuallyExclusive ME = new MutuallyExclusive(PersistData.loadMutuallyExclusiveData());
+
+		ME.printMutuallyExclusiveMap();
 
 		for ( int i = 0; i <= 20; i++ )
 		{
