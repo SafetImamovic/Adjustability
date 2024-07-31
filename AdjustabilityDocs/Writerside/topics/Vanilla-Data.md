@@ -4,7 +4,7 @@ This table represents every vanilla enchantment with a unique identifier. The da
 
 The way the enchantments are gathered is by accessing `ForgeRegistries.ENCHANTMENTS`.
 
-This way any class which extends from the `Enchantment` class will be gathered, this means
+This way any class which extends from the `Enchantment` class and which is there for added to this registry will be gathered, this means
 that any modded enchantment will be gathered as well.
 
 Generally the way Minecraft handles data in general is not by assigning a unique identifier to each object as an integer,
@@ -19,7 +19,7 @@ This approach avoids potential conflicts between mods that might occur if they t
 ├── config/
 │   ├── adjustability/
 │   │   ├── enchantment_data.json
-│   │   ├── mutually_exclusive_data.json﻿
+│   │   ├── mutually_exclusive_data.json
 │   │   └── ...
 │   └── ...
 └── ...

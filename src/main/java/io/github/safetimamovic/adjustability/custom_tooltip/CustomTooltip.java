@@ -1,7 +1,7 @@
 package io.github.safetimamovic.adjustability.custom_tooltip;
 
 import io.github.safetimamovic.adjustability.Adjustability;
-import io.github.safetimamovic.adjustability.enchantments_logic.EnchantmentUtil;
+import io.github.safetimamovic.adjustability.enchantments_logic.MutuallyExclusive;
 import io.github.safetimamovic.adjustability.gui_elements.Button;
 import io.github.safetimamovic.adjustability.gui_elements.OptionToggle;
 import io.github.safetimamovic.adjustability.render_core.RenderCore;
@@ -405,7 +405,9 @@ public class CustomTooltip
 //				System.out.println(this.item);
 //				System.out.println(this.item.getEnchantments());
 
-				EnchantmentUtil.setActiveEnchantment(this.item);
+				// Momentary
+				MutuallyExclusive.getMutuallyExclusiveEnchantments(event.getItemStack());
+
 				this.itemSet = true;
 			}
 			event.setCanceled(true);
