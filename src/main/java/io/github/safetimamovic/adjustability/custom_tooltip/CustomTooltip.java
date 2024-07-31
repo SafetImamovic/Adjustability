@@ -406,7 +406,7 @@ public class CustomTooltip
 //				System.out.println(this.item.getEnchantments());
 
 				// Momentary
-				MutuallyExclusive.getMutuallyExclusiveEnchantments(event.getItemStack());
+
 
 				this.itemSet = true;
 			}

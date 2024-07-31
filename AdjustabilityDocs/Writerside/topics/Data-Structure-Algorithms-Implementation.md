@@ -46,7 +46,7 @@ For each Enchantment in a sub-graph:
 </procedure>
 
 <code-block collapsible="true" lang="java" collapsed-title="MutuallyExclusive Class">
-
+<![CDATA[
     public class MutuallyExclusive
     {
         private final Map<Enchantment, Set<Enchantment>> mutuallyExclusiveMap = new HashMap<>();
@@ -65,6 +65,7 @@ For each Enchantment in a sub-graph:
         }
     }
     ...
+]]>
 </code-block>
 
 ## Example
@@ -128,9 +129,6 @@ The `printMutuallyExclusiveMap()` method can be used to display the constructed 
   enchantment.minecraft.channeling : enchantment.minecraft.riptide
 </code-block>
 </procedure>
-
-
-
 
 
 ## HashMap String Elements Analysis

@@ -22,15 +22,15 @@ public class MutuallyExclusive
 		}
 	}
 
-	public static void printGraph(List<List<Enchantment>> graph)
+	public static void printGraph (List<List<Enchantment>> graph)
 	{
 		System.out.println("Graph Component Count: " + graph.size());
 
-		for (int i = 0; i < graph.size(); i++)
+		for ( int i = 0; i < graph.size(); i++ )
 		{
 			System.out.println("\tSub-Graph: " + (i + 1));
 
-			for (Enchantment e : graph.get(i))
+			for ( Enchantment e : graph.get(i) )
 			{
 				System.out.println("\t\t" + e.getDescriptionId());
 			}
@@ -80,12 +80,12 @@ public class MutuallyExclusive
 	/**
 	 * Returns the Enchantment Graph of mutually exclusive sub-graphs if any are present on the ItemStack
 	 *
-	 * @param itemStack the ItemStack to check
-	 * @return Enchantment Graph if the item stack contains mutually exclusive enchantments, false otherwise
+	 * @param itemEnchantmentSet the Enchantment Set to check
+	 * @return Enchantment Graph if the item stack contains mutually exclusive enchantments
 	 */
-	public static List<List<Enchantment>> getMutuallyExclusiveEnchantments (ItemStack itemStack)
+	public static List<List<Enchantment>> getMutuallyExclusiveEnchantments (Set<Enchantment> itemEnchantmentSet)
 	{
-		List<Enchantment> enchantmentsOnItem = new ArrayList<>(getEnchantmentsOnItem(itemStack));
+		List<Enchantment> enchantmentsOnItem = new ArrayList<>(itemEnchantmentSet);
 
 		List<List<Enchantment>> foundGroups = new ArrayList<>();
 
@@ -123,14 +123,13 @@ public class MutuallyExclusive
 		return foundGroups;
 	}
 
-
 	/**
 	 * Extracts the enchantments from the given item stack.
 	 *
 	 * @param itemStack the item stack to extract enchantments from
 	 * @return a set of enchantments present on the item stack
 	 */
-	private static Set<Enchantment> getEnchantmentsOnItem (ItemStack itemStack)
+	public static Set<Enchantment> getEnchantmentsOnItem (ItemStack itemStack)
 	{
 		Set<Enchantment> enchantments = new HashSet<>();
 
@@ -140,5 +139,23 @@ public class MutuallyExclusive
 			.forEach(e -> enchantments.add(e.get()));
 
 		return enchantments;
+	}
+
+	public static void willResultInMutuallyExclusiveEnchantments (ItemStack left, ItemStack right)
+	{
+		Set<Enchantment> leftEnchantments = new HashSet<>(getEnchantmentsOnItem(left));
+
+		System.out.println("left: " + leftEnchantments);
+
+		Set<Enchantment> rightEnchantments = new HashSet<>(getEnchantmentsOnItem(right));
+
+		System.out.println("right: " + rightEnchantments);
+
+		Set<Enchantment> combinedEnchantments = new HashSet<>(leftEnchantments);
+		combinedEnchantments.addAll(rightEnchantments);
+
+		System.out.println(combinedEnchantments);
+
+		getMutuallyExclusiveEnchantments(combinedEnchantments);
 	}
 }
