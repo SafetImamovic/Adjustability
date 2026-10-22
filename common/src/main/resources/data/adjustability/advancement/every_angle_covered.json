@@ -1,0 +1,33 @@
+{
+    "parent": "adjustability:root",
+    "criteria": {
+        "every_angle_covered": {
+            "trigger": "adjustability:switched",
+            "conditions": {
+                "holds": [
+                    "minecraft:protection",
+                    "minecraft:fire_protection",
+                    "minecraft:blast_protection",
+                    "minecraft:projectile_protection"
+                ]
+            }
+        }
+    },
+    "display": {
+        "icon": {
+            "id": "minecraft:diamond_chestplate"
+        },
+        "title": {
+            "translate": "advancements.adjustability.every_angle_covered.title"
+        },
+        "description": {
+            "translate": "advancements.adjustability.every_angle_covered.description"
+        },
+        "frame": "goal"
+    },
+    "requirements": [
+        [
+            "every_angle_covered"
+        ]
+    ]
+}

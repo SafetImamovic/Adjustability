@@ -1,0 +1,38 @@
+{
+    "criteria": {
+        "root": {
+            "trigger": "minecraft:inventory_changed",
+            "conditions": {
+                "items": [
+                    {
+                        "predicates": {
+                            "minecraft:custom_data": {
+                                "adjustability:dormant": {}
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    },
+    "display": {
+        "icon": {
+            "id": "minecraft:enchanted_book"
+        },
+        "title": {
+            "translate": "advancements.adjustability.root.title"
+        },
+        "description": {
+            "translate": "advancements.adjustability.root.description"
+        },
+        "frame": "task",
+        "background": "minecraft:block/amethyst_block",
+        "show_toast": true,
+        "announce_to_chat": false
+    },
+    "requirements": [
+        [
+            "root"
+        ]
+    ]
+}

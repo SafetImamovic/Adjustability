@@ -1,5 +1,7 @@
 package io.github.safetimamovic.adjustability.core;
 
+import io.github.safetimamovic.adjustability.advancement.ModStats;
+import io.github.safetimamovic.adjustability.advancement.ModTriggers;
 import io.github.safetimamovic.adjustability.api.SwitchEvent;
 import io.github.safetimamovic.adjustability.api.SwitchResult;
 import io.github.safetimamovic.adjustability.api.SwitchSource;
@@ -141,6 +143,7 @@ public final class Toggler
                         player.level().playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.SWITCH,
                                 SoundSource.PLAYERS, 0.6F, none ? 0.8F : 1.3F);
                 }
+                ModTriggers.SWITCHED.trigger(player, none, ModStats.countSwitch(player), all.toImmutable());
                 Listeners.onSwitched(event);
                 return SwitchResult.DONE;
         }

@@ -66,6 +66,24 @@ switch to survival or use the command. Some combinations bring
 more than one enchantment back: on a trident, switching from Riptide to Loyalty also makes Channeling active again,
 because Loyalty and Channeling don't conflict with each other.
 
+Each switch plays a short enchanting sound (`adjustability:item.switch`) that you and players nearby hear; servers can
+turn it off (`play_sound`), resource packs can replace it.
+
+## Advancements
+
+Adjustability has its own advancement tab:
+
+| Advancement | How |
+|---|---|
+| **Adjustability** | Have an item with a dormant enchantment in your inventory |
+| **Change of Plans** | Switch which enchantment is active |
+| **Best of Both** | Switch a tool that holds both Fortune and Silk Touch |
+| **Every Angle Covered** (goal) | Switch a piece of armor that holds all four Protections |
+| **Indecisive** (challenge) | Switch 100 times |
+| **Neither** (hidden) | Leave a group with none of its enchantments active (servers with `allow_none`) |
+
+Your switches are counted under Statistics → General → Enchantment Switches.
+
 ## Grindstones
 
 A grindstone removes dormant enchantments too, and gives experience for them like for active ones. Curses stay, like

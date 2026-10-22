@@ -1,0 +1,29 @@
+{
+    "parent": "adjustability:root",
+    "criteria": {
+        "neither": {
+            "trigger": "adjustability:switched",
+            "conditions": {
+                "none": true
+            }
+        }
+    },
+    "display": {
+        "icon": {
+            "id": "minecraft:barrier"
+        },
+        "title": {
+            "translate": "advancements.adjustability.neither.title"
+        },
+        "description": {
+            "translate": "advancements.adjustability.neither.description"
+        },
+        "frame": "task",
+        "hidden": true
+    },
+    "requirements": [
+        [
+            "neither"
+        ]
+    ]
+}

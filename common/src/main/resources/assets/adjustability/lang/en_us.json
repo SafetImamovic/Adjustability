@@ -50,5 +50,18 @@
     "adjustability.command.panel.reset": "The Adjust panel's settings are back to their defaults.",
     "adjustability.command.panel.unavailable": "The settings file isn't loaded yet.",
     "adjustability.cycle.group": "Cycle key now switches: %s",
-    "subtitles.adjustability.item.switch": "Enchantment switched"
+    "advancements.adjustability.root.title": "Adjustability",
+    "advancements.adjustability.root.description": "Hold an item with a dormant enchantment",
+    "advancements.adjustability.change_of_plans.title": "Change of Plans",
+    "advancements.adjustability.change_of_plans.description": "Switch which enchantment is active",
+    "advancements.adjustability.best_of_both.title": "Best of Both",
+    "advancements.adjustability.best_of_both.description": "Switch a tool that holds both Fortune and Silk Touch",
+    "advancements.adjustability.every_angle_covered.title": "Every Angle Covered",
+    "advancements.adjustability.every_angle_covered.description": "Switch a piece of armor that holds all four Protections",
+    "advancements.adjustability.indecisive.title": "Indecisive",
+    "advancements.adjustability.indecisive.description": "Switch enchantments 100 times",
+    "advancements.adjustability.neither.title": "Neither",
+    "advancements.adjustability.neither.description": "Leave a group of enchantments with none of them active",
+    "subtitles.adjustability.item.switch": "Enchantment switched",
+    "stat.adjustability.switches": "Enchantment Switches"
 }

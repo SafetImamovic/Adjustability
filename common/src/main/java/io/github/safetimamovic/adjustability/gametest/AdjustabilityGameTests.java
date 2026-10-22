@@ -3,6 +3,7 @@ package io.github.safetimamovic.adjustability.gametest;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.safetimamovic.adjustability.Constants;
+import io.github.safetimamovic.adjustability.advancement.ModStats;
 import io.github.safetimamovic.adjustability.api.AdjustabilityApi;
 import io.github.safetimamovic.adjustability.api.AdjustabilityListener;
 import io.github.safetimamovic.adjustability.api.SwitchEvent;
@@ -35,7 +36,9 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.ServerAdvancementManager;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
@@ -100,6 +103,7 @@ public final class AdjustabilityGameTests
                 test(registrar, "none_not_allowed", AdjustabilityGameTests::noneNotAllowed);
                 test(registrar, "none_survives_anvil", AdjustabilityGameTests::noneSurvivesAnvil);
                 test(registrar, "cycle_through_none", AdjustabilityGameTests::cycleThroughNone);
+                test(registrar, "advancements", AdjustabilityGameTests::advancements);
         }
 
         /** Fortune pickaxe + Silk Touch book: Fortune stays active, Silk Touch is dormant, vanilla price + 1. */
@@ -784,6 +788,44 @@ public final class AdjustabilityGameTests
                                 "after none: the first choice");
                 });
                 helper.succeed();
+        }
+
+        /**
+         * The advancement tab loads, holding an item with a dormant enchantment unlocks its root, and a switch on a
+         * tool with Fortune and Silk Touch unlocks "Change of Plans" and "Best of Both" and counts the statistic.
+         */
+        @SuppressWarnings("removal")
+        private static void advancements(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ServerAdvancementManager manager = helper.getLevel().getServer().getAdvancements();
+                for (String name : List.of("root", "change_of_plans", "best_of_both", "every_angle_covered",
+                        "indecisive", "neither"))
+                {
+                        helper.assertTrue(manager.get(Constants.id(name)) != null, "advancement " + name + " loads");
+                }
+
+                ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                player.getInventory().setItem(0, pickaxe);
+                player.inventoryMenu.broadcastChanges();
+                helper.assertTrue(done(player, manager, "root"), "root: holding a dormant enchantment");
+                helper.assertFalse(done(player, manager, "change_of_plans"), "no switch yet");
+
+                Toggler.activate(player, player.getInventory().getItem(0), silkTouch, SwitchSource.API);
+                helper.assertTrue(done(player, manager, "change_of_plans"), "change of plans");
+                helper.assertTrue(done(player, manager, "best_of_both"), "best of both");
+                helper.assertFalse(done(player, manager, "indecisive"), "not yet 100 switches");
+                helper.assertValueEqual(player.getStats().getValue(Stats.CUSTOM.get(ModStats.SWITCHES)), 1,
+                        "switches statistic");
+                helper.succeed();
+        }
+
+        private static boolean done(ServerPlayer player, ServerAdvancementManager manager, String name)
+        {
+                return player.getAdvancements().getOrStartProgress(manager.get(Constants.id(name))).isDone();
         }
 
         /** Runs {@code body} with {@code [toggle] allow_none} on, as an admin would set it, and resets it after. */

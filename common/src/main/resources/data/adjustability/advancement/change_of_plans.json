@@ -1,0 +1,25 @@
+{
+    "parent": "adjustability:root",
+    "criteria": {
+        "change_of_plans": {
+            "trigger": "adjustability:switched"
+        }
+    },
+    "display": {
+        "icon": {
+            "id": "minecraft:lectern"
+        },
+        "title": {
+            "translate": "advancements.adjustability.change_of_plans.title"
+        },
+        "description": {
+            "translate": "advancements.adjustability.change_of_plans.description"
+        },
+        "frame": "task"
+    },
+    "requirements": [
+        [
+            "change_of_plans"
+        ]
+    ]
+}

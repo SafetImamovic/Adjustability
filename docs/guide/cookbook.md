@@ -95,6 +95,33 @@ cooldown_ticks = 200
 allow_in_world_cycle = false
 ```
 
+## An advancement for your pack
+
+The `adjustability:switched` trigger fires on every switch. All its conditions are optional: `none` (`true`: only
+switches to none, `false`: only to an enchantment), `min_switches` (the player's total switches, including this one)
+and `holds` (enchantments, a list or a `#tag`, that the item must all hold afterwards, active or dormant). Put it in
+`data/<your pack>/advancement/`:
+
+```json
+{
+    "parent": "adjustability:root",
+    "criteria": {
+        "trident_master": {
+            "trigger": "adjustability:switched",
+            "conditions": {
+                "holds": ["minecraft:riptide", "minecraft:loyalty", "minecraft:channeling"],
+                "min_switches": 10
+            }
+        }
+    },
+    "display": {
+        "icon": { "id": "minecraft:trident" },
+        "title": "Weather Permitting",
+        "description": "Switch a trident with Riptide, Loyalty and Channeling, ten switches in"
+    }
+}
+```
+
 ## Uninstall cleanly
 
 Before removing the mod, run `/adjustability flatten @a` with everyone online. Items keep their active enchantments;
