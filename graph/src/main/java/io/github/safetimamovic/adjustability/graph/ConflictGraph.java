@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
 
@@ -204,6 +205,35 @@ public final class ConflictGraph<T>
                         }
                 }
                 return this.selection(active);
+        }
+
+        /**
+         * The vertex a "cycle" step activates in {@code component}: the first dormant vertex after the last active one,
+         * in vertex order, wrapping around. Activating it (with auto fill) steps through the component's choices:
+         * Fortune → Silk Touch → Fortune, or Riptide → Channeling + Loyalty → Riptide on a trident.
+         *
+         * @return empty if the component has no dormant vertex
+         */
+        public Optional<T> next(Selection<T> current, Set<T> component)
+        {
+                List<T> members = this.vertices.stream().filter(component::contains).toList();
+                int lastActive = -1;
+                for (int i = 0; i < members.size(); i++)
+                {
+                        if (current.active().contains(members.get(i)))
+                        {
+                                lastActive = i;
+                        }
+                }
+                for (int step = 1; step <= members.size(); step++)
+                {
+                        T candidate = members.get(Math.floorMod(lastActive + step, members.size()));
+                        if (current.dormant().contains(candidate))
+                        {
+                                return Optional.of(candidate);
+                        }
+                }
+                return Optional.empty();
         }
 
         private Selection<T> selection(BitSet active)

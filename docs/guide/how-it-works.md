@@ -41,15 +41,20 @@ over the survival limit of 39 levels.
 
 ## Switching
 
-> **Planned for the next milestone (M2).** Until then, dormant enchantments can be added and combined but not switched.
+- **In your inventory** (or any chest, shulker box...): hover the item and press **Left Alt**. The Adjust screen lists
+  each group of conflicting enchantments, one button per enchantment; the active one has a ✔. Click a dormant one to
+  make it active. The container stays open; **Done** or Escape goes back to it. The item's tooltip shows the key as a
+  reminder (`Left Alt: adjust`).
+- **While playing:** bind **Cycle held item's enchantments** under Controls → Adjustability (unbound by default). One
+  press steps the held item to its next choice, e.g. Fortune → Silk Touch → Fortune, and says which one is active above
+  the hotbar.
+- **By command:** `/adjustability toggle minecraft:silk_touch` on the held item.
 
-- **In your inventory:** hover the item and press **Left Alt**. A small screen lists each conflict; click the one you
-  want active.
-- **While playing:** bind **Cycle enchantment** under Controls → Adjustability. One press switches the held item to its
-  next choice, e.g. Fortune → Silk Touch.
-- **By command:** `/adjustability toggle silk_touch` on the held item.
+Switching has a cooldown (1 second by default) and can cost XP, an item or durability; the server decides. Creative
+players switch for free and without a cooldown. A curse is never switched off.
 
-Switching can have a short cooldown and a cost (XP, an item, durability); the server decides. Some combinations bring
+The Adjust key doesn't work in the creative inventory, which shows items through a menu only your client knows about;
+switch to survival or use the command. Some combinations bring
 more than one enchantment back: on a trident, switching from Riptide to Loyalty also makes Channeling active again,
 because Loyalty and Channeling don't conflict with each other.
 

@@ -56,7 +56,7 @@ All rebindable under Controls → Adjustability, or with `/adjustability keybind
 | Action | Default |
 |---|---|
 | Open the Adjust screen | Left Alt, while hovering an item in your inventory |
-| Cycle the held item's enchantments | Unbound |
+| Cycle the held item's enchantments | Unbound (set it under Controls → Adjustability) |
 
 ## Commands
 

@@ -993,6 +993,28 @@ Settled 2026-10-22:
 - 6 GameTests (vanilla framework, mock survival player driving the real menus) pass on both loaders:
   `./gradlew :fabric:runGametest :neoforge:runGameTestServer`, also in CI. They need no EULA.
 
+### M2 state (switching, 2026-10-22)
+
+- Server: `core/Toggler` holds every check (item can take part, target dormant, no curse switched off, cooldown,
+  cost) for all three ways in: the Adjust screen, the Cycle key and `/adjustability toggle`. `network/ToggleNetwork`
+  re-checks the payload: the menu id must be the open one, the slot one the player could take from, never a result
+  slot. Cooldown is per player (server ticks), not vanilla's item cooldown, so the tool itself isn't blocked.
+- Client: the Adjust screen is built only from vanilla widgets and layouts (26.x renamed GUI drawing to
+  `GuiGraphicsExtractor`; nothing custom to break). One button per enchantment per conflict group, active one ✔ and
+  disabled, cost line under them. It reads the item from the open menu and rebuilds when the server's update lands.
+  A client mixin on `AbstractContainerScreen` reads the hovered slot, handles the key, and skips the client-side
+  `menu.removed()` for exactly the switch to the Adjust screen, so the container stays open (and crafting grids
+  aren't emptied on the client only). Off in the creative inventory (client-only menu).
+- Cycle key: steps the first conflict group of the main-hand item (`ConflictGraph.next`). **Not done:** choosing
+  another group (§9.2's modifier), blocking switches mid-block-break (§13).
+- Tests: 13 GameTests (6 new: switch, trident auto fill, refusal, cooldown, payload slot checks, cycle) on both loaders,
+  and one **Fabric client GameTest** (`./gradlew :fabric:runClientGametest`) that opens the inventory in a real client,
+  hovers, presses Left Alt, clicks Silk Touch, checks the server, and saves screenshots. NeoForge has no client test
+  framework; its client was checked to start, and the screen code is the same common code. The client test isn't in
+  CI yet (needs a virtual display).
+- Player config `adjustability-client.toml` (`show_dormant`, `show_hint`) with the in-game config screen (NeoForge
+  mod list, Mod Menu on Fabric, `/adjustability config`).
+
 ---
 
 ## 21. Open questions

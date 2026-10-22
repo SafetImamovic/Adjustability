@@ -4,15 +4,23 @@ import io.github.safetimamovic.adjustability.Constants;
 import io.github.safetimamovic.adjustability.ModRegistries;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
+import io.github.safetimamovic.adjustability.core.Toggler;
+import io.github.safetimamovic.adjustability.core.Toggler.Outcome;
+import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
+import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
+import io.github.safetimamovic.adjustability.network.ToggleNetwork;
 import java.util.function.Consumer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.GrindstoneMenu;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -28,6 +36,9 @@ import net.minecraft.world.level.GameType;
  */
 public final class AdjustabilityGameTests
 {
+        /** The first hotbar slot in the player's inventory menu. */
+        private static final int HOTBAR_0 = InventoryMenu.USE_ROW_SLOT_START;
+
         private AdjustabilityGameTests()
         {
         }
@@ -40,6 +51,12 @@ public final class AdjustabilityGameTests
                 test(registrar, "anvil_book_with_conflicts_splits", AdjustabilityGameTests::anvilBookWithConflictsSplits);
                 test(registrar, "anvil_rename_keeps_dormant", AdjustabilityGameTests::anvilRenameKeepsDormant);
                 test(registrar, "grindstone_removes_dormant", AdjustabilityGameTests::grindstoneRemovesDormant);
+                test(registrar, "toggle_switches_active", AdjustabilityGameTests::toggleSwitchesActive);
+                test(registrar, "toggle_trident_auto_fill", AdjustabilityGameTests::toggleTridentAutoFill);
+                test(registrar, "toggle_refuses_active", AdjustabilityGameTests::toggleRefusesActive);
+                test(registrar, "toggle_cooldown", AdjustabilityGameTests::toggleCooldown);
+                test(registrar, "toggle_network_checks_slot", AdjustabilityGameTests::toggleNetworkChecksSlot);
+                test(registrar, "cycle_steps_held_item", AdjustabilityGameTests::cycleStepsHeldItem);
         }
 
         /** Fortune pickaxe + Silk Touch book: Fortune stays active, Silk Touch is dormant, vanilla price + 1. */
@@ -151,6 +168,125 @@ public final class AdjustabilityGameTests
                 helper.assertTrue(Adjuster.activeOf(result).isEmpty(), "no active enchantments");
                 helper.assertFalse(DormantEnchantments.has(result), "no dormant enchantments");
                 helper.succeed();
+        }
+
+        /** Making a dormant enchantment active turns off what it conflicts with. */
+        private static void toggleSwitchesActive(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+
+                Outcome outcome = Toggler.activate(survivalServerPlayer(helper), pickaxe, silkTouch);
+
+                helper.assertValueEqual(outcome, Outcome.DONE, "outcome");
+                helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(silkTouch), 1, "active Silk Touch");
+                helper.assertValueEqual(dormant(helper, pickaxe).getLevel(fortune), 3, "dormant Fortune, level kept");
+                helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(fortune), 0, "active Fortune");
+                helper.succeed();
+        }
+
+        /** Riptide to Loyalty also brings Channeling back, which doesn't conflict with Loyalty. */
+        private static void toggleTridentAutoFill(GameTestHelper helper)
+        {
+                Holder<Enchantment> riptide = enchantment(helper, Enchantments.RIPTIDE);
+                Holder<Enchantment> loyalty = enchantment(helper, Enchantments.LOYALTY);
+                Holder<Enchantment> channeling = enchantment(helper, Enchantments.CHANNELING);
+                ItemStack trident = enchanted(Items.TRIDENT, riptide, 3);
+                ItemEnchantments.Mutable dormant = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+                dormant.set(loyalty, 3);
+                dormant.set(channeling, 1);
+                DormantEnchantments.set(trident, dormant.toImmutable());
+
+                Toggler.activate(survivalServerPlayer(helper), trident, loyalty);
+
+                ItemEnchantments active = Adjuster.activeOf(trident);
+                helper.assertValueEqual(active.getLevel(loyalty), 3, "active Loyalty");
+                helper.assertValueEqual(active.getLevel(channeling), 1, "active Channeling");
+                helper.assertValueEqual(dormant(helper, trident).getLevel(riptide), 3, "dormant Riptide");
+                helper.succeed();
+        }
+
+        /** An enchantment that's already active can't be switched to. */
+        private static void toggleRefusesActive(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+
+                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), pickaxe, fortune),
+                        Outcome.NOT_DORMANT, "outcome");
+                helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(fortune), 3, "Fortune still active");
+                helper.succeed();
+        }
+
+        /** A survival player waits cooldown_ticks (default 20) between switches. */
+        private static void toggleCooldown(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                ServerPlayer player = survivalServerPlayer(helper);
+
+                helper.assertValueEqual(Toggler.activate(player, pickaxe, silkTouch), Outcome.DONE, "first switch");
+                helper.assertValueEqual(Toggler.activate(player, pickaxe, fortune), Outcome.COOLDOWN, "second switch");
+                helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(silkTouch), 1, "still Silk Touch");
+                helper.succeed();
+        }
+
+        /** The payload's slot is checked: a real inventory slot works, the crafting result slot is refused. */
+        // A connected mock player (for messages); vanilla marks the helper for removal but has no replacement yet.
+        @SuppressWarnings("removal")
+        private static void toggleNetworkChecksSlot(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                player.getInventory().setItem(0, pickaxe);
+                int containerId = player.inventoryMenu.containerId;
+                ResourceKey<Enchantment> silkKey = silkTouch.unwrapKey().orElseThrow();
+
+                ToggleNetwork.onToggle(player, new ToggleEnchantmentPayload(containerId, InventoryMenu.RESULT_SLOT,
+                        silkKey));
+                ToggleNetwork.onToggle(player, new ToggleEnchantmentPayload(containerId + 1, HOTBAR_0, silkKey));
+                helper.assertValueEqual(Adjuster.activeOf(player.getInventory().getItem(0)).getLevel(fortune), 3,
+                        "wrong slot or menu: nothing changes");
+
+                ToggleNetwork.onToggle(player, new ToggleEnchantmentPayload(containerId, HOTBAR_0, silkKey));
+                helper.assertValueEqual(Adjuster.activeOf(player.getInventory().getItem(0)).getLevel(silkTouch), 1,
+                        "hotbar slot: switched");
+                helper.succeed();
+        }
+
+        /** The Cycle key steps the held item to its next choice and back. */
+        // A connected mock player (for messages); vanilla marks the helper for removal but has no replacement yet.
+        @SuppressWarnings("removal")
+        private static void cycleStepsHeldItem(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
+
+                ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
+                helper.assertValueEqual(Adjuster.activeOf(player.getMainHandItem()).getLevel(silkTouch), 1,
+                        "first press: Silk Touch");
+                ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
+                helper.assertValueEqual(Adjuster.activeOf(player.getMainHandItem()).getLevel(fortune), 3,
+                        "second press: back to Fortune");
+                helper.succeed();
+        }
+
+        private static ServerPlayer survivalServerPlayer(GameTestHelper helper)
+        {
+                return (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
         }
 
         private static void test(ModRegistries.Registrar registrar, String name, Consumer<GameTestHelper> function)

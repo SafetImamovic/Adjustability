@@ -92,6 +92,13 @@ public final class Adjuster
                 return split(all.toImmutable(), active.keySet());
         }
 
+        /** A split from a {@link Selection} of {@code graph}, with levels from {@code all}. */
+        public static Split split(ConflictGraph<Holder<Enchantment>> graph, ItemEnchantments all,
+                Selection<Holder<Enchantment>> selection)
+        {
+                return new Split(graph, levels(all, selection.active()), levels(all, selection.dormant()));
+        }
+
         /** The item's active enchantments, as stored (not re-split). */
         public static ItemEnchantments activeOf(ItemStack stack)
         {
