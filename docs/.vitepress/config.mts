@@ -16,8 +16,11 @@ export default defineConfig({
   rewrites: {
     'guide/README.md': 'guide/index.md',
   },
+  head: [['link', { rel: 'icon', type: 'image/png', href: '/Adjustability/adjustability.png' }]],
 
   themeConfig: {
+    logo: '/adjustability.png',
+
     nav: [
       { text: 'Guide', link: '/guide/' },
       { text: 'Cookbook', link: '/guide/cookbook' },

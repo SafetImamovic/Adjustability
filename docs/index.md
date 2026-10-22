@@ -5,6 +5,9 @@ hero:
   name: Adjustability
   text: Every enchantment. One at a time.
   tagline: A Minecraft mod for Fabric and NeoForge. Put Fortune and Silk Touch on the same pickaxe, all four Protections on one chestplate, and switch between them whenever you want.
+  image:
+    src: /adjustability.png
+    alt: A netherite pickaxe
   actions:
     - theme: brand
       text: Download

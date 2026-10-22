@@ -971,8 +971,10 @@ Settled 2026-10-22:
   tests (edge, clique, trident path, components, unknown vertices). The toggle operation (§7.3) comes in M1.
 - Both loaders verified loading the mod on a dev dedicated server.
 - Docs site (VitePress) builds; pages for unbuilt parts are marked planned.
-- Not yet: mod icon (`icon` / `iconFile` left out of the metadata until there is one), the Forge Config API Port
-  dependency in `fabric.mod.json` (added with the config in M1), `en_us.json` (added with the first text).
+- Mod icon `adjustability.png` (512×512, PNG: in-game mod lists don't animate GIFs) in both loaders' metadata, the
+  README and the docs site.
+- Not yet: the Forge Config API Port dependency in `fabric.mod.json` (added with the config in M1), `en_us.json`
+  (added with the first text).
 
 ---
 

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="common/src/main/resources/adjustability.png" alt="Adjustability icon: a netherite pickaxe" width="160">
+</p>
+
 <h1 align="center">Adjustability</h1>
 
 <p align="center">
