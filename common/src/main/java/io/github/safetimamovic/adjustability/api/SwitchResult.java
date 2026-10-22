@@ -22,7 +22,9 @@ public enum SwitchResult
         /** The player can't pay the switch's cost. */
         CANT_AFFORD,
         /** An {@link AdjustabilityListener} refused it. */
-        CANCELLED;
+        CANCELLED,
+        /** "None" for a group, but the server doesn't allow it ({@code [toggle] allow_none}). */
+        NONE_NOT_ALLOWED;
 
         /** For translation keys: {@code adjustability.toggle.<key>}. */
         public String key()

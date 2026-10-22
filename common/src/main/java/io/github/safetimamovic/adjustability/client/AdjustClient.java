@@ -142,7 +142,7 @@ public final class AdjustClient
         {
                 AdjustPanel open = panel(screen);
                 boolean adjustKey = AdjustKeys.ADJUST.matches(event);
-                boolean toggle = AdjustabilityConfig.player().panel().activation() == PanelActivation.TOGGLE;
+                boolean toggle = activation() == PanelActivation.TOGGLE;
                 if (open != null && (event.key() == InputConstants.KEY_ESCAPE
                         || adjustKey && toggle && (hovered == null || hovered.index == open.slot())))
                 {
@@ -184,7 +184,7 @@ public final class AdjustClient
         public static boolean onKeyReleased(AbstractContainerScreen<?> screen, KeyEvent event)
         {
                 if (panel(screen) == null || !AdjustKeys.ADJUST.matches(event)
-                        || AdjustabilityConfig.player().panel().activation() != PanelActivation.HOLD)
+                        || activation() != PanelActivation.HOLD)
                 {
                         return false;
                 }
@@ -257,6 +257,17 @@ public final class AdjustClient
                 {
                         panel = null;
                 }
+        }
+
+        /** How the Adjust key works: the server's {@code panel_activation} if it sets one, else the player's own. */
+        private static PanelActivation activation()
+        {
+                return switch (AdjustabilityConfig.toggle().panelActivation())
+                {
+                        case TOGGLE -> PanelActivation.TOGGLE;
+                        case HOLD -> PanelActivation.HOLD;
+                        case PLAYER -> AdjustabilityConfig.player().panel().activation();
+                };
         }
 
         private static @Nullable Component hint()

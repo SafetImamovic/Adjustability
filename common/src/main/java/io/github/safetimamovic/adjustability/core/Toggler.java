@@ -48,10 +48,30 @@ public final class Toggler
         public static SwitchResult activate(ServerPlayer player, ItemStack stack, Holder<Enchantment> target,
                 SwitchSource source)
         {
+                return change(player, stack, target, source, false);
+        }
+
+        /**
+         * The "none" choice: leaves the group {@code anyInGroup} belongs to with nothing active. Only with
+         * {@code [toggle] allow_none}; same checks, cost and listeners as {@link #activate}.
+         */
+        public static SwitchResult deactivate(ServerPlayer player, ItemStack stack, Holder<Enchantment> anyInGroup,
+                SwitchSource source)
+        {
+                return change(player, stack, anyInGroup, source, true);
+        }
+
+        private static SwitchResult change(ServerPlayer player, ItemStack stack, Holder<Enchantment> target,
+                SwitchSource source, boolean none)
+        {
                 ToggleConfig config = AdjustabilityConfig.toggle();
                 if (!config.enabled())
                 {
                         return SwitchResult.DISABLED;
+                }
+                if (none && !config.allowNone())
+                {
+                        return SwitchResult.NONE_NOT_ALLOWED;
                 }
                 if (!ItemRules.canAdjust(stack))
                 {
@@ -60,25 +80,33 @@ public final class Toggler
                 HolderLookup.Provider registries = player.level().registryAccess();
                 // An item can arrive with conflicting active enchantments (/give, another mod): it's repaired first,
                 // never by deleting anything, keeping what's active active where possible.
-                Adjuster.Split current = Adjuster.resplit(stack, ItemEnchantments.EMPTY, registries);
+                Adjuster.Split current = Adjuster.normalize(stack, registries);
                 boolean broken = !current.active().equals(Adjuster.activeOf(stack))
                         || !current.dormant().equals(Adjuster.dormantOf(stack, registries));
-                if (current.dormant().getLevel(target) == 0)
-                {
-                        if (broken && current.active().getLevel(target) > 0)
-                        {
-                                Adjuster.write(stack, current);
-                                return SwitchResult.DONE;
-                        }
-                        return SwitchResult.NOT_DORMANT;
-                }
-
-                ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(current.active());
-                current.dormant().entrySet().forEach(entry -> all.set(entry.getKey(), entry.getIntValue()));
                 ConflictGraph<Holder<Enchantment>> graph = current.graph();
-                Selection<Holder<Enchantment>> next = graph.activate(
-                        new Selection<>(current.active().keySet(), current.dormant().keySet()), target,
-                        config.autoFill());
+                Selection<Holder<Enchantment>> before = new Selection<>(current.active().keySet(),
+                        current.dormant().keySet());
+                Selection<Holder<Enchantment>> next;
+                if (none)
+                {
+                        Optional<Set<Holder<Enchantment>>> group = graph.components().stream()
+                                .filter(component -> component.contains(target)).findFirst();
+                        if (group.isEmpty() || group.get().stream().noneMatch(before.active()::contains))
+                        {
+                                return repairedOr(stack, current, broken ? SwitchResult.NOTHING_TO_SWITCH : null,
+                                        SwitchResult.NOTHING_TO_SWITCH);
+                        }
+                        next = graph.deactivate(before, group.get());
+                }
+                else
+                {
+                        if (current.dormant().getLevel(target) == 0)
+                        {
+                                return repairedOr(stack, current, broken && current.active().getLevel(target) > 0
+                                        ? SwitchResult.DONE : null, SwitchResult.NOT_DORMANT);
+                        }
+                        next = graph.activate(before, target, config.autoFill());
+                }
                 if (next.dormant().stream().anyMatch(enchantment -> enchantment.is(ModTags.NEVER_DORMANT)))
                 {
                         return SwitchResult.WOULD_SWITCH_OFF_CURSE;
@@ -92,7 +120,7 @@ public final class Toggler
                         return SwitchResult.COOLDOWN;
                 }
                 SwitchEvent event = new SwitchEvent(player, stack, target, source, current.active(),
-                        current.dormant());
+                        current.dormant(), none);
                 if (!Listeners.allowSwitch(event))
                 {
                         return SwitchResult.CANCELLED;
@@ -102,6 +130,8 @@ public final class Toggler
                         return SwitchResult.CANT_AFFORD;
                 }
 
+                ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(current.active());
+                current.dormant().entrySet().forEach(entry -> all.set(entry.getKey(), entry.getIntValue()));
                 Adjuster.write(stack, Adjuster.split(graph, all.toImmutable(), next));
                 LAST_SWITCH.put(player, now);
                 Listeners.onSwitched(event);
@@ -109,24 +139,53 @@ public final class Toggler
         }
 
         /**
-         * The enchantment one press of the Cycle key activates: the next choice in the {@code component}-th group of
-         * conflicting enchantments on {@code stack} (see {@link ConflictGraph#next}).
+         * When there's nothing to switch: still writes the repaired split if the item needed it ({@code repaired} not
+         * null), and returns {@code repaired} then, else {@code otherwise}.
          */
-        public static Optional<Holder<Enchantment>> nextInCycle(ItemStack stack, int component,
-                HolderLookup.Provider registries)
+        private static SwitchResult repairedOr(ItemStack stack, Adjuster.Split current, @Nullable SwitchResult repaired,
+                SwitchResult otherwise)
+        {
+                if (repaired != null)
+                {
+                        Adjuster.write(stack, current);
+                        return repaired;
+                }
+                return otherwise;
+        }
+
+        /**
+         * One press of the Cycle key on the {@code component}-th group of conflicting enchantments: the next choice,
+         * and with {@code [toggle] allow_none}, "none" after the last one (see {@link ConflictGraph#next} and
+         * {@link ConflictGraph#isLastChoice}).
+         */
+        public static Optional<CycleStep> nextInCycle(ItemStack stack, int component, HolderLookup.Provider registries)
         {
                 if (!DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack)))
                 {
                         return Optional.empty();
                 }
-                Adjuster.Split current = Adjuster.resplit(stack, ItemEnchantments.EMPTY, registries);
+                Adjuster.Split current = Adjuster.normalize(stack, registries);
                 List<Set<Holder<Enchantment>>> components = current.graph().components();
                 if (component < 0 || component >= components.size())
                 {
                         return Optional.empty();
                 }
-                return current.graph().next(new Selection<>(current.active().keySet(), current.dormant().keySet()),
-                        components.get(component));
+                Set<Holder<Enchantment>> group = components.get(component);
+                Selection<Holder<Enchantment>> selection = new Selection<>(current.active().keySet(),
+                        current.dormant().keySet());
+                if (AdjustabilityConfig.toggle().allowNone() && current.graph().isLastChoice(selection, group))
+                {
+                        return current.graph().vertices().stream().filter(group::contains).findFirst()
+                                .map(any -> new CycleStep(any, true));
+                }
+                return current.graph().next(selection, group).map(next -> new CycleStep(next, false));
+        }
+
+        /**
+         * A Cycle key step: make {@code enchantment} active, or with {@code none}, leave its group with nothing active.
+         */
+        public record CycleStep(Holder<Enchantment> enchantment, boolean none)
+        {
         }
 
         /**
@@ -153,10 +212,19 @@ public final class Toggler
         public static void report(ServerPlayer player, SwitchResult outcome, @Nullable Holder<Enchantment> target,
                 ItemStack stack)
         {
+                report(player, outcome, target, stack, false);
+        }
+
+        /** {@link #report(ServerPlayer, SwitchResult, Holder, ItemStack)}, for a "none" switch when {@code none}. */
+        public static void report(ServerPlayer player, SwitchResult outcome, @Nullable Holder<Enchantment> target,
+                ItemStack stack, boolean none)
+        {
                 ToggleConfig config = AdjustabilityConfig.toggle();
                 Component message = switch (outcome)
                 {
-                        case DONE -> Component.translatable("adjustability.toggle.done",
+                        case DONE -> none ? Component.translatable("adjustability.toggle.none",
+                                TooltipLines.name(Objects.requireNonNull(target), 1))
+                                : Component.translatable("adjustability.toggle.done",
                                 TooltipLines.name(Objects.requireNonNull(target), 1)
                                 .withStyle(style -> style.withColor(0xC71FC0)));
                         case COOLDOWN -> Component.translatable("adjustability.toggle.cooldown",

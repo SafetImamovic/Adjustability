@@ -47,13 +47,15 @@ public final class ToggleNetwork
                         return;
                 }
                 ItemStack stack = slot.getItem();
-                SwitchResult outcome = Toggler.activate(player, stack, target.get(), SwitchSource.PANEL);
+                SwitchResult outcome = payload.none()
+                        ? Toggler.deactivate(player, stack, target.get(), SwitchSource.PANEL)
+                        : Toggler.activate(player, stack, target.get(), SwitchSource.PANEL);
                 if (outcome == SwitchResult.DONE)
                 {
                         slot.setChanged();
                         menu.broadcastChanges();
                 }
-                Toggler.report(player, outcome, target.get(), stack);
+                Toggler.report(player, outcome, target.get(), stack, payload.none());
         }
 
         public static void onCycle(ServerPlayer player, CycleEnchantmentPayload payload)
@@ -64,13 +66,16 @@ public final class ToggleNetwork
                         return;
                 }
                 ItemStack stack = player.getMainHandItem();
-                Optional<Holder<Enchantment>> target = Toggler.nextInCycle(stack, payload.component(),
+                Optional<Toggler.CycleStep> step = Toggler.nextInCycle(stack, payload.component(),
                         player.level().registryAccess());
-                if (target.isEmpty())
+                if (step.isEmpty())
                 {
                         return;
                 }
-                Toggler.report(player, Toggler.activate(player, stack, target.get(), SwitchSource.CYCLE_KEY),
-                        target.get(), stack);
+                Holder<Enchantment> enchantment = step.get().enchantment();
+                SwitchResult outcome = step.get().none()
+                        ? Toggler.deactivate(player, stack, enchantment, SwitchSource.CYCLE_KEY)
+                        : Toggler.activate(player, stack, enchantment, SwitchSource.CYCLE_KEY);
+                Toggler.report(player, outcome, enchantment, stack, step.get().none());
         }
 }

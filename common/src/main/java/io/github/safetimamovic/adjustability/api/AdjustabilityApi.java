@@ -84,7 +84,7 @@ public final class AdjustabilityApi
                 }
                 ItemEnchantments.Mutable extra = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                 extra.set(enchantment, level);
-                Adjuster.write(stack, Adjuster.resplit(stack, extra.toImmutable(), registries));
+                Adjuster.write(stack, Adjuster.add(stack, extra.toImmutable(), registries));
                 return true;
         }
 
@@ -97,6 +97,16 @@ public final class AdjustabilityApi
         public static SwitchResult activate(ServerPlayer player, ItemStack stack, Holder<Enchantment> enchantment)
         {
                 return Toggler.activate(player, stack, enchantment, SwitchSource.API);
+        }
+
+        /**
+         * Leaves the group of conflicting enchantments that {@code anyInGroup} belongs to with nothing active, as if
+         * the player had clicked None in the Adjust panel. Only when the server allows it
+         * ({@code [toggle] allow_none}); otherwise {@link SwitchResult#NONE_NOT_ALLOWED}.
+         */
+        public static SwitchResult deactivateGroup(ServerPlayer player, ItemStack stack, Holder<Enchantment> anyInGroup)
+        {
+                return Toggler.deactivate(player, stack, anyInGroup, SwitchSource.API);
         }
 
         /** Removes all dormant enchantments from the item; its active ones stay. */

@@ -13,12 +13,14 @@ import org.jetbrains.annotations.ApiStatus;
  *
  * @param stack          the item; read it in {@code onSwitched} for the new split. Don't change it in
  *                       {@code allowSwitch}.
- * @param target         the dormant enchantment being made active
+ * @param target         the dormant enchantment being made active; with {@code none}, any enchantment of the group
+ *                       being left with nothing active
  * @param activeBefore   the item's active enchantments before the switch
  * @param dormantBefore  its dormant enchantments before the switch
+ * @param none           true for the "none" choice: every enchantment of {@code target}'s group becomes dormant
  */
 @ApiStatus.Experimental
 public record SwitchEvent(ServerPlayer player, ItemStack stack, Holder<Enchantment> target, SwitchSource source,
-        ItemEnchantments activeBefore, ItemEnchantments dormantBefore)
+        ItemEnchantments activeBefore, ItemEnchantments dormantBefore, boolean none)
 {
 }

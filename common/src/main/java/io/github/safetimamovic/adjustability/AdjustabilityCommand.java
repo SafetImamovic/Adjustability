@@ -174,7 +174,7 @@ public final class AdjustabilityCommand
                         source.sendFailure(Component.translatable("adjustability.command.no_item"));
                         return 0;
                 }
-                Adjuster.Split split = Adjuster.resplit(stack, ItemEnchantments.EMPTY, source.registryAccess());
+                Adjuster.Split split = Adjuster.normalize(stack, source.registryAccess());
                 ItemEnchantments active = Adjuster.activeOf(stack);
                 ItemEnchantments dormant = Adjuster.dormantOf(stack, source.registryAccess());
                 source.sendSuccess(() -> Component.translatable("adjustability.command.inspect.header",
@@ -213,7 +213,7 @@ public final class AdjustabilityCommand
                 }
                 ItemEnchantments.Mutable extra = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                 extra.set(enchantment, level);
-                Adjuster.Split split = Adjuster.resplit(stack, extra.toImmutable(), source.registryAccess());
+                Adjuster.Split split = Adjuster.add(stack, extra.toImmutable(), source.registryAccess());
                 Adjuster.write(stack, split);
                 boolean dormant = split.dormant().getLevel(enchantment) > 0;
                 source.sendSuccess(() -> Component.translatable(dormant ? "adjustability.command.add.dormant"

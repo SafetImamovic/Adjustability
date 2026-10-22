@@ -1,5 +1,6 @@
 package io.github.safetimamovic.adjustability.core;
 
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.graph.ConflictGraph;
 import io.github.safetimamovic.adjustability.graph.Selection;
 import io.github.safetimamovic.adjustability.tags.ModTags;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponents;
@@ -74,7 +76,8 @@ public final class Adjuster
         {
                 ConflictGraph<Holder<Enchantment>> graph = graph(all);
                 List<Holder<Enchantment>> order = new ArrayList<>();
-                graph.vertices().stream().filter(enchantment -> enchantment.is(ModTags.NEVER_DORMANT)).forEach(order::add);
+                graph.vertices().stream().filter(enchantment -> enchantment.is(ModTags.NEVER_DORMANT))
+                        .forEach(order::add);
                 graph.vertices().stream().filter(preferred::contains).forEach(order::add);
                 Selection<Holder<Enchantment>> selection = graph.select(order);
                 return new Split(graph, levels(all, selection.active()), levels(all, selection.dormant()));
@@ -110,6 +113,59 @@ public final class Adjuster
         public static ItemEnchantments dormantOf(ItemStack stack, HolderLookup.Provider registries)
         {
                 return DormantEnchantments.get(stack, registries);
+        }
+
+        /**
+         * The item's split as switching sees it: repaired if two active enchantments conflict. Normally also
+         * completed (every dormant enchantment conflicts with an active one, see {@link #resplit}); with
+         * {@code [toggle] allow_none} a group may stay with nothing active, so only conflicts are fixed and nothing
+         * dormant is made active, curses aside.
+         */
+        public static Split normalize(ItemStack stack, HolderLookup.Provider registries)
+        {
+                if (!AdjustabilityConfig.toggle().allowNone())
+                {
+                        return resplit(stack, ItemEnchantments.EMPTY, registries);
+                }
+                ItemEnchantments active = activeOf(stack);
+                ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(active);
+                mergeInto(all, dormantOf(stack, registries));
+                return split(all.toImmutable(), active.keySet(), enchantment -> false);
+        }
+
+        /**
+         * {@link #split(ItemEnchantments, Set)}, but an enchantment outside {@code preferred} only becomes active if
+         * {@code mayActivate} allows it (never-dormant ones always may).
+         */
+        public static Split split(ItemEnchantments all, Set<Holder<Enchantment>> preferred,
+                Predicate<Holder<Enchantment>> mayActivate)
+        {
+                ConflictGraph<Holder<Enchantment>> graph = graph(all);
+                List<Holder<Enchantment>> order = new ArrayList<>();
+                graph.vertices().stream().filter(enchantment -> enchantment.is(ModTags.NEVER_DORMANT))
+                        .forEach(order::add);
+                graph.vertices().stream().filter(preferred::contains).forEach(order::add);
+                Selection<Holder<Enchantment>> selection = graph.select(order,
+                        enchantment -> enchantment.is(ModTags.NEVER_DORMANT) || mayActivate.test(enchantment));
+                return new Split(graph, levels(all, selection.active()), levels(all, selection.dormant()));
+        }
+
+        /**
+         * Everything the item holds plus {@code extra}, split: what's active stays active where possible, and an extra
+         * enchantment is active unless it conflicts. With {@code [toggle] allow_none}, dormant ones stay dormant (a
+         * group left on none stays so); otherwise the result is completed like {@link #resplit}.
+         */
+        public static Split add(ItemStack stack, ItemEnchantments extra, HolderLookup.Provider registries)
+        {
+                if (!AdjustabilityConfig.toggle().allowNone())
+                {
+                        return resplit(stack, extra, registries);
+                }
+                ItemEnchantments active = activeOf(stack);
+                ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(active);
+                mergeInto(all, dormantOf(stack, registries));
+                mergeInto(all, extra);
+                return split(all.toImmutable(), active.keySet(), enchantment -> extra.getLevel(enchantment) > 0);
         }
 
         /** Writes a split to the item. */
