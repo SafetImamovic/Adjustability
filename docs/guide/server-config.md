@@ -4,12 +4,12 @@ Gameplay rules live in `config/adjustability-server.toml`. The server sends them
 by the same rules. To use different rules for one world, put a copy in that world's `serverconfig/` folder (Fabric) or
 `syncedconfig/` folder (NeoForge); it wins over the global file.
 
-Each player's own settings (tooltip hint, sounds) will be in `config/adjustability-client.toml` (planned, M2).
+Each player's own settings are in `config/adjustability-client.toml` and can be changed in game with
+`/adjustability config` (or the mod list on NeoForge, Mod Menu on Fabric): see [Player settings](#player-settings).
 
 Which enchantments and items take part isn't set here: use [tags](tags.md).
 
-The `[anvil]` and `[grindstone]` sections exist now. `[toggle]` is planned for M2 and its keys may still change before
-0.1.0.
+Keys may still change before 0.1.0.
 
 ## Anvil
 
@@ -32,7 +32,7 @@ max_conflicts_per_component = 0
 | `max_dormant_per_item` | `4` | Most dormant enchantments one item can hold; the anvil gives no result past it. `0`: no limit. |
 | `max_conflicts_per_component` | `0` | Most enchantments in one group of conflicting ones (e.g. `2` = at most two Protections on one piece); the anvil gives no result past it. `0`: no limit. |
 
-## Toggling (planned, M2)
+## Switching
 
 ```toml
 [toggle]
@@ -50,8 +50,8 @@ allow_command = true
 |---|---|---|
 | `enabled` | `true` | Players can switch active enchantments. |
 | `auto_fill` | `true` | After a switch, dormant enchantments that no longer conflict become active again (the trident case). |
-| `cooldown_ticks` | `20` | Time between switches on one item (20 ticks = 1 second). |
-| `cost_type` | `NONE` | `NONE`, `XP_LEVELS`, `XP_POINTS`, `ITEM` or `DURABILITY`. |
+| `cooldown_ticks` | `20` | Time a player waits between switches (20 ticks = 1 second). Not for creative players. |
+| `cost_type` | `NONE` | `NONE`, `XP_LEVELS`, `XP_POINTS`, `ITEM` (taken from the inventory) or `DURABILITY` (never breaks the item: a switch that would is refused). Creative players switch for free. |
 | `cost_amount` | `1` | How much of `cost_type` one switch costs. |
 | `cost_item` | `minecraft:lapis_lazuli` | The item used when `cost_type` is `ITEM`. |
 | `allow_in_world_cycle` | `true` | The Cycle key works outside the inventory. |
@@ -67,3 +67,18 @@ remove_dormant = true
 | Key | Default | What it does |
 |---|---|---|
 | `remove_dormant` | `true` | A grindstone removes dormant enchantments too. Off: they stay, and become active once nothing active conflicts with them. Experience only comes from active enchantments either way. |
+
+## Player settings
+
+`config/adjustability-client.toml`, each player's own.
+
+```toml
+[tooltip]
+show_dormant = true
+show_hint = true
+```
+
+| Key | Default | What it does |
+|---|---|---|
+| `show_dormant` | `true` | List dormant enchantments in item tooltips. |
+| `show_hint` | `true` | On items with dormant enchantments, show which key opens the Adjust screen. |

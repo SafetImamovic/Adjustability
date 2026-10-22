@@ -3,9 +3,6 @@
 Ready-made rule sets. Config keys are in [Server config](server-config.md), tags in
 [Tags and exclusive sets](tags.md).
 
-> **Planned.** These recipes use the planned config keys and tags; they'll be checked against the real ones before
-> 0.1.0.
-
 ## Make switching cost 1 lapis
 
 ```toml
