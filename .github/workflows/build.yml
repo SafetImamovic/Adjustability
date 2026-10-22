@@ -43,6 +43,7 @@ jobs:
           path: |
             fabric/build/libs/*.jar
             neoforge/build/libs/*.jar
+            common/build/libs/adjustability-api-*.jar
             !**/*-sources.jar
             !**/*-javadoc.jar
           if-no-files-found: error

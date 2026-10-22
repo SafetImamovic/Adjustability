@@ -64,3 +64,5 @@ jobs:
           files: |
             fabric/build/libs/adjustability-fabric-*-${{ steps.version.outputs.version }}.jar
             neoforge/build/libs/adjustability-neoforge-*-${{ steps.version.outputs.version }}.jar
+            common/build/libs/adjustability-api-*-${{ steps.version.outputs.version }}.jar
+            common/build/libs/adjustability-api-*-${{ steps.version.outputs.version }}-sources.jar

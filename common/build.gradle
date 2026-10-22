@@ -64,3 +64,23 @@ sourceSets.configureEach {
         }
     }
 }
+
+// The public API on its own, for other mods to build against (compileOnly). Only the api package: its classes call
+// into the rest of the mod, which the mod jar provides at runtime. (multiloader-common adds the LICENSE to every jar.)
+def apiJar = tasks.register('apiJar', Jar) {
+    archiveBaseName = "${mod_id}-api-${minecraft_version}"
+    from(sourceSets.main.output) {
+        include 'io/github/safetimamovic/adjustability/api/**'
+    }
+}
+def apiSourcesJar = tasks.register('apiSourcesJar', Jar) {
+    archiveBaseName = "${mod_id}-api-${minecraft_version}"
+    archiveClassifier = 'sources'
+    from(sourceSets.main.allJava) {
+        include 'io/github/safetimamovic/adjustability/api/**'
+    }
+}
+tasks.named('assemble') {
+    dependsOn(apiJar, apiSourcesJar)
+}
+
