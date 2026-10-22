@@ -22,6 +22,9 @@ Changes per version that players, pack devs and mod devs will notice. Format:
   in-world Cycle key and command on/off. Curses are never switched off.
 - Player settings `adjustability-client.toml`: dormant lines and the key hint in tooltips, and the Adjust panel's look
   (side, colors, corner brackets, cost line), editable in game or with `/adjustability panel`.
+- Java API (experimental) in `io.github.safetimamovic.adjustability.api`: read and change active and dormant
+  enchantments, switch from code, listeners that can refuse switches and anvil results, and `AdjustableItem` for
+  item-specific rules.
 - `[exclusivity]` server settings: your own conflict groups (`extra_groups`), groups that never conflict
   (`compatible`), and turning vanilla's conflicts off (`use_vanilla`). Ids and `#tags`.
 - `group_costs`: a different cost per group of conflicting enchantments, of any kind (free, XP levels or points,

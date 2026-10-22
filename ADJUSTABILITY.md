@@ -1055,6 +1055,19 @@ Settled 2026-10-22:
 - 22 GameTests on both loaders; the Fabric client GameTest sets `group_costs` through the config spec and checks a
   mining switch takes one lapis.
 
+### M4 state (Java API, 2026-10-22)
+
+- `api/`: `AdjustabilityApi` (read active/dormant, `conflict`, `canHoldDormant`, `addEnchantment`, `activate`,
+  `flatten`, listeners), `AdjustabilityListener` (`allowSwitch`, `onSwitched`, `allowAnvilResult`), `SwitchEvent`,
+  `AnvilEvent`, `SwitchResult`, `SwitchSource`, `AdjustableItem`. All `@ApiStatus.Experimental` until 1.0, with Javadoc.
+  The roadmap's "modify which go dormant" anvil event became a veto (`allowAnvilResult`): simpler, and enough so far.
+- The mod's own code goes through the same paths: the panel, Cycle key and command call `Toggler.activate` with their
+  `SwitchSource`, which asks the listeners; the anvil asks them before splitting; `ItemRules` consults
+  `AdjustableItem`. Listener failures are logged and count as allowing.
+- The docs page's examples are a real class (`gametest/ApiExamples`) the GameTests run. 26 GameTests on both loaders.
+- Not tested: `AdjustableItem` (needs a registered item; the check is two lines in `ItemRules`). No `-api` Maven
+  artifact yet (M9).
+
 ---
 
 ## 21. Open questions
