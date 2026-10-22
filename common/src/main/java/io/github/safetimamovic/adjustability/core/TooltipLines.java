@@ -2,7 +2,9 @@ package io.github.safetimamovic.adjustability.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -13,12 +15,24 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+import org.jspecify.annotations.Nullable;
 
 /** Tooltip lines for dormant enchantments. Plain components, so it runs wherever vanilla builds tooltips. */
 public final class TooltipLines
 {
+        /** The player's settings and key hint; set by the client, so a dedicated server uses these defaults. */
+        private static BooleanSupplier showDormant = () -> true;
+        private static Supplier<@Nullable Component> hint = () -> null;
+
         private TooltipLines()
         {
+        }
+
+        /** Called once by the client: whether to list dormant enchantments, and the "press Alt" line (or null). */
+        public static void setClientHooks(BooleanSupplier showDormantSetting, Supplier<@Nullable Component> hintLine)
+        {
+                showDormant = showDormantSetting;
+                hint = hintLine;
         }
 
         public static void addDormant(Item.TooltipContext context, Consumer<Component> consumer,
@@ -29,13 +43,22 @@ public final class TooltipLines
                 {
                         return;
                 }
-                ItemEnchantments dormant = DormantEnchantments.get(components, registries);
-                List<Holder<Enchantment>> sorted = new ArrayList<>(dormant.keySet());
-                sorted.sort((a, b) -> Adjuster.id(a).compareTo(Adjuster.id(b)));
-                for (Holder<Enchantment> enchantment : sorted)
+                if (showDormant.getAsBoolean())
                 {
-                        consumer.accept(Component.translatable("adjustability.tooltip.dormant",
-                                name(enchantment, dormant.getLevel(enchantment))).withStyle(ChatFormatting.DARK_GRAY));
+                        ItemEnchantments dormant = DormantEnchantments.get(components, registries);
+                        List<Holder<Enchantment>> sorted = new ArrayList<>(dormant.keySet());
+                        sorted.sort((a, b) -> Adjuster.id(a).compareTo(Adjuster.id(b)));
+                        for (Holder<Enchantment> enchantment : sorted)
+                        {
+                                consumer.accept(Component.translatable("adjustability.tooltip.dormant",
+                                        name(enchantment, dormant.getLevel(enchantment)))
+                                        .withStyle(ChatFormatting.DARK_GRAY));
+                        }
+                }
+                Component line = hint.get();
+                if (line != null)
+                {
+                        consumer.accept(line);
                 }
         }
 

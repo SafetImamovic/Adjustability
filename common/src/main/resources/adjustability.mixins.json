@@ -8,7 +8,9 @@
     "GrindstoneMenuMixin",
     "ItemEnchantmentsMixin"
   ],
-  "client": [],
+  "client": [
+    "client.AbstractContainerScreenMixin"
+  ],
   "server": [],
   "injectors": {
     "defaultRequire": 1
