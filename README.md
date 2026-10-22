@@ -23,15 +23,20 @@
   <a href="https://github.com/SafetImamovic/Adjustability/issues/new/choose"><b>Report a bug</b></a>
 </p>
 
-Minecraft Java **26.3** · **Fabric** + **NeoForge** · MIT · **In development**
+Minecraft Java **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
 
-> Adjustability is being rewritten for 26.3. There's no release yet; the features below are the plan for the first
-> beta. The 2024 prototype for Forge 1.20.6 is kept under the
-> [`legacy-1.20.6-forge`](https://github.com/SafetImamovic/Adjustability/tree/legacy-1.20.6-forge) tag.
+<p align="center">
+  <img src="docs/public/screenshots/adjust-panel.png" alt="The Adjust panel next to a pickaxe: Fortune III active, Silk Touch dormant" width="640">
+</p>
 
 - **Fabric:** needs [Fabric API](https://modrinth.com/mod/fabric-api) and
   [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port).
-- **NeoForge:** nothing extra.
+- **NeoForge:** 26.3.0.95 or newer, nothing extra.
+- Install on both the client and the server. Works with Easy Anvils, JEI, Mouse Tweaks and more:
+  [compatibility](https://safetimamovic.github.io/Adjustability/guide/compatibility).
+
+The 2024 prototype for Forge 1.20.6 is kept under the
+[`legacy-1.20.6-forge`](https://github.com/SafetImamovic/Adjustability/tree/legacy-1.20.6-forge) tag.
 - Install on both the client and the server.
 
 Design, math, API and roadmap: [ADJUSTABILITY.md](ADJUSTABILITY.md).

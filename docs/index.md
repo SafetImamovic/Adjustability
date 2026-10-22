@@ -36,9 +36,11 @@ features:
     linkText: How it works
 ---
 
-::: warning In development
-Adjustability is being rewritten for Minecraft 26.3. The first beta, 0.1.0, isn't out yet; this site describes what it
-will do. Progress: [ADJUSTABILITY.md](https://github.com/SafetImamovic/Adjustability/blob/master/ADJUSTABILITY.md).
+![The Adjust panel next to a pickaxe: Fortune III active, Silk Touch dormant](/screenshots/adjust-panel.png)
+
+::: info Beta
+0.1.0 is the first beta: everything here works and is tested, and settings may still change before 1.0.
+[Changelog](https://github.com/SafetImamovic/Adjustability/blob/master/CHANGELOG.md).
 :::
 
 ::: tip Safe to remove
@@ -54,7 +56,7 @@ Minecraft Java **26.3**, on the client **and** the server.
 | Loader | Also install |
 |---|---|
 | Fabric | [Fabric API](https://modrinth.com/mod/fabric-api), [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) |
-| NeoForge | Nothing |
+| NeoForge (26.3.0.95 or newer) | Nothing |
 
 ## Controls
 

@@ -1084,6 +1084,18 @@ Settled 2026-10-22:
   client mixin applies to NeoForge's patched class. The panel itself is only driven on Fabric. 27 GameTests on both
   loaders.
 
+### M5 state (0.1.0 beta, 2026-10-22)
+
+- Fabric API 0.164.0+26.3 and NeoForge 26.3.0.95 (first stable; mods.toml now requires it), both needed by the compat
+  mods below.
+- Compatibility pass: Easy Anvils + Puzzles Lib and JEI on Fabric and NeoForge, plus Mouse Tweaks, AppleSkin and
+  Enchantment Descriptions (+ Bookshelf, Prickle) on Fabric, downloaded from Modrinth with their sha512 checked. All
+  31 GameTests pass with them on both loaders, and the Fabric client GameTest passes with 66 mods loaded. Results on
+  `guide/compatibility.md`. NeoForge's client mixin checked again on 26.3.0.95.
+- Docs: beta wording, screenshots (from the client GameTest), the compatibility page, a changelog grouped by audience.
+- Release: tag `v0.1.0` builds both loaders and the API jar into a GitHub release. Modrinth/CurseForge uploads are by
+  hand (description text prepared outside the repo). No GIFs yet.
+
 ---
 
 ## 21. Open questions

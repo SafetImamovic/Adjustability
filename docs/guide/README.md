@@ -4,9 +4,8 @@ For players, server admins, pack devs and mod devs: how Adjustability lets one i
 how to change its rules. It's written next to the code, so it matches the current version. Read it on the
 [docs site](https://safetimamovic.github.io/Adjustability/guide/) or here on GitHub.
 
-> **In development.** The 26.3 rewrite hasn't reached its first beta yet. Pages describe the planned behavior from
-> [ADJUSTABILITY.md](https://github.com/SafetImamovic/Adjustability/blob/master/ADJUSTABILITY.md) and are filled in as
-> each part lands.
+> **Beta (0.1.0).** Everything described here is in the mod and covered by its tests; settings may still change before
+> 1.0. Design notes and the roadmap: [ADJUSTABILITY.md](https://github.com/SafetImamovic/Adjustability/blob/master/ADJUSTABILITY.md).
 
 | Page | For | What's in it |
 |---|---|---|
@@ -16,6 +15,7 @@ how to change its rules. It's written next to the code, so it matches the curren
 | [Server config](server-config.md) | Server admins | Every setting in `adjustability-server.toml`, including your own conflict rules and per-group costs |
 | [Tags and exclusive sets](tags.md) | Pack devs | Adjustability's tags, and how vanilla decides which enchantments conflict |
 | [Modded enchantments](modded-enchantments.md) | Pack devs, mod devs | Why they work without setup, and how to check one |
+| [Compatibility](compatibility.md) | Everyone | Mods it was tested with, and known limits |
 | [Java API](java-api.md) | Mod devs | Reading and changing active and dormant enchantments from code |
 | [The math](math.md) | Everyone curious | Conflict graphs, independent sets, and what a toggle does |
 | [Cookbook](cookbook.md) | Everyone | Ready-made rule sets |
