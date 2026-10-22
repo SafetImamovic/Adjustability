@@ -1096,6 +1096,26 @@ Settled 2026-10-22:
 - Release: tag `v0.1.0` builds both loaders and the API jar into a GitHub release. Modrinth/CurseForge uploads are by
   hand (description text prepared outside the repo). No GIFs yet.
 
+### M6 state (polish, 2026-10-22)
+
+- Sound: `effect/ModSounds` registers `adjustability:item.switch` (sounds.json points it at the enchanting table), played
+  at the player for everyone nearby on a successful switch; `[toggle] play_sound`.
+- Advancements: `advancement/SwitchedTrigger` (`adjustability:switched`, conditions `none`, `min_switches`, `holds`),
+  `ModStats.SWITCHES` (a custom statistic, which also feeds `min_switches`). Six advancements in their own tab; the
+  root uses vanilla's `inventory_changed` with a `custom_data` predicate. GameTest checks they load and unlock.
+- Tooltip (§6.2): each dormant enchantment right under the first active enchantment it conflicts with, by a
+  `@WrapOperation` on the `Consumer.accept` calls in `ItemEnchantments.addToTooltip` (capturing the loop's enchantment
+  with `@Local`); leftovers (allow_none) at the end as before. GameTest reads the real tooltip lines.
+- JEI: `compat/jei/AdjustabilityJeiPlugin` (compile-only API from maven.blamejared.com), info pages on anvils and the
+  grindstone. Checked in a dev client with JEI on both loaders. No EMI plugin: EMI reads JEI plugins.
+- Translations: every config key and section named for the config screen (`adjustability.configuration.*`).
+- §17.4 generated references: `gametest/ReferenceDocs` writes `docs/reference/config.md` (both specs) and
+  `conflicts.md` (the 26.3 registry) and fails when they're stale (`-PwriteDocs` rewrites them), plus a check that
+  `guide/server-config.md` lists every key with its real default and that every key is translated. It caught two
+  undocumented rows on its first run. A GameTest instead of a Gradle task because the registry needs a running game;
+  both loaders produce identical pages. Default tag contents aren't generated yet.
+- Client GameTest clears chat and toasts before the screenshots the docs use. 35 GameTests on both loaders.
+
 ---
 
 ## 21. Open questions

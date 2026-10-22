@@ -5,6 +5,21 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Added
+
+- A sound on each switch (`adjustability:item.switch`, replaceable by resource packs; `[toggle] play_sound`).
+- An advancement tab: Adjustability, Change of Plans, Best of Both, Every Angle Covered, Indecisive (100 switches) and
+  the hidden Neither. Switches are counted in Statistics. Packs can make their own with the `adjustability:switched`
+  trigger.
+- JEI info pages on the anvils and the grindstone.
+- Names for every setting in the in-game config screen.
+- Docs: a reference of every setting and a table of vanilla's conflicts, both generated from the code.
+
+### Changed
+
+- Dormant enchantments are listed in the tooltip right under the active enchantment they conflict with, instead of
+  after all of them.
+
 ## [0.1.0] - 2026-10-22
 
 First beta, for Minecraft 26.3 on Fabric and NeoForge (26.3.0.95 or newer). A complete rewrite of the 2024 Forge
