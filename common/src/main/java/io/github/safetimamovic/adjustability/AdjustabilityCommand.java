@@ -5,6 +5,8 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.safetimamovic.adjustability.api.SwitchResult;
+import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
@@ -125,9 +127,10 @@ public final class AdjustabilityCommand
         {
                 ServerPlayer player = context.getSource().getPlayerOrException();
                 Holder<Enchantment> enchantment = ResourceArgument.getEnchantment(context, "enchantment");
-                Toggler.Outcome outcome = Toggler.activate(player, player.getMainHandItem(), enchantment);
+                SwitchResult outcome = Toggler.activate(player, player.getMainHandItem(), enchantment,
+                        SwitchSource.COMMAND);
                 Toggler.report(player, outcome, enchantment, player.getMainHandItem());
-                return outcome == Toggler.Outcome.DONE ? 1 : 0;
+                return outcome == SwitchResult.DONE ? 1 : 0;
         }
 
         /** Removes dormant enchantments from everything the players carry and keep in their ender chests. */

@@ -1,5 +1,6 @@
 package io.github.safetimamovic.adjustability.core;
 
+import io.github.safetimamovic.adjustability.api.AnvilEvent;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.AnvilConfig;
 import io.github.safetimamovic.adjustability.tags.ModTags;
@@ -83,9 +84,17 @@ public final class AnvilMerge
                 Adjuster.Split split = Adjuster.split(all.toImmutable(), keepActive);
 
                 AnvilConfig config = AdjustabilityConfig.anvil();
-                if (config.maxDormantPerItem() > 0 && split.dormant().size() > config.maxDormantPerItem()
+                int maxDormant = ItemRules.maxDormant(result, config.maxDormantPerItem());
+                if (split.dormant().size() > maxDormant
                         || config.maxConflictsPerComponent() > 0
                         && split.largestComponent() > config.maxConflictsPerComponent())
+                {
+                        cost.set(0);
+                        return ItemStack.EMPTY;
+                }
+
+                if (!Listeners.allowAnvilResult(new AnvilEvent(player, input, addition, result, split.active(),
+                        split.dormant())))
                 {
                         cost.set(0);
                         return ItemStack.EMPTY;

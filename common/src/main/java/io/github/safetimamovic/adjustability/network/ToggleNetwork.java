@@ -2,7 +2,8 @@ package io.github.safetimamovic.adjustability.network;
 
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.core.Toggler;
-import io.github.safetimamovic.adjustability.core.Toggler.Outcome;
+import io.github.safetimamovic.adjustability.api.SwitchResult;
+import io.github.safetimamovic.adjustability.api.SwitchSource;
 import java.util.Optional;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
@@ -46,8 +47,8 @@ public final class ToggleNetwork
                         return;
                 }
                 ItemStack stack = slot.getItem();
-                Outcome outcome = Toggler.activate(player, stack, target.get());
-                if (outcome == Outcome.DONE)
+                SwitchResult outcome = Toggler.activate(player, stack, target.get(), SwitchSource.PANEL);
+                if (outcome == SwitchResult.DONE)
                 {
                         slot.setChanged();
                         menu.broadcastChanges();
@@ -59,7 +60,7 @@ public final class ToggleNetwork
         {
                 if (!AdjustabilityConfig.toggle().allowInWorldCycle())
                 {
-                        Toggler.report(player, Outcome.DISABLED, null, ItemStack.EMPTY);
+                        Toggler.report(player, SwitchResult.DISABLED, null, ItemStack.EMPTY);
                         return;
                 }
                 ItemStack stack = player.getMainHandItem();
@@ -69,6 +70,7 @@ public final class ToggleNetwork
                 {
                         return;
                 }
-                Toggler.report(player, Toggler.activate(player, stack, target.get()), target.get(), stack);
+                Toggler.report(player, Toggler.activate(player, stack, target.get(), SwitchSource.CYCLE_KEY),
+                        target.get(), stack);
         }
 }

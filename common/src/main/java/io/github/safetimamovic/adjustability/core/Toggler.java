@@ -1,5 +1,8 @@
 package io.github.safetimamovic.adjustability.core;
 
+import io.github.safetimamovic.adjustability.api.SwitchEvent;
+import io.github.safetimamovic.adjustability.api.SwitchResult;
+import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Cost;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
@@ -38,17 +41,21 @@ public final class Toggler
         {
         }
 
-        /** Makes dormant {@code target} active on {@code stack}, which the caller has checked the player may change. */
-        public static Outcome activate(ServerPlayer player, ItemStack stack, Holder<Enchantment> target)
+        /**
+         * Makes dormant {@code target} active on {@code stack}, which the caller has checked the player may change.
+         * Listeners are asked after the checks and before the cost is taken, and told after the switch.
+         */
+        public static SwitchResult activate(ServerPlayer player, ItemStack stack, Holder<Enchantment> target,
+                SwitchSource source)
         {
                 ToggleConfig config = AdjustabilityConfig.toggle();
                 if (!config.enabled())
                 {
-                        return Outcome.DISABLED;
+                        return SwitchResult.DISABLED;
                 }
                 if (!ItemRules.canAdjust(stack))
                 {
-                        return Outcome.NOTHING_TO_SWITCH;
+                        return SwitchResult.NOTHING_TO_SWITCH;
                 }
                 HolderLookup.Provider registries = player.level().registryAccess();
                 // An item can arrive with conflicting active enchantments (/give, another mod): it's repaired first,
@@ -61,9 +68,9 @@ public final class Toggler
                         if (broken && current.active().getLevel(target) > 0)
                         {
                                 Adjuster.write(stack, current);
-                                return Outcome.DONE;
+                                return SwitchResult.DONE;
                         }
-                        return Outcome.NOT_DORMANT;
+                        return SwitchResult.NOT_DORMANT;
                 }
 
                 ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(current.active());
@@ -74,7 +81,7 @@ public final class Toggler
                         config.autoFill());
                 if (next.dormant().stream().anyMatch(enchantment -> enchantment.is(ModTags.NEVER_DORMANT)))
                 {
-                        return Outcome.WOULD_SWITCH_OFF_CURSE;
+                        return SwitchResult.WOULD_SWITCH_OFF_CURSE;
                 }
 
                 boolean free = player.hasInfiniteMaterials();
@@ -82,16 +89,23 @@ public final class Toggler
                 Integer last = LAST_SWITCH.get(player);
                 if (!free && last != null && now - last < config.cooldownTicks())
                 {
-                        return Outcome.COOLDOWN;
+                        return SwitchResult.COOLDOWN;
+                }
+                SwitchEvent event = new SwitchEvent(player, stack, target, source, current.active(),
+                        current.dormant());
+                if (!Listeners.allowSwitch(event))
+                {
+                        return SwitchResult.CANCELLED;
                 }
                 if (!free && !pay(player, stack, costOf(graph, target, config)))
                 {
-                        return Outcome.CANT_AFFORD;
+                        return SwitchResult.CANT_AFFORD;
                 }
 
                 Adjuster.write(stack, Adjuster.split(graph, all.toImmutable(), next));
                 LAST_SWITCH.put(player, now);
-                return Outcome.DONE;
+                Listeners.onSwitched(event);
+                return SwitchResult.DONE;
         }
 
         /**
@@ -136,7 +150,7 @@ public final class Toggler
          * Tells the player how a switch went, above the hotbar. {@code target} is only null if it didn't happen;
          * {@code stack} is the item it was on, for the cost.
          */
-        public static void report(ServerPlayer player, Outcome outcome, @Nullable Holder<Enchantment> target,
+        public static void report(ServerPlayer player, SwitchResult outcome, @Nullable Holder<Enchantment> target,
                 ItemStack stack)
         {
                 ToggleConfig config = AdjustabilityConfig.toggle();
@@ -236,21 +250,5 @@ public final class Toggler
                         }
                 }
                 return false;
-        }
-
-        public enum Outcome
-        {
-                DONE,
-                DISABLED,
-                NOTHING_TO_SWITCH,
-                NOT_DORMANT,
-                WOULD_SWITCH_OFF_CURSE,
-                COOLDOWN,
-                CANT_AFFORD;
-
-                String key()
-                {
-                        return this.name().toLowerCase(Locale.ROOT);
-                }
         }
 }

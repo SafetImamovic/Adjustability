@@ -28,6 +28,7 @@
     "adjustability.toggle.would_switch_off_curse": "Can't switch: a curse would be switched off.",
     "adjustability.toggle.cooldown": "Wait %ss between switches.",
     "adjustability.toggle.cant_afford": "A switch costs %s.",
+    "adjustability.toggle.cancelled": "That switch isn't allowed here.",
     "adjustability.command.client_only": "This part of /adjustability runs on the client; use it in game with the mod installed.",
     "adjustability.command.help.header": "Adjustability commands:",
     "adjustability.command.help.help": "this list",
