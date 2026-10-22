@@ -1,5 +1,7 @@
 package io.github.safetimamovic.adjustability.gametest;
 
+import com.mojang.brigadier.StringReader;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.safetimamovic.adjustability.Constants;
 import io.github.safetimamovic.adjustability.ModRegistries;
 import io.github.safetimamovic.adjustability.core.Adjuster;
@@ -20,6 +22,8 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import net.minecraft.commands.CommandBuildContext;
+import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
@@ -79,6 +83,7 @@ public final class AdjustabilityGameTests
                 test(registrar, "exclusivity_server_rules", AdjustabilityGameTests::exclusivityServerRules);
                 test(registrar, "group_costs", AdjustabilityGameTests::groupCosts);
                 test(registrar, "pay_costs", AdjustabilityGameTests::payCosts);
+                test(registrar, "docs_give_example", AdjustabilityGameTests::docsGiveExample);
         }
 
         /** Fortune pickaxe + Silk Touch book: Fortune stays active, Silk Touch is dormant, vanilla price + 1. */
@@ -500,6 +505,32 @@ public final class AdjustabilityGameTests
                 helper.assertValueEqual(pickaxe.getDamageValue(), 10, "damage taken");
                 pickaxe.setDamageValue(pickaxe.getMaxDamage() - 5);
                 helper.assertFalse(Toggler.pay(player, pickaxe, durability), "never breaks the item");
+                helper.succeed();
+        }
+
+        /**
+         * The /give example on the storage docs page (docs/guide/storage.md) parses and gives what the page says:
+         * Fortune III active, Silk Touch dormant. Keep the two in sync.
+         */
+        private static void docsGiveExample(GameTestHelper helper)
+        {
+                String example = "minecraft:diamond_pickaxe[minecraft:enchantments={\"minecraft:fortune\":3},"
+                        + "minecraft:custom_data={\"adjustability:dormant\":{\"minecraft:silk_touch\":1}}]";
+                ItemStack stack;
+                try
+                {
+                        stack = ItemArgument.item(CommandBuildContext.simple(helper.getLevel().registryAccess(),
+                                        helper.getLevel().enabledFeatures()))
+                                .parse(new StringReader(example)).createItemStack(1);
+                }
+                catch (CommandSyntaxException exception)
+                {
+                        throw new IllegalStateException("The documented /give example doesn't parse", exception);
+                }
+                helper.assertValueEqual(Adjuster.activeOf(stack).getLevel(enchantment(helper, Enchantments.FORTUNE)),
+                        3, "active Fortune");
+                helper.assertValueEqual(dormant(helper, stack).getLevel(enchantment(helper, Enchantments.SILK_TOUCH)),
+                        1, "dormant Silk Touch");
                 helper.succeed();
         }
 
