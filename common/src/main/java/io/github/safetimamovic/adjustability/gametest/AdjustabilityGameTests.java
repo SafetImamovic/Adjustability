@@ -699,6 +699,8 @@ public final class AdjustabilityGameTests
         }
 
         /** With allow_none: a group can be left with nothing active, and switched back on. */
+        // A connected mock player; vanilla marks the helper for removal but has no replacement yet.
+        @SuppressWarnings("removal")
         private static void noneSwitch(GameTestHelper helper)
         {
                 withAllowNone(() ->
@@ -761,6 +763,8 @@ public final class AdjustabilityGameTests
         }
 
         /** With allow_none, the Cycle key goes Fortune, Silk Touch, none, Fortune. */
+        // A connected mock player; vanilla marks the helper for removal but has no replacement yet.
+        @SuppressWarnings("removal")
         private static void cycleThroughNone(GameTestHelper helper)
         {
                 withAllowNone(() ->
