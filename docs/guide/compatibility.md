@@ -19,7 +19,7 @@ panel, the Cycle key, hold mode and the None row in a real game client.
 
 On NeoForge, only the server-side tests ran with these mods; NeoForge has no client test framework.
 
-![The Adjust panel next to a pickaxe, with JEI's item list on the right](/screenshots/adjust-panel.png)
+![The Adjust panel next to a pickaxe, with JEI's item list on the right](/screenshots/adjust-panel-jei.png)
 
 ## Known limits
 
