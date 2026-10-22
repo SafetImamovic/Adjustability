@@ -63,3 +63,10 @@ sourceSets.configureEach {
         }
     }
 }
+
+// ./gradlew :fabric:runGametest -PwriteDocs rewrites docs/reference/ (the generated_docs GameTest)
+tasks.matching { it.name == 'runGametest' }.configureEach {
+    if (project.hasProperty('writeDocs')) {
+        environment('ADJUSTABILITY_WRITE_DOCS', '1')
+    }
+}

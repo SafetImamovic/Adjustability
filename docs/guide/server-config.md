@@ -18,10 +18,9 @@ Keys may still change before 0.1.0.
 mode = "DENYLIST"
 ```
 
-| `mode` | Which items can hold dormant enchantments |
-|---|---|
-| `DENYLIST` (default) | Every item except those in `#adjustability:not_adjustable`. |
-| `ALLOWLIST` | Only items in `#adjustability:adjustable` (empty by default), and still not those in `#adjustability:not_adjustable`. |
+| Key | Default | What it does |
+|---|---|---|
+| `mode` | `DENYLIST` | Which items can hold dormant enchantments. `DENYLIST`: every item except those in `#adjustability:not_adjustable`. `ALLOWLIST`: only items in `#adjustability:adjustable` (empty by default), and still not those in `#adjustability:not_adjustable`. |
 
 Enchanted books aren't affected: whether two books combine is `combine_books`. See [Tags](tags.md).
 

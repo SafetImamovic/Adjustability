@@ -106,6 +106,8 @@ public final class AdjustabilityGameTests
                 test(registrar, "cycle_through_none", AdjustabilityGameTests::cycleThroughNone);
                 test(registrar, "advancements", AdjustabilityGameTests::advancements);
                 test(registrar, "tooltip_order", AdjustabilityGameTests::tooltipOrder);
+                test(registrar, "generated_docs", ReferenceDocs::generatedDocs);
+                test(registrar, "hand_written_docs", ReferenceDocs::handWrittenDocs);
         }
 
         /** Fortune pickaxe + Silk Touch book: Fortune stays active, Silk Touch is dormant, vanilla price + 1. */

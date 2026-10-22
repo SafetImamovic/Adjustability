@@ -62,6 +62,13 @@ export default defineConfig({
           items: [{ text: 'Java API', link: '/guide/java-api' }],
         },
         {
+          text: 'Reference',
+          items: [
+            { text: 'Every setting', link: '/reference/config' },
+            { text: 'Vanilla conflicts', link: '/reference/conflicts' },
+          ],
+        },
+        {
           text: 'Background',
           items: [{ text: 'The math', link: '/guide/math' }],
         },
