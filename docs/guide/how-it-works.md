@@ -56,6 +56,10 @@ over the survival limit of 39 levels.
 Switching has a cooldown (1 second by default) and can cost XP, an item or durability; the server decides. Creative
 players switch for free and without a cooldown. A curse is never switched off.
 
+Some servers also allow **none** (`allow_none`): the panel then has a **None** row for each group, and choosing it
+leaves every enchantment of that group dormant, e.g. a pickaxe mining with neither Fortune nor Silk Touch. The Cycle
+key goes Fortune → Silk Touch → none → Fortune.
+
 Switching while breaking a block is fine: the drops come from what's active when the block breaks, so it never
 counts both. An item that somehow has two conflicting enchantments active (from `/give` or another mod) is fixed the
 first time you switch it or use it in an anvil; nothing is lost, the extra one becomes dormant.

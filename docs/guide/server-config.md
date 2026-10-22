@@ -87,6 +87,8 @@ cost_item = "minecraft:lapis_lazuli"
 allow_in_world_cycle = true
 allow_command = true
 group_costs = []
+allow_none = false
+panel_activation = "PLAYER"
 ```
 
 | Key | Default | What it does |
@@ -100,6 +102,8 @@ group_costs = []
 | `allow_in_world_cycle` | `true` | The Cycle key works outside the inventory. |
 | `allow_command` | `true` | Players can use `/adjustability toggle`. |
 | `group_costs` | `[]` | Own costs for particular groups, instead of `cost_type` / `cost_amount` / `cost_item`. See below. |
+| `allow_none` | `false` | A group may have **none** of its enchantments active: the Adjust panel gets a **None** row per group, and the Cycle key steps through none after the last choice. Switching to none costs the same as any switch in that group. Turned back off, items left on none get one of the group active again at their next switch or anvil use. |
+| `panel_activation` | `PLAYER` | How the Adjust key works for everyone: `PLAYER` (each player's own `activation` setting), `TOGGLE` or `HOLD`. |
 
 ### Per-group costs
 
@@ -155,7 +159,7 @@ show_cost = true
 |---|---|---|
 | `show_dormant` | `true` | List dormant enchantments in item tooltips. |
 | `show_hint` | `true` | On items with dormant enchantments, show which key opens the Adjust panel. |
-| `activation` | `TOGGLE` | How the Adjust key works. `TOGGLE`: press it to pin the panel, press it again (or Escape, or click outside) to close it. `HOLD`: the panel is open while you hold the key and closes when you let go. |
+| `activation` | `TOGGLE` | How the Adjust key works (unless the server sets `panel_activation`). `TOGGLE`: press it to pin the panel, press it again (or Escape, or click outside) to close it. `HOLD`: the panel is open while you hold the key and closes when you let go. |
 | `side` | `AUTO` | Where the Adjust panel opens: `AUTO` (right of the item, left if there's no room), `RIGHT` or `LEFT`. It always stays inside the screen. |
 | `background_color` | `#F0080008` | The panel's background. |
 | `border_top_color` | `#C0FF00FF` | The border at the top; fades into `border_bottom_color` down the sides. |

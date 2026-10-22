@@ -1073,6 +1073,13 @@ Settled 2026-10-22:
 - `[panel] activation = TOGGLE | HOLD` (player setting and `/adjustability panel activation`); HOLD closes on the
   key's release through a `keyReleased` override the client mixin adds to `AbstractContainerScreen` (only the
   creative screen overrides it, where the panel is off). Covered by the client GameTest.
+- `[toggle] allow_none`: a group may have nothing active. The rule "every dormant enchantment conflicts with an
+  active one" holds only when it's off. `Adjuster.normalize` (switching, the panel, `inspect`) and `Adjuster.add`
+  (command, API) then only fix conflicts and never activate a dormant enchantment; the anvil keeps what was dormant on
+  the left item dormant; `ConflictGraph.activate` only auto fills the target's own group. None rows in the panel,
+  `Toggler.deactivate`, a none step in the Cycle key (`isLastChoice`), `AdjustabilityApi.deactivateGroup`,
+  `SwitchEvent.none`, `SwitchResult.NONE_NOT_ALLOWED`.
+- `[toggle] panel_activation = PLAYER | TOGGLE | HOLD`: the server can decide the Adjust key's mode for everyone.
 - NeoForge client: no client test framework there; a dev run that force-loads the container screen confirms the
   client mixin applies to NeoForge's patched class. The panel itself is only driven on Fabric. 27 GameTests on both
   loaders.

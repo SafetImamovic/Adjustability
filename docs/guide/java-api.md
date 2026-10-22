@@ -37,6 +37,7 @@ Players install Adjustability themselves; don't bundle it.
 | `canHoldDormant(stack)` | Tags, `[items] mode` and `AdjustableItem` together |
 | `addEnchantment(stack, enchantment, level, registries)` | Adds it: active if it conflicts with nothing active, dormant otherwise. Ignores costs, limits and listeners |
 | `activate(player, stack, enchantment)` | Switches as if the player clicked it in the Adjust panel: cooldown, cost, curses and listeners all apply. Returns a `SwitchResult` and tells the player nothing |
+| `deactivateGroup(player, stack, anyInGroup)` | The None choice: leaves that enchantment's group with nothing active. Only if the server has `allow_none`, else `SwitchResult.NONE_NOT_ALLOWED` |
 | `flatten(stack)` | Removes the dormant enchantments; active ones stay |
 | `addListener(listener)` / `removeListener(listener)` | See below |
 
@@ -66,7 +67,8 @@ Implement `AdjustabilityListener` (every method has a default) and register it o
 | `onSwitched(SwitchEvent)` | After a switch was written and paid for | |
 | `allowAnvilResult(AnvilEvent)` | Before an anvil result gets dormant enchantments (on the server, and on the client for its preview) | `false` means no result |
 
-`SwitchEvent` has the player, the stack, the target enchantment, what asked for it (`SwitchSource`: `PANEL`,
+`SwitchEvent` has the player, the stack, the target enchantment (for a None switch, `none()` is true and the target
+is any enchantment of the group), what asked for it (`SwitchSource`: `PANEL`,
 `CYCLE_KEY`, `COMMAND`, `API`) and the active and dormant enchantments before the switch. `AnvilEvent` has the player,
 both inputs, vanilla's result and the proposed active and dormant split. A listener that throws is logged and counts
 as allowing.

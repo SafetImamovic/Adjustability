@@ -26,7 +26,9 @@ Changes per version that players, pack devs and mod devs will notice. Format:
   enchantments, switch from code, listeners that can refuse switches and anvil results, and `AdjustableItem` for
   item-specific rules. Each release has an `adjustability-api` jar to build against.
 - Hold or toggle the Adjust key: `[panel] activation` in the player settings, or `/adjustability panel activation
-  hold`.
+  hold`. Servers can decide it for everyone with `[toggle] panel_activation`.
+- `[toggle] allow_none`: servers can let a group have none of its enchantments active, with a None row in the panel and
+  a none step for the Cycle key.
 - `[exclusivity]` server settings: your own conflict groups (`extra_groups`), groups that never conflict
   (`compatible`), and turning vanilla's conflicts off (`use_vanilla`). Ids and `#tags`.
 - `group_costs`: a different cost per group of conflicting enchantments, of any kind (free, XP levels or points,
