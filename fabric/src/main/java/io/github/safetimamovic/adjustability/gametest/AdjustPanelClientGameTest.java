@@ -125,10 +125,8 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         command(context, "panel border_top_color #FF00E5FF");
                         command(context, "panel bracket_color 00E5FF");
                         command(context, "panel bracket_length 99");
-                        String side = context.computeOnClient(minecraft -> String.valueOf(
-                                PlayerConfig.current(PlayerConfig.PANEL_SETTINGS.getFirst())));
-                        int bracketLength = context.computeOnClient(minecraft -> (Integer) PlayerConfig.current(
-                                PlayerConfig.PANEL_SETTINGS.get(6)));
+                        String side = context.computeOnClient(minecraft -> String.valueOf(setting("side")));
+                        int bracketLength = context.computeOnClient(minecraft -> (Integer) setting("bracket_length"));
                         if (!side.equals("LEFT") || bracketLength != 9)
                         {
                                 throw new AssertionError("side should be LEFT and an out-of-range bracket_length "
@@ -147,6 +145,24 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         {
                                 throw new AssertionError("Left Alt again should close the panel");
                         }
+
+                        // HOLD: open while the key is held, closed when it's let go.
+                        command(context, "panel activation hold");
+                        hoverSlot(context, HOTBAR_0);
+                        context.waitTick();
+                        context.getInput().holdKey(AdjustKeys.ADJUST);
+                        context.waitTick();
+                        if (!panelOpen(context))
+                        {
+                                throw new AssertionError("HOLD: holding the Adjust key should open the panel");
+                        }
+                        context.getInput().releaseKey(AdjustKeys.ADJUST);
+                        context.waitTick();
+                        if (panelOpen(context))
+                        {
+                                throw new AssertionError("HOLD: letting go of the Adjust key should close the panel");
+                        }
+                        command(context, "panel activation toggle");
 
                         // Two groups with different costs: each shows its own on its first row.
                         hoverSlot(context, HOTBAR_0 + 1);
@@ -249,6 +265,18 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 dormant.set(enchantment(player, Enchantments.FROST_WALKER), 2);
                 DormantEnchantments.set(boots, dormant.toImmutable());
                 return boots;
+        }
+
+        private static boolean panelOpen(ClientGameTestContext context)
+        {
+                return context.computeOnClient(
+                        minecraft -> AdjustClient.panel((AbstractContainerScreen<?>) minecraft.gui.screen()) != null);
+        }
+
+        private static Object setting(String name)
+        {
+                return PlayerConfig.PANEL_SETTINGS.stream().filter(value -> PlayerConfig.name(value).equals(name))
+                        .findFirst().map(PlayerConfig::current).orElseThrow();
         }
 
         /** Runs an {@code /adjustability} client command as if typed in chat. */

@@ -1,5 +1,6 @@
 package io.github.safetimamovic.adjustability.config;
 
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelActivation;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelSide;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelStyle;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PlayerSettings;
@@ -26,6 +27,7 @@ public final class PlayerConfig
         private static final BooleanValue SHOW_DORMANT;
         private static final BooleanValue SHOW_HINT;
 
+        private static final EnumValue<PanelActivation> PANEL_ACTIVATION;
         private static final EnumValue<PanelSide> PANEL_SIDE;
         private static final ConfigValue<String> BACKGROUND_COLOR;
         private static final ConfigValue<String> BORDER_TOP_COLOR;
@@ -54,6 +56,10 @@ public final class PlayerConfig
                 builder.comment("The Adjust panel, pinned next to an item with the Adjust key. Also with",
                         "/adjustability panel. Colors are #RRGGBB or #AARRGGBB (AA = opacity, FF = solid).")
                         .push("panel");
+                PANEL_ACTIVATION = builder.comment("How the Adjust key works. TOGGLE: press it to pin the panel,",
+                                "press it again (or Escape, or click outside) to close it. HOLD: the panel is open",
+                                "while you hold the key, and closes when you let go.")
+                        .defineEnum("activation", PanelActivation.TOGGLE);
                 PANEL_SIDE = builder.comment("Where the panel opens: AUTO (right of the item, left if there's no",
                                 "room), RIGHT or LEFT. It always stays inside the screen.")
                         .defineEnum("side", PanelSide.AUTO);
@@ -74,7 +80,7 @@ public final class PlayerConfig
                 builder.pop();
 
                 SPEC = builder.build();
-                PANEL_SETTINGS = List.of(PANEL_SIDE, BACKGROUND_COLOR, BORDER_TOP_COLOR, BORDER_BOTTOM_COLOR,
+                PANEL_SETTINGS = List.of(PANEL_ACTIVATION, PANEL_SIDE, BACKGROUND_COLOR, BORDER_TOP_COLOR, BORDER_BOTTOM_COLOR,
                         SHOW_BRACKETS, BRACKET_COLOR, BRACKET_LENGTH, HIGHLIGHT_COLOR, ACTIVE_COLOR, SHOW_COST);
         }
 
@@ -85,6 +91,7 @@ public final class PlayerConfig
         static PlayerSettings read()
         {
                 return new PlayerSettings(get(SHOW_DORMANT), get(SHOW_HINT), new PanelStyle(
+                        get(PANEL_ACTIVATION),
                         get(PANEL_SIDE),
                         argb(BACKGROUND_COLOR),
                         argb(BORDER_TOP_COLOR),

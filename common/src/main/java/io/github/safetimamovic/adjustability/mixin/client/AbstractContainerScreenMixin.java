@@ -2,9 +2,11 @@ package io.github.safetimamovic.adjustability.mixin.client;
 
 import io.github.safetimamovic.adjustability.client.AdjustClient;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import org.jspecify.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,7 +23,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  * both loaders; the logic is in {@link AdjustClient}.
  */
 @Mixin(AbstractContainerScreen.class)
-abstract class AbstractContainerScreenMixin
+abstract class AbstractContainerScreenMixin extends Screen
 {
         @Shadow
         protected @Nullable Slot hoveredSlot;
@@ -31,6 +33,21 @@ abstract class AbstractContainerScreenMixin
 
         @Shadow
         protected int topPos;
+
+        private AbstractContainerScreenMixin(Component title)
+        {
+                super(title);
+        }
+
+        /**
+         * The container screen doesn't handle key releases itself, so this adds it: HOLD mode closes the panel when
+         * the Adjust key is let go. Everything else goes on to the screen as before.
+         */
+        @Override
+        public boolean keyReleased(KeyEvent event)
+        {
+                return AdjustClient.onKeyReleased(this.adjustability$self(), event) || super.keyReleased(event);
+        }
 
         @Unique
         private AbstractContainerScreen<?> adjustability$self()
