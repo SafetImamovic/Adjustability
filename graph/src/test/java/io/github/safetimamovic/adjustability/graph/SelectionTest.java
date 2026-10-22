@@ -75,6 +75,41 @@ class SelectionTest
         }
 
         @Test
+        void cycleStepsThroughEveryChoice()
+        {
+                ConflictGraph<String> pickaxe = ConflictGraph.of(List.of("fortune", "silk_touch"), VANILLA);
+                Selection<String> fortune = pickaxe.select(List.of("fortune"));
+                Set<String> mining = pickaxe.components().getFirst();
+                Selection<String> silk = pickaxe.activate(fortune, pickaxe.next(fortune, mining).orElseThrow(), true);
+                assertEquals(Set.of("silk_touch"), silk.active());
+                assertEquals(fortune, pickaxe.activate(silk, pickaxe.next(silk, mining).orElseThrow(), true));
+
+                // Vanilla's armor exclusive set: all four Protections conflict with each other.
+                ConflictGraph<String> armor = ConflictGraph.of(
+                        List.of("blast_protection", "fire_protection", "projectile_protection", "protection"),
+                        (x, y) -> x.endsWith("protection") && y.endsWith("protection"));
+                Set<String> protections = armor.components().getFirst();
+                Selection<String> current = armor.select(List.of("blast_protection"));
+                Set<Set<String>> seen = new HashSet<>();
+                for (int i = 0; i < 4; i++)
+                {
+                        seen.add(current.active());
+                        current = armor.activate(current, armor.next(current, protections).orElseThrow(), true);
+                }
+                assertEquals(4, seen.size(), "four presses visit all four Protections");
+                assertEquals(Set.of("blast_protection"), current.active(), "and come back to the start");
+
+                ConflictGraph<String> trident = ConflictGraph.of(List.of("channeling", "loyalty", "riptide"), VANILLA);
+                Set<String> tridentConflict = trident.components().getFirst();
+                Selection<String> riptide = trident.select(List.of("riptide"));
+                Selection<String> loyalty = trident.activate(riptide,
+                        trident.next(riptide, tridentConflict).orElseThrow(), true);
+                assertEquals(Set.of("channeling", "loyalty"), loyalty.active());
+                assertEquals(riptide, trident.activate(loyalty, trident.next(loyalty, tridentConflict).orElseThrow(),
+                        true));
+        }
+
+        @Test
         void unknownVertexChangesNothing()
         {
                 ConflictGraph<String> graph = ConflictGraph.of(List.of("fortune", "silk_touch"), VANILLA);
