@@ -25,7 +25,7 @@ public final class PlayerConfig
                 builder.comment("Item tooltips.").push("tooltip");
                 SHOW_DORMANT = builder.comment("List dormant enchantments in the tooltip, after the active ones.")
                         .define("show_dormant", true);
-                SHOW_HINT = builder.comment("On items with dormant enchantments, show which key opens the Adjust screen.")
+                SHOW_HINT = builder.comment("On items with dormant enchantments, show which key opens the Adjust panel.")
                         .define("show_hint", true);
                 builder.pop();
 

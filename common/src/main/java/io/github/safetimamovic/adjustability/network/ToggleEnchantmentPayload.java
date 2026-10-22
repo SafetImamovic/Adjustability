@@ -10,7 +10,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 /**
- * Client → server: "make {@code target} active on the item in slot {@code slot} of my open menu" (Adjust screen). The
+ * Client → server: "make {@code target} active on the item in slot {@code slot} of my open menu" (Adjust panel). The
  * server re-checks the menu, the slot and everything about the switch; see {@code ToggleNetwork}.
  *
  * @param containerId the open menu's id, so a click meant for a menu that just closed does nothing

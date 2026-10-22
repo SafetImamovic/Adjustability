@@ -9,7 +9,7 @@ public final class AdjustKeys
 {
         public static final KeyMapping.Category CATEGORY = new KeyMapping.Category(Constants.id("controls"));
 
-        /** While hovering an item in an inventory: opens the Adjust screen for it. */
+        /** While hovering an item in an inventory: pins the Adjust panel next to it. */
         public static final KeyMapping ADJUST = new KeyMapping(name("adjust"), InputConstants.KEY_LALT, CATEGORY);
 
         /** Outside screens: steps the held item to its next choice. Unbound by default. */

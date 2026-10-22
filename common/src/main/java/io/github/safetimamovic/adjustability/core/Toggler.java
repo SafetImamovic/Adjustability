@@ -25,7 +25,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Switching which enchantments are active, on the server. Every check happens here, whatever asked for the switch (the
- * Adjust screen, the Cycle key, the command): the item can take part, the enchantment is dormant on it, no curse would
+ * Adjust panel, the Cycle key, the command): the item can take part, the enchantment is dormant on it, no curse would
  * be switched off, the cooldown has passed and the player can pay.
  */
 public final class Toggler
@@ -126,7 +126,7 @@ public final class Toggler
                 player.sendOverlayMessage(message);
         }
 
-        /** "1 level", "3 Lapis Lazuli", ...; for the Adjust screen and messages. */
+        /** "1 level", "3 Lapis Lazuli", ...; for the Adjust panel and messages. */
         public static Component costText(ToggleConfig config)
         {
                 int amount = config.costAmount();

@@ -12,7 +12,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.KeyMapping;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 
-/** Client-only setup (key mappings, the Adjust screen, client commands), so dedicated servers never load it. */
+/** Client-only setup (key mappings, the Adjust panel, client commands), so dedicated servers never load it. */
 public class AdjustabilityFabricClient implements ClientModInitializer
 {
         @Override

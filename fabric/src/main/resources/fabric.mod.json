@@ -23,7 +23,7 @@
             "io.github.safetimamovic.adjustability.AdjustabilityFabricClient"
         ],
         "fabric-client-gametest": [
-            "io.github.safetimamovic.adjustability.gametest.AdjustScreenClientGameTest"
+            "io.github.safetimamovic.adjustability.gametest.AdjustPanelClientGameTest"
         ]
     },
     "mixins": [
