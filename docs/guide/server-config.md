@@ -1,16 +1,15 @@
 # Server config
 
-Gameplay rules will live in `config/adjustability-server.toml`. The server sends them to every player, so everyone plays
+Gameplay rules live in `config/adjustability-server.toml`. The server sends them to every player, so everyone plays
 by the same rules. To use different rules for one world, put a copy in that world's `serverconfig/` folder (Fabric) or
 `syncedconfig/` folder (NeoForge); it wins over the global file.
 
-Each player's own settings (tooltip hint, sounds) will be in `config/adjustability-client.toml` and can be changed in
-game with `/adjustability config`.
+Each player's own settings (tooltip hint, sounds) will be in `config/adjustability-client.toml` (planned, M2).
 
 Which enchantments and items take part isn't set here: use [tags](tags.md).
 
-> **Planned.** The config arrives with the anvil and toggle milestones (M1, M2). The keys below are the planned ones and
-> may still change before 0.1.0.
+The `[anvil]` and `[grindstone]` sections exist now. `[toggle]` is planned for M2 and its keys may still change before
+0.1.0.
 
 ## Anvil
 
@@ -29,11 +28,11 @@ max_conflicts_per_component = 0
 | `enabled` | `true` | Conflicting enchantments can be combined in an anvil. Off: vanilla behavior. |
 | `combine_books` | `true` | Two books with conflicting enchantments make one book that holds them all. |
 | `dormant_cost_per_level` | `1` | Extra anvil levels per level of each enchantment that becomes dormant. |
-| `allow_too_expensive` | `false` | Lets the extra cost go over the survival limit of 40 levels. |
-| `max_dormant_per_item` | `4` | Most dormant enchantments one item can hold. `0`: no limit. |
-| `max_conflicts_per_component` | `0` | Most enchantments in one conflict (e.g. `2` = at most two Protections on one piece). `0`: no limit. |
+| `allow_too_expensive` | `false` | Lets the extra cost take the price past the survival limit of 39 levels. |
+| `max_dormant_per_item` | `4` | Most dormant enchantments one item can hold; the anvil gives no result past it. `0`: no limit. |
+| `max_conflicts_per_component` | `0` | Most enchantments in one group of conflicting ones (e.g. `2` = at most two Protections on one piece); the anvil gives no result past it. `0`: no limit. |
 
-## Toggling
+## Toggling (planned, M2)
 
 ```toml
 [toggle]
@@ -67,4 +66,4 @@ remove_dormant = true
 
 | Key | Default | What it does |
 |---|---|---|
-| `remove_dormant` | `true` | A grindstone removes dormant enchantments too and gives their experience. |
+| `remove_dormant` | `true` | A grindstone removes dormant enchantments too. Off: they stay, and become active once nothing active conflicts with them. Experience only comes from active enchantments either way. |

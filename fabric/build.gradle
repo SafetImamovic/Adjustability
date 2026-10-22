@@ -28,6 +28,13 @@ loom {
             ideConfigGenerated(true)
             runDir('runs/server')
         }
+        // Runs every GameTest headless and exits: ./gradlew :fabric:runGametest
+        gametest {
+            server()
+            setConfigName('Fabric Game Test')
+            vmArg('-Dfabric-api.gametest')
+            runDir('runs/gametest')
+        }
     }
 }
 

@@ -1,0 +1,13 @@
+{
+    "adjustability.tooltip.dormant": "  ⇄ %s",
+    "adjustability.command.no_item": "Hold an item in your main hand.",
+    "adjustability.command.not_adjustable": "This item can't hold dormant enchantments (#adjustability:not_adjustable).",
+    "adjustability.command.inspect.header": "Enchantments on %s",
+    "adjustability.command.inspect.active": "  Active: %s",
+    "adjustability.command.inspect.dormant": "  Dormant: %s",
+    "adjustability.command.inspect.conflict": "  Conflict: %s",
+    "adjustability.command.inspect.none": "none",
+    "adjustability.command.inspect.invalid": "  The stored split breaks Adjustability's rules (two active enchantments conflict, or a dormant one conflicts with nothing). It's fixed the next time the item goes through an anvil.",
+    "adjustability.command.add.active": "Added %s, active.",
+    "adjustability.command.add.dormant": "Added %s, dormant: it conflicts with an active enchantment."
+}

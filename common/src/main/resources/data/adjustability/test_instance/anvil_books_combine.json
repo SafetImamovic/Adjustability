@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "adjustability:anvil_books_combine",
+  "max_ticks": 20,
+  "structure": "minecraft:empty"
+}

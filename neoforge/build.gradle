@@ -37,6 +37,11 @@ neoForge {
             this.file('runs/server').createParentDirectories()
             gameDirectory = this.mkdir(this.file('runs/server'))
         }
+        // Runs every GameTest headless and exits: ./gradlew :neoforge:runGameTestServer
+        gameTestServer {
+            type = 'gameTestServer'
+            gameDirectory = this.mkdir(this.file('runs/gametest'))
+        }
     }
     mods {
         "${mod_id}" {
