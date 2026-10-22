@@ -2,6 +2,7 @@ package io.github.safetimamovic.adjustability.config;
 
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.AnvilConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.GrindstoneConfig;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ItemMode;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleCost;
 import net.minecraft.resources.Identifier;
@@ -24,6 +25,8 @@ public final class CreatorConfig
 
         public static final ModConfigSpec SPEC;
 
+        private static final EnumValue<ItemMode> ITEM_MODE;
+
         private static final BooleanValue ANVIL_ENABLED;
         private static final BooleanValue COMBINE_BOOKS;
         private static final IntValue DORMANT_COST_PER_LEVEL;
@@ -45,6 +48,13 @@ public final class CreatorConfig
         static
         {
                 ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
+
+                builder.comment("Which items can hold dormant enchantments.").push("items");
+                ITEM_MODE = builder.comment("DENYLIST: every item except those in #adjustability:not_adjustable.",
+                                "ALLOWLIST: only items in #adjustability:adjustable (and still not those in",
+                                "#adjustability:not_adjustable). The allowlist tag is empty by default.")
+                        .defineEnum("mode", ItemMode.DENYLIST);
+                builder.pop();
 
                 builder.comment("Combining conflicting enchantments in an anvil. Which enchantments conflict comes from",
                         "their exclusive_set; enchantments in #adjustability:not_combinable keep vanilla behavior.")
@@ -114,6 +124,11 @@ public final class CreatorConfig
                         get(ALLOW_TOO_EXPENSIVE),
                         get(MAX_DORMANT_PER_ITEM),
                         get(MAX_CONFLICTS_PER_COMPONENT));
+        }
+
+        static ItemMode readItemMode()
+        {
+                return get(ITEM_MODE);
         }
 
         static GrindstoneConfig readGrindstone()

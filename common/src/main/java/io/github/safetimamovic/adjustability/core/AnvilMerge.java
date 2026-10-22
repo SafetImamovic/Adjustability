@@ -33,11 +33,12 @@ public final class AnvilMerge
         public static boolean mayCombine(ItemStack input, Holder<Enchantment> a, Holder<Enchantment> b)
         {
                 AnvilConfig config = AdjustabilityConfig.anvil();
-                if (!config.enabled() || input.is(ModTags.NOT_ADJUSTABLE))
+                if (!config.enabled())
                 {
                         return false;
                 }
-                if (input.is(Items.ENCHANTED_BOOK) && !config.combineBooks())
+                // Books aren't items that hold dormant enchantments; whether they combine is their own setting.
+                if (input.is(Items.ENCHANTED_BOOK) ? !config.combineBooks() : !ItemRules.canAdjust(input))
                 {
                         return false;
                 }
@@ -61,7 +62,7 @@ public final class AnvilMerge
                 DataSlot cost)
         {
                 // Books hold every enchantment as stored; there is nothing to make dormant until one goes on an item.
-                if (result.isEmpty() || result.is(Items.ENCHANTED_BOOK) || result.is(ModTags.NOT_ADJUSTABLE))
+                if (result.isEmpty() || result.is(Items.ENCHANTED_BOOK) || !ItemRules.canAdjust(result))
                 {
                         return result;
                 }

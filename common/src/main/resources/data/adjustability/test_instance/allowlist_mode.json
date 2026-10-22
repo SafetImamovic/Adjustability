@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "adjustability:allowlist_mode",
+  "max_ticks": 20,
+  "structure": "minecraft:empty"
+}

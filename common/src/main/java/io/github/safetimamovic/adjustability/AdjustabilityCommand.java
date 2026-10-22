@@ -8,9 +8,9 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
+import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.Toggler;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
-import io.github.safetimamovic.adjustability.tags.ModTags;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -203,7 +203,7 @@ public final class AdjustabilityCommand
                         source.sendFailure(Component.translatable("adjustability.command.no_item"));
                         return 0;
                 }
-                if (stack.is(ModTags.NOT_ADJUSTABLE))
+                if (!ItemRules.canAdjust(stack))
                 {
                         source.sendFailure(Component.translatable("adjustability.command.not_adjustable"));
                         return 0;

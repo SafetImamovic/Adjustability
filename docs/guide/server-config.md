@@ -11,6 +11,20 @@ Which enchantments and items take part isn't set here: use [tags](tags.md).
 
 Keys may still change before 0.1.0.
 
+## Items
+
+```toml
+[items]
+mode = "DENYLIST"
+```
+
+| `mode` | Which items can hold dormant enchantments |
+|---|---|
+| `DENYLIST` (default) | Every item except those in `#adjustability:not_adjustable`. |
+| `ALLOWLIST` | Only items in `#adjustability:adjustable` (empty by default), and still not those in `#adjustability:not_adjustable`. |
+
+Enchanted books aren't affected: whether two books combine is `combine_books`. See [Tags](tags.md).
+
 ## Anvil
 
 ```toml
@@ -66,7 +80,7 @@ remove_dormant = true
 
 | Key | Default | What it does |
 |---|---|---|
-| `remove_dormant` | `true` | A grindstone removes dormant enchantments too. Off: they stay, and become active once nothing active conflicts with them. Experience only comes from active enchantments either way. |
+| `remove_dormant` | `true` | A grindstone removes dormant enchantments too, and gives experience for them like for active ones. Off: they stay (and give no experience), and become active once nothing active conflicts with them. |
 
 ## Player settings
 

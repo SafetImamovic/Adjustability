@@ -17,7 +17,10 @@ public final class ModTags
         public static final TagKey<Enchantment> NOT_COMBINABLE = TagKey.create(Registries.ENCHANTMENT,
                 Constants.id("not_combinable"));
 
-        /** Items that never hold dormant enchantments. */
+        /** With {@code [items] mode = ALLOWLIST}: the only items that can hold dormant enchantments. */
+        public static final TagKey<Item> ADJUSTABLE = TagKey.create(Registries.ITEM, Constants.id("adjustable"));
+
+        /** Items that never hold dormant enchantments, in either mode. */
         public static final TagKey<Item> NOT_ADJUSTABLE = TagKey.create(Registries.ITEM, Constants.id("not_adjustable"));
 
         private ModTags()

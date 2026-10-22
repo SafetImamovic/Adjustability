@@ -30,6 +30,29 @@ cost_item = "minecraft:lapis_lazuli"
 max_conflicts_per_component = 2
 ```
 
+## Only netherite tools are adjustable
+
+`[items]` in the server config:
+
+```toml
+[items]
+mode = "ALLOWLIST"
+```
+
+and `data/adjustability/tags/item/adjustable.json` in your datapack:
+
+```json
+{
+  "values": [
+    "minecraft:netherite_pickaxe",
+    "minecraft:netherite_axe",
+    "minecraft:netherite_shovel",
+    "minecraft:netherite_hoe",
+    "minecraft:netherite_sword"
+  ]
+}
+```
+
 ## Hardcore: expensive and slow
 
 ```toml

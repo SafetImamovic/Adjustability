@@ -22,6 +22,12 @@ Changes per version that players, pack devs and mod devs will notice. Format:
   in-world Cycle key and command on/off. Curses are never switched off.
 - Player settings `adjustability-client.toml`: dormant lines and the key hint in tooltips, and the Adjust panel's look
   (side, colors, corner brackets, cost line), editable in game or with `/adjustability panel`.
+- `[items] mode = ALLOWLIST` with `#adjustability:adjustable` limits which items can hold dormant enchantments.
+- Grindstones give experience for dormant enchantments too.
+- Sneak + Cycle picks which group of conflicting enchantments the Cycle key steps (boots: Protections, or Depth
+  Strider / Frost Walker).
+- Items with conflicting active enchantments (from `/give` or other mods) are repaired by their first switch: the extra
+  one becomes dormant, nothing is lost.
 - Commands `/adjustability toggle <enchantment>` (everyone), `/adjustability flatten [targets]` (operators), and
   `help`, `config`, `keybinds`.
 

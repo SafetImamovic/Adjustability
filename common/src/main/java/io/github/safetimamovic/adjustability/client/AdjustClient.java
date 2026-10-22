@@ -4,8 +4,11 @@ import com.mojang.blaze3d.platform.InputConstants;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
+import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
@@ -13,10 +16,15 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -36,6 +44,9 @@ public final class AdjustClient
         /** The release of a click the panel took, so the screen doesn't see half a click. */
         private static boolean swallowRelease;
 
+        /** Which group of conflicting enchantments the Cycle key steps; Sneak + Cycle picks the next one. */
+        private static int cycleGroup;
+
         private AdjustClient()
         {
         }
@@ -51,16 +62,65 @@ public final class AdjustClient
                 sender.accept(payload);
         }
 
-        /** Cycle key presses outside screens. */
+        /**
+         * Cycle key presses outside screens: steps the held item's chosen group of conflicting enchantments. With
+         * Sneak held it picks the next group instead (boots have Protections and Depth Strider / Frost Walker) and
+         * says which, above the hotbar.
+         */
         public static void tick(Minecraft minecraft)
         {
                 while (AdjustKeys.CYCLE.consumeClick())
                 {
-                        if (minecraft.player != null && minecraft.gui.screen() == null)
+                        if (minecraft.player == null || minecraft.level == null || minecraft.gui.screen() != null)
                         {
-                                send(new CycleEnchantmentPayload(0));
+                                continue;
                         }
+                        List<Set<Holder<Enchantment>>> groups = groups(minecraft.player.getMainHandItem(),
+                                minecraft.level.registryAccess());
+                        if (groups.isEmpty())
+                        {
+                                continue;
+                        }
+                        if (minecraft.player.isShiftKeyDown())
+                        {
+                                cycleGroup = (cycleGroup + 1) % groups.size();
+                                minecraft.gui.hud.setOverlayMessage(Component.translatable("adjustability.cycle.group",
+                                        names(groups.get(cycleGroup))), false);
+                                continue;
+                        }
+                        if (cycleGroup >= groups.size())
+                        {
+                                cycleGroup = 0;
+                        }
+                        send(new CycleEnchantmentPayload(cycleGroup));
                 }
+        }
+
+        private static List<Set<Holder<Enchantment>>> groups(ItemStack stack, HolderLookup.Provider registries)
+        {
+                if (!ItemRules.canAdjust(stack)
+                        || !DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack)))
+                {
+                        return List.of();
+                }
+                return Adjuster.resplit(stack, ItemEnchantments.EMPTY, registries).graph().components();
+        }
+
+        /** "Fortune / Silk Touch". */
+        private static Component names(Set<Holder<Enchantment>> group)
+        {
+                MutableComponent names = Component.empty();
+                boolean first = true;
+                for (Holder<Enchantment> enchantment : group)
+                {
+                        if (!first)
+                        {
+                                names.append(" / ");
+                        }
+                        names.append(enchantment.value().description());
+                        first = false;
+                }
+                return names;
         }
 
         /** The panel pinned in {@code screen}, if any; for the client GameTest. */
@@ -97,7 +157,8 @@ public final class AdjustClient
                         return false;
                 }
                 ItemStack stack = hovered.getItem();
-                if (!DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack)))
+                if (!ItemRules.canAdjust(stack)
+                        || !DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack)))
                 {
                         return false;
                 }

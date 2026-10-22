@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "adjustability:anvil_caps_merged_level",
+  "max_ticks": 20,
+  "structure": "minecraft:empty"
+}

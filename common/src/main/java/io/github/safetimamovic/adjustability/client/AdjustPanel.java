@@ -101,6 +101,8 @@ public final class AdjustPanel
                         .forEach(entry -> all.set(entry.getKey(), entry.getIntValue()));
                 ItemEnchantments levels = all.toImmutable();
                 ConflictGraph<Holder<Enchantment>> graph = Adjuster.graph(levels);
+                // What the server will treat as active: the stored split, repaired if it conflicts (see Toggler).
+                ItemEnchantments shownActive = Adjuster.split(levels, active.keySet()).active();
                 List<Set<Holder<Enchantment>>> groups = graph.components();
                 if (groups.isEmpty())
                 {
@@ -120,7 +122,7 @@ public final class AdjustPanel
                                 if (groups.get(group).contains(enchantment))
                                 {
                                         Component label = TooltipLines.name(enchantment, levels.getLevel(enchantment));
-                                        this.rows.add(new Row(enchantment, label, active.getLevel(enchantment) > 0,
+                                        this.rows.add(new Row(enchantment, label, shownActive.getLevel(enchantment) > 0,
                                                 rowY, group));
                                         textWidth = Math.max(textWidth, font.width(label) + 10);
                                         rowY += ROW_HEIGHT;
