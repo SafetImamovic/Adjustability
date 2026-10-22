@@ -24,6 +24,13 @@ public final class TooltipLines
         private static BooleanSupplier showDormant = () -> true;
         private static Supplier<@Nullable Component> hint = () -> null;
 
+        /** Dormant enchantments not listed yet, while vanilla writes an item's active ones (the client thread). */
+        private static final ThreadLocal<@Nullable Pending> PENDING = new ThreadLocal<>();
+
+        private record Pending(ItemEnchantments dormant, List<Holder<Enchantment>> left)
+        {
+        }
+
         private TooltipLines()
         {
         }
@@ -35,24 +42,59 @@ public final class TooltipLines
                 hint = hintLine;
         }
 
-        public static void addDormant(Item.TooltipContext context, Consumer<Component> consumer,
-                DataComponentGetter components)
+        /**
+         * Vanilla starts writing enchantments. For the item's active ones ({@code activeList}), remembers its dormant
+         * enchantments so {@link #addDormantUnder} can place them; anything else (a book's stored ones) gets none.
+         */
+        public static void begin(Item.TooltipContext context, DataComponentGetter components, boolean activeList)
         {
+                PENDING.remove();
                 HolderLookup.Provider registries = context.registries();
-                if (registries == null || !DormantEnchantments.has(components))
+                if (!activeList || registries == null || !DormantEnchantments.has(components)
+                        || !showDormant.getAsBoolean())
                 {
                         return;
                 }
-                if (showDormant.getAsBoolean())
+                ItemEnchantments dormant = DormantEnchantments.get(components, registries);
+                List<Holder<Enchantment>> sorted = new ArrayList<>(dormant.keySet());
+                sorted.sort((a, b) -> Adjuster.id(a).compareTo(Adjuster.id(b)));
+                PENDING.set(new Pending(dormant, sorted));
+        }
+
+        /** Vanilla wrote the line for {@code active}: the dormant enchantments it's the first conflict of go under it. */
+        public static void addDormantUnder(Consumer<Component> consumer, Holder<Enchantment> active)
+        {
+                Pending pending = PENDING.get();
+                if (pending == null)
                 {
-                        ItemEnchantments dormant = DormantEnchantments.get(components, registries);
-                        List<Holder<Enchantment>> sorted = new ArrayList<>(dormant.keySet());
-                        sorted.sort((a, b) -> Adjuster.id(a).compareTo(Adjuster.id(b)));
-                        for (Holder<Enchantment> enchantment : sorted)
+                        return;
+                }
+                pending.left().removeIf(dormant ->
+                {
+                        if (!Adjuster.conflict(active, dormant))
                         {
-                                consumer.accept(Component.translatable("adjustability.tooltip.dormant",
-                                        name(enchantment, dormant.getLevel(enchantment)))
-                                        .withStyle(ChatFormatting.DARK_GRAY));
+                                return false;
+                        }
+                        consumer.accept(line(dormant, pending.dormant().getLevel(dormant)));
+                        return true;
+                });
+        }
+
+        /** Vanilla is done: the dormant enchantments nothing active conflicts with, then the key hint. */
+        public static void addDormant(Item.TooltipContext context, Consumer<Component> consumer,
+                DataComponentGetter components)
+        {
+                Pending pending = PENDING.get();
+                PENDING.remove();
+                if (context.registries() == null || !DormantEnchantments.has(components))
+                {
+                        return;
+                }
+                if (pending != null)
+                {
+                        for (Holder<Enchantment> enchantment : pending.left())
+                        {
+                                consumer.accept(line(enchantment, pending.dormant().getLevel(enchantment)));
                         }
                 }
                 Component line = hint.get();
@@ -60,6 +102,12 @@ public final class TooltipLines
                 {
                         consumer.accept(line);
                 }
+        }
+
+        private static Component line(Holder<Enchantment> enchantment, int level)
+        {
+                return Component.translatable("adjustability.tooltip.dormant", name(enchantment, level))
+                        .withStyle(ChatFormatting.DARK_GRAY);
         }
 
         /** Like {@link Enchantment#getFullname}, without its gray, so the line's dark gray applies. */

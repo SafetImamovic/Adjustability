@@ -13,10 +13,11 @@ and Mending. Adjustability lets an item **hold** them anyway, with only one side
 An item never has two conflicting enchantments active. Fortune III and Silk Touch on one pickaxe means it mines with
 one of them, never both.
 
-![A pickaxe tooltip: Fortune III and Efficiency V active, Silk Touch dormant, and the Left Alt hint](/screenshots/tooltip.png)
+![A pickaxe tooltip: Fortune III, Silk Touch dormant under it, Efficiency V, and the Left Alt hint](/screenshots/tooltip.png)
 
-Dormant enchantments are listed in dark gray with `⇄`, right after the active ones, followed by a reminder of the key
-that opens the Adjust panel.
+Dormant enchantments are listed in dark gray with `⇄`, each right under the active enchantment it conflicts with
+(Silk Touch under Fortune), followed by a reminder of the key that opens the Adjust panel. One with nothing active to
+conflict with (possible when the server allows none) comes after the last active one.
 
 ## Getting conflicting enchantments on an item
 

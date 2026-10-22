@@ -48,6 +48,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -104,6 +105,7 @@ public final class AdjustabilityGameTests
                 test(registrar, "none_survives_anvil", AdjustabilityGameTests::noneSurvivesAnvil);
                 test(registrar, "cycle_through_none", AdjustabilityGameTests::cycleThroughNone);
                 test(registrar, "advancements", AdjustabilityGameTests::advancements);
+                test(registrar, "tooltip_order", AdjustabilityGameTests::tooltipOrder);
         }
 
         /** Fortune pickaxe + Silk Touch book: Fortune stays active, Silk Touch is dormant, vanilla price + 1. */
@@ -821,6 +823,46 @@ public final class AdjustabilityGameTests
                 helper.assertValueEqual(player.getStats().getValue(Stats.CUSTOM.get(ModStats.SWITCHES)), 1,
                         "switches statistic");
                 helper.succeed();
+        }
+
+        /**
+         * Each dormant enchantment is listed right under the active one it conflicts with: Silk Touch under Fortune
+         * (not after Unbreaking), Fire Protection under Protection; a book's stored enchantments get no dormant lines.
+         */
+        private static void tooltipOrder(GameTestHelper helper)
+        {
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, enchantment(helper, Enchantments.FORTUNE), 3);
+                pickaxe.enchant(enchantment(helper, Enchantments.EFFICIENCY), 5);
+                pickaxe.enchant(enchantment(helper, Enchantments.UNBREAKING), 3);
+                DormantEnchantments.set(pickaxe, single(enchantment(helper, Enchantments.SILK_TOUCH), 1));
+                List<String> lines = tooltip(helper, pickaxe);
+                int fortune = lines.indexOf("Fortune III");
+                helper.assertTrue(fortune >= 0 && lines.size() > fortune + 1, "Fortune listed: " + lines);
+                helper.assertValueEqual(lines.get(fortune + 1), "  ⇄ Silk Touch", "Silk Touch under Fortune: " + lines);
+                helper.assertValueEqual(lines.stream().filter(line -> line.contains("Silk Touch")).count(), 1L,
+                        "listed once");
+
+                ItemStack boots = enchanted(Items.DIAMOND_BOOTS, enchantment(helper, Enchantments.PROTECTION), 4);
+                boots.enchant(enchantment(helper, Enchantments.FEATHER_FALLING), 4);
+                DormantEnchantments.set(boots, single(enchantment(helper, Enchantments.FIRE_PROTECTION), 4));
+                lines = tooltip(helper, boots);
+                int protection = lines.indexOf("Protection IV");
+                helper.assertTrue(protection >= 0, "Protection listed: " + lines);
+                helper.assertValueEqual(lines.get(protection + 1), "  ⇄ Fire Protection IV", "under Protection: " + lines);
+
+                ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+                book.set(DataComponents.STORED_ENCHANTMENTS, single(enchantment(helper, Enchantments.FORTUNE), 3));
+                DormantEnchantments.set(book, single(enchantment(helper, Enchantments.SILK_TOUCH), 1));
+                lines = tooltip(helper, book);
+                helper.assertValueEqual(lines.stream().filter(line -> line.contains("Silk Touch")).count(), 1L,
+                        "book lists Silk Touch once: " + lines);
+                helper.succeed();
+        }
+
+        private static List<String> tooltip(GameTestHelper helper, ItemStack stack)
+        {
+                return stack.getTooltipLines(Item.TooltipContext.of(helper.getLevel()), null, TooltipFlag.NORMAL).stream()
+                        .map(Component::getString).toList();
         }
 
         private static boolean done(ServerPlayer player, ServerAdvancementManager manager, String name)
