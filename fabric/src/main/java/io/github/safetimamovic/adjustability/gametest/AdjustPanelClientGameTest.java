@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import io.github.safetimamovic.adjustability.client.AdjustClient;
 import io.github.safetimamovic.adjustability.client.AdjustKeys;
 import io.github.safetimamovic.adjustability.client.AdjustPanel;
+import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import java.lang.reflect.Field;
@@ -43,6 +44,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 try (TestSingleplayerContext world = context.worldBuilder().create())
                 {
                         world.getConnection().waitForChunksRender();
+                        command(context, "panel reset");
                         world.getServer().runOnServer(server ->
                         {
                                 ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
@@ -103,6 +105,24 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                                 }
                         });
 
+                        // The panel's look from chat: settings change, are saved, and show right away.
+                        command(context, "panel side left");
+                        command(context, "panel border_top_color #FF00E5FF");
+                        command(context, "panel bracket_color 00E5FF");
+                        command(context, "panel bracket_length 99");
+                        String side = context.computeOnClient(minecraft -> String.valueOf(
+                                PlayerConfig.current(PlayerConfig.PANEL_SETTINGS.getFirst())));
+                        int bracketLength = context.computeOnClient(minecraft -> (Integer) PlayerConfig.current(
+                                PlayerConfig.PANEL_SETTINGS.get(6)));
+                        if (!side.equals("LEFT") || bracketLength != 9)
+                        {
+                                throw new AssertionError("side should be LEFT and an out-of-range bracket_length "
+                                        + "refused, got " + side + " and " + bracketLength);
+                        }
+                        context.waitTick();
+                        context.takeScreenshot("adjustability_5_custom_style");
+                        command(context, "panel reset");
+
                         context.getInput().pressKey(AdjustKeys.ADJUST);
                         context.waitTick();
                         boolean closed = context.computeOnClient(
@@ -115,6 +135,13 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         context.getInput().pressKey(options -> options.keyInventory);
                         context.waitForScreen(null);
                 }
+        }
+
+        /** Runs an {@code /adjustability} client command as if typed in chat. */
+        private static void command(ClientGameTestContext context, String arguments)
+        {
+                context.runOnClient(minecraft -> minecraft.player.connection.sendCommand("adjustability " + arguments));
+                context.waitTick();
         }
 
         private static ItemStack pickaxe(ServerPlayer player)
