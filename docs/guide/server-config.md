@@ -25,6 +25,34 @@ mode = "DENYLIST"
 
 Enchanted books aren't affected: whether two books combine is `combine_books`. See [Tags](tags.md).
 
+## Which enchantments conflict
+
+```toml
+[exclusivity]
+use_vanilla = true
+extra_groups = []
+compatible = []
+```
+
+By default Adjustability uses vanilla's conflicts (each enchantment's `exclusive_set`). These settings change that for
+Adjustability: what can be combined on one item, and what only one of is active at a time.
+
+| Key | Default | What it does |
+|---|---|---|
+| `use_vanilla` | `true` | Start from vanilla's conflicts (Fortune / Silk Touch, the Protections, ...). Off: only `extra_groups` conflict. |
+| `extra_groups` | `[]` | More groups that conflict, e.g. `["minecraft:sharpness, minecraft:fire_aspect"]`. |
+| `compatible` | `[]` | Groups that never conflict here, whatever vanilla or `extra_groups` say, e.g. `["minecraft:infinity, minecraft:mending"]`. With the anvil on, they can then be combined and are **both active**: they stack. |
+
+Each entry is enchantment ids and `#tags`, separated by commas. Two enchantments match an entry when each matches one
+of its parts, so a single tag is a whole group: `"#minecraft:exclusive_set/mining"`. Modded enchantments work the same
+way.
+
+These settings are Adjustability's only. Vanilla's enchanting table and `/enchant` still follow vanilla's
+`exclusive_set`; to change those too, edit `exclusive_set` in a datapack ([Tags](tags.md)).
+
+An item that already holds two enchantments that now conflict (because you changed these settings) keeps both active
+until it's next switched or goes through an anvil, which makes one of them dormant. Nothing is deleted.
+
 ## Anvil
 
 ```toml
@@ -58,6 +86,7 @@ cost_amount = 1
 cost_item = "minecraft:lapis_lazuli"
 allow_in_world_cycle = true
 allow_command = true
+group_costs = []
 ```
 
 | Key | Default | What it does |
@@ -70,6 +99,23 @@ allow_command = true
 | `cost_item` | `minecraft:lapis_lazuli` | The item used when `cost_type` is `ITEM`. |
 | `allow_in_world_cycle` | `true` | The Cycle key works outside the inventory. |
 | `allow_command` | `true` | Players can use `/adjustability toggle`. |
+| `group_costs` | `[]` | Own costs for particular groups, instead of `cost_type` / `cost_amount` / `cost_item`. See below. |
+
+### Per-group costs
+
+```toml
+group_costs = [
+    "#minecraft:exclusive_set/mining = ITEM 2 minecraft:lapis_lazuli",
+    "minecraft:riptide = XP_LEVELS 5",
+    "#minecraft:exclusive_set/armor = NONE",
+]
+```
+
+Each entry is `<ids and #tags> = <cost>`, where `<cost>` is one of `NONE`, `XP_LEVELS <n>`, `XP_POINTS <n>`,
+`DURABILITY <n>` or `ITEM <n> <item id>`. An entry covers a group when any enchantment in the group matches it; the
+**first** entry that covers a group wins. Groups no entry covers use `cost_type`, `cost_amount` and `cost_item`.
+Creative players switch for free. When an item's groups cost different amounts, the Adjust panel shows each group's
+cost next to it.
 
 ## Grindstone
 

@@ -22,6 +22,11 @@ Changes per version that players, pack devs and mod devs will notice. Format:
   in-world Cycle key and command on/off. Curses are never switched off.
 - Player settings `adjustability-client.toml`: dormant lines and the key hint in tooltips, and the Adjust panel's look
   (side, colors, corner brackets, cost line), editable in game or with `/adjustability panel`.
+- `[exclusivity]` server settings: your own conflict groups (`extra_groups`), groups that never conflict
+  (`compatible`), and turning vanilla's conflicts off (`use_vanilla`). Ids and `#tags`.
+- `group_costs`: a different cost per group of conflicting enchantments, of any kind (free, XP levels or points,
+  durability, an item). The Adjust panel shows each group's cost.
+- Docs: where and how dormant enchantments are stored, and an uninstalling guide with `/adjustability flatten`.
 - `[items] mode = ALLOWLIST` with `#adjustability:adjustable` limits which items can hold dormant enchantments.
 - Grindstones give experience for dormant enchantments too.
 - Sneak + Cycle picks which group of conflicting enchantments the Cycle key steps (boots: Protections, or Depth

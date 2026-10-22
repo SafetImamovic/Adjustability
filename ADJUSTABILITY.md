@@ -1042,6 +1042,19 @@ Settled 2026-10-22:
   GameTest (boots: Depth Strider / Frost Walker, then the Protections).
 - 18 GameTests on both loaders.
 
+### After M3: server-defined conflicts and per-group costs (2026-10-22)
+
+- `core/Exclusivity` is the one place conflicts are decided: vanilla's `exclusive_set` (`[exclusivity] use_vanilla`),
+  plus `extra_groups`, minus `compatible`; entries are ids and `#tags`. `Adjuster.conflict` delegates to it, so the
+  anvil split, switching, the panel and the Cycle key all follow it. Vanilla's own systems (enchanting table,
+  `/enchant`) still use `exclusive_set`.
+- `[toggle] group_costs`: per-group `Cost` of any type (`NONE`, `XP_LEVELS`, `XP_POINTS`, `DURABILITY`, `ITEM n
+  item`); the first matching entry wins, else the default cost. The panel shows per-group costs when they differ.
+- Docs: `guide/storage.md` (exact format, a `/give` example checked by a GameTest) and `guide/uninstalling.md`
+  (flatten, what it doesn't reach), linked from the home page, the README and the sidebar.
+- 22 GameTests on both loaders; the Fabric client GameTest sets `group_costs` through the config spec and checks a
+  mining switch takes one lapis.
+
 ---
 
 ## 21. Open questions

@@ -41,6 +41,8 @@ export default defineConfig({
           items: [
             { text: 'Overview', link: '/guide/' },
             { text: 'How it works', link: '/guide/how-it-works' },
+            { text: 'Where dormant enchantments are stored', link: '/guide/storage' },
+            { text: 'Uninstalling', link: '/guide/uninstalling' },
           ],
         },
         {
