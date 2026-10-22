@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
+import java.util.function.Predicate;
 
 /**
  * The conflict graph of one item: a vertex per enchantment it holds, an edge between two that can't be active together.
@@ -150,6 +151,16 @@ public final class ConflictGraph<T>
          */
         public Selection<T> select(List<T> preferred)
         {
+                return this.select(preferred, vertex -> true);
+        }
+
+        /**
+         * {@link #select(List)}, but a vertex outside {@code preferred} only becomes active if {@code mayActivate}
+         * says so. With a predicate that's sometimes false, the result is independent but not always maximal: that's
+         * how a group can be left with nothing active.
+         */
+        public Selection<T> select(List<T> preferred, Predicate<T> mayActivate)
+        {
                 List<Integer> order = new ArrayList<>(this.vertices.size());
                 BitSet queued = new BitSet(this.vertices.size());
                 for (T vertex : preferred)
@@ -171,7 +182,9 @@ public final class ConflictGraph<T>
                 BitSet active = new BitSet(this.vertices.size());
                 for (int i : order)
                 {
-                        if (!this.neighbours[i].intersects(active))
+                        // queued marks the preferred vertices.
+                        boolean eligible = queued.get(i) || mayActivate.test(this.vertices.get(i));
+                        if (eligible && !this.neighbours[i].intersects(active))
                         {
                                 active.set(i);
                         }
@@ -181,8 +194,9 @@ public final class ConflictGraph<T>
 
         /**
          * Makes {@code vertex} active: what it conflicts with becomes dormant, and with {@code autoFill}, dormant
-         * vertices that no longer conflict with anything active come back (in vertex order). Returns {@code current}
-         * unchanged if {@code vertex} isn't in the graph.
+         * vertices of the same component that no longer conflict with anything active come back (in vertex order).
+         * Other components are left as they are. Returns {@code current} unchanged if {@code vertex} isn't in the
+         * graph.
          */
         public Selection<T> activate(Selection<T> current, T vertex, boolean autoFill)
         {
@@ -196,7 +210,8 @@ public final class ConflictGraph<T>
                 active.set(target);
                 if (autoFill)
                 {
-                        for (int i = 0; i < this.vertices.size(); i++)
+                        BitSet component = this.componentOf(target);
+                        for (int i = component.nextSetBit(0); i >= 0; i = component.nextSetBit(i + 1))
                         {
                                 if (!active.get(i) && !this.neighbours[i].intersects(active))
                                 {
@@ -205,6 +220,64 @@ public final class ConflictGraph<T>
                         }
                 }
                 return this.selection(active);
+        }
+
+        /** Makes every vertex of {@code component} dormant: the "none" choice. Other components stay as they are. */
+        public Selection<T> deactivate(Selection<T> current, Set<T> component)
+        {
+                BitSet active = this.bits(current.active());
+                active.andNot(this.bits(component));
+                return this.selection(active);
+        }
+
+        /**
+         * Whether the component's current choice is its last one in cycle order: {@link #next} would wrap around to the
+         * start. False when nothing in the component is active (cycling then starts from the first choice).
+         */
+        public boolean isLastChoice(Selection<T> current, Set<T> component)
+        {
+                List<T> members = this.vertices.stream().filter(component::contains).toList();
+                int lastActive = -1;
+                for (int i = 0; i < members.size(); i++)
+                {
+                        if (current.active().contains(members.get(i)))
+                        {
+                                lastActive = i;
+                        }
+                }
+                if (lastActive < 0)
+                {
+                        return false;
+                }
+                for (int i = lastActive + 1; i < members.size(); i++)
+                {
+                        if (current.dormant().contains(members.get(i)))
+                        {
+                                return false;
+                        }
+                }
+                return true;
+        }
+
+        private BitSet componentOf(int start)
+        {
+                BitSet seen = new BitSet(this.vertices.size());
+                Deque<Integer> queue = new ArrayDeque<>();
+                queue.add(start);
+                seen.set(start);
+                while (!queue.isEmpty())
+                {
+                        int i = queue.poll();
+                        for (int j = this.neighbours[i].nextSetBit(0); j >= 0; j = this.neighbours[i].nextSetBit(j + 1))
+                        {
+                                if (!seen.get(j))
+                                {
+                                        seen.set(j);
+                                        queue.add(j);
+                                }
+                        }
+                }
+                return seen;
         }
 
         /**

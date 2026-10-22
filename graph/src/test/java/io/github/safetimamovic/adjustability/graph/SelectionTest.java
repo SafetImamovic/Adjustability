@@ -1,6 +1,7 @@
 package io.github.safetimamovic.adjustability.graph;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
@@ -107,6 +108,57 @@ class SelectionTest
                 assertEquals(Set.of("channeling", "loyalty"), loyalty.active());
                 assertEquals(riptide, trident.activate(loyalty, trident.next(loyalty, tridentConflict).orElseThrow(),
                         true));
+        }
+
+        @Test
+        void noneLeavesAWholeGroupDormant()
+        {
+                ConflictGraph<String> graph = ConflictGraph.of(
+                        List.of("efficiency", "fortune", "silk_touch", "riptide", "loyalty"), VANILLA);
+                Selection<String> start = graph.select(List.of("fortune", "riptide"));
+                Set<String> mining = Set.of("fortune", "silk_touch");
+
+                Selection<String> none = graph.deactivate(start, mining);
+
+                assertEquals(Set.of("efficiency", "riptide"), none.active(), "only the mining group changes");
+                assertTrue(none.dormant().containsAll(mining));
+        }
+
+        @Test
+        void activateDoesNotFillOtherGroups()
+        {
+                ConflictGraph<String> graph = ConflictGraph.of(
+                        List.of("fortune", "silk_touch", "riptide", "loyalty", "channeling"), VANILLA);
+                Selection<String> mixed = new Selection<>(Set.of("riptide"),
+                        Set.of("fortune", "silk_touch", "loyalty", "channeling"));
+
+                Selection<String> next = graph.activate(mixed, "loyalty", true);
+
+                assertEquals(Set.of("loyalty", "channeling"), next.active(),
+                        "the trident group fills, the mining group (left on none) doesn't");
+        }
+
+        @Test
+        void selectCanLeaveVerticesDormant()
+        {
+                ConflictGraph<String> graph = ConflictGraph.of(List.of("efficiency", "fortune", "silk_touch"), VANILLA);
+
+                Selection<String> kept = graph.select(List.of("efficiency"), vertex -> false);
+
+                assertEquals(Set.of("efficiency"), kept.active(), "nothing outside preferred becomes active");
+                assertTrue(graph.isIndependent(kept.active()));
+        }
+
+        @Test
+        void lastChoiceIsWhereCycleWraps()
+        {
+                ConflictGraph<String> graph = ConflictGraph.of(List.of("fortune", "silk_touch"), VANILLA);
+                Set<String> mining = graph.components().getFirst();
+
+                assertFalse(graph.isLastChoice(graph.select(List.of("fortune")), mining), "fortune: silk touch next");
+                assertTrue(graph.isLastChoice(graph.select(List.of("silk_touch")), mining), "silk touch: wraps");
+                assertFalse(graph.isLastChoice(new Selection<>(Set.of(), Set.of("fortune", "silk_touch")), mining),
+                        "none: starts again");
         }
 
         @Test
