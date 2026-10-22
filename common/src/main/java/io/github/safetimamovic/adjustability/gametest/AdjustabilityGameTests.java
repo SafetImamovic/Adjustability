@@ -41,6 +41,7 @@ import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -92,6 +93,7 @@ public final class AdjustabilityGameTests
                 test(registrar, "api_listener_switch", AdjustabilityGameTests::apiListenerSwitch);
                 test(registrar, "api_listener_anvil", AdjustabilityGameTests::apiListenerAnvil);
                 test(registrar, "api_listener_that_throws", AdjustabilityGameTests::apiListenerThatThrows);
+                test(registrar, "api_adjustable_item", AdjustabilityGameTests::apiAdjustableItem);
         }
 
         /** Fortune pickaxe + Silk Touch book: Fortune stays active, Silk Touch is dormant, vanilla price + 1. */
@@ -664,6 +666,26 @@ public final class AdjustabilityGameTests
                 helper.succeed();
         }
 
+        /** An item's own rules through AdjustableItem: a limit of one, and none once renamed. */
+        private static void apiAdjustableItem(GameTestHelper helper)
+        {
+                Item item = TestAdjustableItem.instance();
+                if (item == null)
+                {
+                        helper.fail("The test item is only registered in the development environment");
+                        return;
+                }
+                ItemStack stack = new ItemStack(item);
+                helper.assertTrue(ItemRules.canAdjust(stack, ItemMode.DENYLIST), "takes part");
+                helper.assertValueEqual(ItemRules.maxDormant(stack, 4), 1, "its limit is lower than the server's");
+                helper.assertValueEqual(ItemRules.maxDormant(stack, 0), 1, "its limit with no server limit");
+                helper.assertValueEqual(ItemRules.maxDormant(new ItemStack(Items.DIAMOND_PICKAXE), 0),
+                        Integer.MAX_VALUE, "no limit at all for a vanilla item");
+                stack.set(DataComponents.CUSTOM_NAME, Component.literal("Renamed"));
+                helper.assertFalse(AdjustabilityApi.canHoldDormant(stack), "renamed: the item says no");
+                helper.succeed();
+        }
+
         private static ServerPlayer survivalServerPlayer(GameTestHelper helper)
         {
                 return (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
@@ -671,7 +693,7 @@ public final class AdjustabilityGameTests
 
         private static void test(ModRegistries.Registrar registrar, String name, Consumer<GameTestHelper> function)
         {
-                registrar.register(Registries.TEST_FUNCTION, Constants.id(name), function);
+                registrar.register(Registries.TEST_FUNCTION, Constants.id(name), () -> function);
         }
 
         private static AnvilMenu anvil(GameTestHelper helper)
