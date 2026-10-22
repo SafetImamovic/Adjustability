@@ -973,15 +973,31 @@ Settled 2026-10-22:
 - Docs site (VitePress) builds; pages for unbuilt parts are marked planned.
 - Mod icon `adjustability.png` (512×512, PNG: in-game mod lists don't animate GIFs) in both loaders' metadata, the
   README and the docs site.
-- Not yet: the Forge Config API Port dependency in `fabric.mod.json` (added with the config in M1), `en_us.json`
-  (added with the first text).
+### M1 state (anvil and data model, 2026-10-22)
+
+- **Storage decided: `custom_data`** under `adjustability:dormant`, as plain enchantment id → level (§6.3). Inherently
+  safe on uninstall (vanilla component, plain ids, no registry codec at load), so the component experiment was skipped.
+  `core/DormantEnchantments` is still the only class that knows the format.
+- `graph/`: `select` (keep preferred active, maximal independent set) and `activate` (§7.3), 11 unit tests including a
+  10,000-graph property test.
+- Anvil: common mixin. `@WrapOperation` on `Enchantment.areCompatible` in `createResult` / NeoForge's
+  `createResultInternal` lets conflicts through, so vanilla's own level rules and prices apply; a `TAIL` inject on
+  `createResult` splits the result (on NeoForge after `AnvilUpdateEvent`). Item + book, item + item and book + book.
+  What was active on the left stays active; with nothing active, id order decides. Limits make the anvil give no
+  result rather than drop enchantments.
+- Grindstone: dormant removed with the active ones. **Not done:** experience for dormant enchantments (vanilla's XP code
+  sits in an anonymous slot class; NeoForge has `GrindstoneEvent`); revisit in M3.
+- Tooltip: dormant lines after the active enchantments (mixin into `ItemEnchantments.addToTooltip`), not yet under
+  their conflict partner (§6.2 polish, M6).
+- Server config `[anvil]` + `[grindstone]` through Forge Config API Port; commands `inspect`, `add`.
+- 6 GameTests (vanilla framework, mock survival player driving the real menus) pass on both loaders:
+  `./gradlew :fabric:runGametest :neoforge:runGameTestServer`, also in CI. They need no EULA.
 
 ---
 
 ## 21. Open questions
 
-1. **Storage container** (§6.3): what do NeoForge and Fabric 26.3 do with an unknown item component on load? Decides
-   `custom_data` vs own component.
+1. ~~**Storage container**~~: decided, `custom_data` (see M1 state above).
 2. **Armor toggling in combat**: should toggling armor be blocked while the player took damage in the last N seconds?
 3. **Server-only mode** (M8): demand check after the beta.
 4. **Name collision**: search Modrinth/CurseForge for "Adjustability" before the first public release.

@@ -3,8 +3,6 @@
 Two kinds of data decide what Adjustability does: vanilla's **exclusive sets** decide which enchantments conflict, and
 Adjustability's **tags** decide what the mod is allowed to do about it. Both live in datapacks and reload with `/reload`.
 
-> **Planned.** The tags arrive in M1–M3; names and defaults may still change before 0.1.0.
-
 ## Exclusive sets (vanilla)
 
 Each enchantment file (`data/<namespace>/enchantment/<name>.json`) has an `exclusive_set`, usually a tag:

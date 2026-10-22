@@ -66,4 +66,5 @@ Minecraft Java **26.3**, on the client **and** the server.
 | `/adjustability keybinds` | Everyone | Opens Controls |
 | `/adjustability toggle <enchantment>` | Everyone | Makes an enchantment on the held item active |
 | `/adjustability inspect` | Operators | Shows the held item's active and dormant enchantments and how they conflict |
+| `/adjustability add <enchantment> [level]` | Operators | Adds an enchantment to the held item, dormant if it conflicts |
 | `/adjustability flatten [<targets>]` | Operators | Removes dormant enchantments from items, before uninstalling |
