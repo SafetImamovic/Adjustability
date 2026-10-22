@@ -32,6 +32,10 @@ jobs:
       - name: Build and test
         run: ./gradlew build
 
+      # Vanilla's GameTest framework on both loaders, headless; any failed test fails the run.
+      - name: Game tests
+        run: ./gradlew :fabric:runGametest :neoforge:runGameTestServer
+
       - name: Upload jars
         uses: actions/upload-artifact@v7
         with:
