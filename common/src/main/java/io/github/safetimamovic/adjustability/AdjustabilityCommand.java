@@ -30,6 +30,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
+import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 
 /**
  * Server side of {@code /adjustability}, on the item in the player's main hand: {@code toggle <enchantment>} (every
@@ -81,6 +82,35 @@ public final class AdjustabilityCommand
                 {
                         root.then(Commands.literal(subcommand).executes(AdjustabilityCommand::clientOnly));
                 }
+                // The whole tree, so its arguments are suggested; running any of it here only says it's client-side.
+                root.then(PanelCommand.tree(new PanelCommand.Actions<>()
+                {
+                        @Override
+                        public int list(CommandContext<CommandSourceStack> context)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
+                        public int reset(CommandContext<CommandSourceStack> context)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
+                        public <T> int set(CommandContext<CommandSourceStack> context,
+                                ConfigValue<T> setting, T value)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
+                        public int invalid(CommandContext<CommandSourceStack> context,
+                                ConfigValue<?> setting, String input)
+                        {
+                                return clientOnly(context);
+                        }
+                }));
                 dispatcher.register(root);
         }
 

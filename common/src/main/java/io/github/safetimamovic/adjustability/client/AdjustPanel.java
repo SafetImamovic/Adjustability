@@ -1,6 +1,7 @@
 package io.github.safetimamovic.adjustability.client;
 
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelStyle;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.Toggler;
@@ -31,7 +32,8 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
  * says, never a switch it refused.
  *
  * <p>The look is Adjustability's own: a dark panel with a magenta gradient border and bracket decorations at the
- * corners.
+ * corners. Every color, the side it opens on, the brackets and the cost line are player settings ({@code [panel]} in
+ * {@code adjustability-client.toml}, or {@code /adjustability panel}), read every frame.
  */
 public final class AdjustPanel
 {
@@ -40,15 +42,7 @@ public final class AdjustPanel
         private static final int GROUP_GAP = 5;
         private static final int GAP_FROM_SLOT = 6;
 
-        private static final int BACKGROUND = 0xF0080008;
-        private static final int BORDER_TOP = 0xC0FF00FF;
-        private static final int BORDER_BOTTOM = 0xC0A00090;
-        private static final int BRACKET = 0xFFC71FC0;
-        private static final int BRACKET_LENGTH = 9;
         private static final int BRACKET_OFFSET = 3;
-        private static final int ROW_HOVER = 0x50FF00FF;
-        private static final int SEPARATOR = 0x40FF00FF;
-        private static final int ACTIVE_MARK = 0xFFFF55FF;
         private static final int ACTIVE_TEXT = 0xFFFFFFFF;
         private static final int DORMANT_TEXT = 0xFFAAAAAA;
         private static final int FOOTER_TEXT = 0xFF808080;
@@ -93,6 +87,7 @@ public final class AdjustPanel
          */
         boolean refresh(Font font)
         {
+                PanelStyle style = AdjustabilityConfig.player().panel();
                 ItemStack stack = this.item();
                 Minecraft minecraft = Minecraft.getInstance();
                 this.rows.clear();
@@ -132,17 +127,24 @@ public final class AdjustPanel
                                 }
                         }
                 }
-                Component footer = footer();
-                textWidth = Math.max(textWidth, font.width(footer));
-                this.width = textWidth + 2 * PADDING;
-                this.height = rowY + 3 + font.lineHeight + PADDING;
-
-                // Right of the slot if it fits, else left of it; never past the screen's edges.
-                this.x = this.slotRight + GAP_FROM_SLOT;
-                if (this.x + this.width > this.screen.width - BRACKET_OFFSET)
+                if (style.showCost())
                 {
-                        this.x = this.slotRight - 16 - GAP_FROM_SLOT - this.width;
+                        textWidth = Math.max(textWidth, font.width(footer()));
+                        rowY += 3 + font.lineHeight;
                 }
+                this.width = textWidth + 2 * PADDING;
+                this.height = rowY + PADDING;
+
+                // AUTO: right of the slot if it fits, else left of it. Never past the screen's edges.
+                int right = this.slotRight + GAP_FROM_SLOT;
+                int left = this.slotRight - 16 - GAP_FROM_SLOT - this.width;
+                this.x = switch (style.side())
+                {
+                        case RIGHT -> right;
+                        case LEFT -> left;
+                        case AUTO -> right + this.width > this.screen.width - BRACKET_OFFSET ? left : right;
+                };
+                this.x = Math.min(this.x, this.screen.width - this.width - BRACKET_OFFSET);
                 this.x = Math.max(BRACKET_OFFSET, this.x);
                 this.y = Math.max(BRACKET_OFFSET,
                         Math.min(this.slotTop - PADDING, this.screen.height - this.height - BRACKET_OFFSET));
@@ -151,16 +153,22 @@ public final class AdjustPanel
 
         void render(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY)
         {
+                PanelStyle style = AdjustabilityConfig.player().panel();
                 graphics.nextStratum();
                 int right = this.x + this.width;
                 int bottom = this.y + this.height;
-                graphics.fill(this.x, this.y, right, bottom, BACKGROUND);
-                // Inner border, magenta fading down, like a tooltip's.
-                graphics.fill(this.x + 1, this.y + 1, right - 1, this.y + 2, BORDER_TOP);
-                graphics.fill(this.x + 1, bottom - 2, right - 1, bottom - 1, BORDER_BOTTOM);
-                graphics.fillGradient(this.x + 1, this.y + 2, this.x + 2, bottom - 2, BORDER_TOP, BORDER_BOTTOM);
-                graphics.fillGradient(right - 2, this.y + 2, right - 1, bottom - 2, BORDER_TOP, BORDER_BOTTOM);
-                this.brackets(graphics, right, bottom);
+                graphics.fill(this.x, this.y, right, bottom, style.background());
+                // Inner border, fading from the top color to the bottom one, like a tooltip's.
+                graphics.fill(this.x + 1, this.y + 1, right - 1, this.y + 2, style.borderTop());
+                graphics.fill(this.x + 1, bottom - 2, right - 1, bottom - 1, style.borderBottom());
+                graphics.fillGradient(this.x + 1, this.y + 2, this.x + 2, bottom - 2, style.borderTop(),
+                        style.borderBottom());
+                graphics.fillGradient(right - 2, this.y + 2, right - 1, bottom - 2, style.borderTop(),
+                        style.borderBottom());
+                if (style.showBrackets())
+                {
+                        this.brackets(graphics, right, bottom, style);
+                }
 
                 ItemStack stack = this.item();
                 graphics.text(font, stack.getHoverName(), this.x + PADDING, this.y + PADDING, ACTIVE_TEXT, true);
@@ -171,39 +179,49 @@ public final class AdjustPanel
                         if (row.group() != lastGroup && lastGroup >= 0)
                         {
                                 graphics.fill(this.x + PADDING, top - GROUP_GAP / 2 - 1, right - PADDING,
-                                        top - GROUP_GAP / 2, SEPARATOR);
+                                        top - GROUP_GAP / 2, separator(style.borderTop()));
                         }
                         lastGroup = row.group();
                         boolean hovered = !row.active() && this.rowAt(mouseX, mouseY).orElse(null) == row;
                         if (hovered)
                         {
-                                graphics.fill(this.x + 2, top - 1, right - 2, top + ROW_HEIGHT - 1, ROW_HOVER);
+                                graphics.fill(this.x + 2, top - 1, right - 2, top + ROW_HEIGHT - 1, style.highlight());
                         }
                         graphics.text(font, row.active() ? "●" : "○", this.x + PADDING, top + 1,
-                                row.active() ? ACTIVE_MARK : DORMANT_TEXT, false);
+                                row.active() ? style.activeMark() : DORMANT_TEXT, false);
                         graphics.text(font, row.label(), this.x + PADDING + 10, top + 1,
                                 row.active() || hovered ? ACTIVE_TEXT : DORMANT_TEXT, true);
                 }
-                graphics.text(font, footer(), this.x + PADDING, bottom - PADDING - font.lineHeight + 1, FOOTER_TEXT,
-                        false);
+                if (style.showCost())
+                {
+                        graphics.text(font, footer(), this.x + PADDING, bottom - PADDING - font.lineHeight + 1,
+                                FOOTER_TEXT, false);
+                }
+        }
+
+        /** The line between conflict groups: the top border's color, a quarter as opaque. */
+        private static int separator(int borderTop)
+        {
+                return (borderTop >>> 26 << 24) | (borderTop & 0xFFFFFF);
         }
 
         /** Corner brackets just outside the panel, the 2024 design's decoration. */
-        private void brackets(GuiGraphicsExtractor graphics, int right, int bottom)
+        private void brackets(GuiGraphicsExtractor graphics, int right, int bottom, PanelStyle style)
         {
+                int color = style.bracket();
                 int left = this.x - BRACKET_OFFSET;
                 int top = this.y - BRACKET_OFFSET;
                 int outerRight = right + BRACKET_OFFSET;
                 int outerBottom = bottom + BRACKET_OFFSET;
-                int l = BRACKET_LENGTH;
-                graphics.fill(left, top, left + l, top + 2, BRACKET);
-                graphics.fill(left, top, left + 2, top + l, BRACKET);
-                graphics.fill(outerRight - l, top, outerRight, top + 2, BRACKET);
-                graphics.fill(outerRight - 2, top, outerRight, top + l, BRACKET);
-                graphics.fill(left, outerBottom - 2, left + l, outerBottom, BRACKET);
-                graphics.fill(left, outerBottom - l, left + 2, outerBottom, BRACKET);
-                graphics.fill(outerRight - l, outerBottom - 2, outerRight, outerBottom, BRACKET);
-                graphics.fill(outerRight - 2, outerBottom - l, outerRight, outerBottom, BRACKET);
+                int l = style.bracketLength();
+                graphics.fill(left, top, left + l, top + 2, color);
+                graphics.fill(left, top, left + 2, top + l, color);
+                graphics.fill(outerRight - l, top, outerRight, top + 2, color);
+                graphics.fill(outerRight - 2, top, outerRight, top + l, color);
+                graphics.fill(left, outerBottom - 2, left + l, outerBottom, color);
+                graphics.fill(left, outerBottom - l, left + 2, outerBottom, color);
+                graphics.fill(outerRight - l, outerBottom - 2, outerRight, outerBottom, color);
+                graphics.fill(outerRight - 2, outerBottom - l, outerRight, outerBottom, color);
         }
 
         boolean contains(double mouseX, double mouseY)

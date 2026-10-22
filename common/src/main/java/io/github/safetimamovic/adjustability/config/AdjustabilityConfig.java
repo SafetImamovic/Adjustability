@@ -76,7 +76,29 @@ public final class AdjustabilityConfig
                 DURABILITY
         }
 
-        public record PlayerSettings(boolean showDormant, boolean showHint)
+        public record PlayerSettings(boolean showDormant, boolean showHint, PanelStyle panel)
         {
+        }
+
+        /** The Adjust panel's look; colors are ARGB. */
+        public record PanelStyle(
+                PanelSide side,
+                int background,
+                int borderTop,
+                int borderBottom,
+                boolean showBrackets,
+                int bracket,
+                int bracketLength,
+                int highlight,
+                int activeMark,
+                boolean showCost)
+        {
+        }
+
+        public enum PanelSide
+        {
+                AUTO,
+                RIGHT,
+                LEFT
         }
 }
