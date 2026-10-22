@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security issue
+    url: https://github.com/SafetImamovic/Adjustability/security/advisories/new
+    about: A way to crash or exploit a server. Please report it privately.
+  - name: Guide for pack devs and mod devs
+    url: https://safetimamovic.github.io/Adjustability/guide/
+    about: How it works, server config, tags, modded enchantments, the Java API, and ready-made examples.
