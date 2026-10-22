@@ -52,14 +52,14 @@ public final class ToggleNetwork
                         slot.setChanged();
                         menu.broadcastChanges();
                 }
-                Toggler.report(player, outcome, target.get());
+                Toggler.report(player, outcome, target.get(), stack);
         }
 
         public static void onCycle(ServerPlayer player, CycleEnchantmentPayload payload)
         {
                 if (!AdjustabilityConfig.toggle().allowInWorldCycle())
                 {
-                        Toggler.report(player, Outcome.DISABLED, null);
+                        Toggler.report(player, Outcome.DISABLED, null, ItemStack.EMPTY);
                         return;
                 }
                 ItemStack stack = player.getMainHandItem();
@@ -69,6 +69,6 @@ public final class ToggleNetwork
                 {
                         return;
                 }
-                Toggler.report(player, Toggler.activate(player, stack, target.get()), target.get());
+                Toggler.report(player, Toggler.activate(player, stack, target.get()), target.get(), stack);
         }
 }

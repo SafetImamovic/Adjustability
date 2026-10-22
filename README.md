@@ -75,10 +75,20 @@ All rebindable under Controls → Adjustability, or with `/adjustability keybind
 
 - `config/adjustability-server.toml`: gameplay, synced from the server (costs, cooldowns, limits).
 - `config/adjustability-client.toml`: personal (tooltip hint, sounds), editable in game.
+- Your own conflict rules (`[exclusivity]`: extra groups, pairs that never conflict, vanilla's on or off) and costs
+  per group (`group_costs`), in the server file.
 - Datapacks: Adjustability's tags, and vanilla's `exclusive_set` in enchantment files. Reload with `/reload`.
 
 Guide for admins, pack devs and mod devs: [safetimamovic.github.io/Adjustability](https://safetimamovic.github.io/Adjustability/)
 (source in [docs/guide](docs/guide/README.md)).
+
+## Uninstalling
+
+Removing Adjustability never breaks an item: dormant enchantments are stored in vanilla's `minecraft:custom_data` under
+`adjustability:dormant`, so items keep their active enchantments and load fine without the mod. To remove the dormant
+ones for good, run `/adjustability flatten @a` with everyone online first. Details:
+[Uninstalling](https://safetimamovic.github.io/Adjustability/guide/uninstalling) and
+[where dormant enchantments are stored](https://safetimamovic.github.io/Adjustability/guide/storage).
 
 ## Issues and ideas
 

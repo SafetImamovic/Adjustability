@@ -12,6 +12,34 @@ cost_amount = 1
 cost_item = "minecraft:lapis_lazuli"
 ```
 
+## Make Sharpness and Fire Aspect switchable
+
+```toml
+[exclusivity]
+extra_groups = ["minecraft:sharpness, minecraft:fire_aspect"]
+```
+
+They now conflict for Adjustability: a sword can hold both, one active at a time.
+
+## Let Infinity and Mending stack
+
+```toml
+[exclusivity]
+compatible = ["minecraft:infinity, minecraft:mending"]
+```
+
+They no longer conflict for Adjustability, so the anvil puts both on a bow, both active.
+
+## Mining switches cost lapis, armor switches are free
+
+```toml
+[toggle]
+group_costs = [
+    "#minecraft:exclusive_set/mining = ITEM 1 minecraft:lapis_lazuli",
+    "#minecraft:exclusive_set/armor = NONE",
+]
+```
+
 ## Keep Infinity and Mending apart
 
 `data/adjustability/tags/enchantment/not_combinable.json`:
@@ -70,4 +98,5 @@ allow_in_world_cycle = false
 ## Uninstall cleanly
 
 Before removing the mod, run `/adjustability flatten @a` with everyone online. Items keep their active enchantments;
-dormant ones are removed.
+dormant ones are removed. What it doesn't reach (chests in the world, shulker boxes) is harmless: see
+[Uninstalling](uninstalling.md).

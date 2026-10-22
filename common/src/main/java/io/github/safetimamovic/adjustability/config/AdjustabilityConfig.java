@@ -1,5 +1,6 @@
 package io.github.safetimamovic.adjustability.config;
 
+import java.util.List;
 import net.minecraft.resources.Identifier;
 
 /**
@@ -29,6 +30,12 @@ public final class AdjustabilityConfig
         public static PlayerSettings player()
         {
                 return PlayerConfig.read();
+        }
+
+        /** Which enchantments conflict, and the level cost of switching within groups. */
+        public static ExclusivityConfig exclusivity()
+        {
+                return CreatorConfig.readExclusivity();
         }
 
         /** Whether items take part unless denied, or only when allowed. */
@@ -70,6 +77,29 @@ public final class AdjustabilityConfig
                 Identifier costItem,
                 boolean allowInWorldCycle,
                 boolean allowCommand)
+        {
+                /** The cost of a switch in a group no {@code group_costs} entry covers. */
+                public Cost defaultCost()
+                {
+                        return new Cost(this.costType, this.costAmount, this.costItem);
+                }
+        }
+
+        /**
+         * What one switch costs.
+         *
+         * @param item only used with {@link ToggleCost#ITEM}
+         */
+        public record Cost(ToggleCost type, int amount, Identifier item)
+        {
+        }
+
+        /** Raw entries; {@code core/Exclusivity} parses them. */
+        public record ExclusivityConfig(
+                boolean useVanilla,
+                List<? extends String> groups,
+                List<? extends String> compatible,
+                List<? extends String> groupCosts)
         {
         }
 

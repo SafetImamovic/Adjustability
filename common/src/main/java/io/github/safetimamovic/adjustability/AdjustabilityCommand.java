@@ -126,7 +126,7 @@ public final class AdjustabilityCommand
                 ServerPlayer player = context.getSource().getPlayerOrException();
                 Holder<Enchantment> enchantment = ResourceArgument.getEnchantment(context, "enchantment");
                 Toggler.Outcome outcome = Toggler.activate(player, player.getMainHandItem(), enchantment);
-                Toggler.report(player, outcome, enchantment);
+                Toggler.report(player, outcome, enchantment, player.getMainHandItem());
                 return outcome == Toggler.Outcome.DONE ? 1 : 0;
         }
 

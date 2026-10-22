@@ -1,10 +1,13 @@
 package io.github.safetimamovic.adjustability.config;
 
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.AnvilConfig;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ExclusivityConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.GrindstoneConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ItemMode;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleCost;
+import io.github.safetimamovic.adjustability.core.Exclusivity;
+import java.util.List;
 import net.minecraft.resources.Identifier;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
@@ -27,6 +30,10 @@ public final class CreatorConfig
 
         private static final EnumValue<ItemMode> ITEM_MODE;
 
+        private static final BooleanValue USE_VANILLA;
+        private static final ConfigValue<List<? extends String>> EXTRA_GROUPS;
+        private static final ConfigValue<List<? extends String>> COMPATIBLE;
+
         private static final BooleanValue ANVIL_ENABLED;
         private static final BooleanValue COMBINE_BOOKS;
         private static final IntValue DORMANT_COST_PER_LEVEL;
@@ -44,6 +51,7 @@ public final class CreatorConfig
         private static final ConfigValue<String> COST_ITEM;
         private static final BooleanValue ALLOW_IN_WORLD_CYCLE;
         private static final BooleanValue ALLOW_COMMAND;
+        private static final ConfigValue<List<? extends String>> GROUP_COSTS;
 
         static
         {
@@ -54,6 +62,25 @@ public final class CreatorConfig
                                 "ALLOWLIST: only items in #adjustability:adjustable (and still not those in",
                                 "#adjustability:not_adjustable). The allowlist tag is empty by default.")
                         .defineEnum("mode", ItemMode.DENYLIST);
+                builder.pop();
+
+                builder.comment("Which enchantments conflict, for Adjustability: they can be combined on one item, and",
+                        "only one of them is active at a time. Entries are enchantment ids and #tags separated by",
+                        "commas; a single #tag is a group of everything in it. Vanilla's enchanting table and",
+                        "/enchant still follow vanilla's exclusive_set; to change those, edit it in a datapack.")
+                        .push("exclusivity");
+                USE_VANILLA = builder.comment("Start from vanilla's exclusive_set (Fortune / Silk Touch, the",
+                                "Protections, ...). Off: only extra_groups conflict.")
+                        .define("use_vanilla", true);
+                EXTRA_GROUPS = builder.comment("More groups of enchantments that conflict with each other, e.g.",
+                                "[\"minecraft:sharpness, minecraft:fire_aspect\"]. Modded enchantments work too.")
+                        .defineListAllowEmpty("extra_groups", List.of(),
+                                () -> "minecraft:fortune, minecraft:silk_touch", Exclusivity::isValidGroup);
+                COMPATIBLE = builder.comment("Enchantments that never conflict with each other here, whatever",
+                                "vanilla or extra_groups say, e.g. [\"minecraft:infinity, minecraft:mending\"]. With",
+                                "the anvil on, they can then be combined and are both active: they stack.")
+                        .defineListAllowEmpty("compatible", List.of(), () -> "minecraft:infinity, minecraft:mending",
+                                Exclusivity::isValidGroup);
                 builder.pop();
 
                 builder.comment("Combining conflicting enchantments in an anvil. Which enchantments conflict comes from",
@@ -106,6 +133,15 @@ public final class CreatorConfig
                         .define("allow_in_world_cycle", true);
                 ALLOW_COMMAND = builder.comment("Every player can use /adjustability toggle <enchantment>.")
                         .define("allow_command", true);
+                GROUP_COSTS = builder.comment("Own costs for switching within particular groups, instead of",
+                                "cost_type / cost_amount / cost_item: \"<ids and #tags> = <cost>\", where <cost> is",
+                                "NONE, XP_LEVELS <n>, XP_POINTS <n>, DURABILITY <n> or ITEM <n> <item id>. E.g.",
+                                "[\"#minecraft:exclusive_set/mining = ITEM 2 minecraft:lapis_lazuli\",",
+                                "\"minecraft:riptide = XP_LEVELS 5\", \"#minecraft:exclusive_set/armor = NONE\"].",
+                                "An entry covers a group if any of the group's enchantments matches; the first entry",
+                                "that covers it wins. Creative players still switch for free.")
+                        .defineListAllowEmpty("group_costs", List.of(),
+                                () -> "#minecraft:exclusive_set/mining = XP_LEVELS 3", Exclusivity::isValidCost);
                 builder.pop();
 
                 SPEC = builder.build();
@@ -124,6 +160,12 @@ public final class CreatorConfig
                         get(ALLOW_TOO_EXPENSIVE),
                         get(MAX_DORMANT_PER_ITEM),
                         get(MAX_CONFLICTS_PER_COMPONENT));
+        }
+
+        static ExclusivityConfig readExclusivity()
+        {
+                return new ExclusivityConfig(get(USE_VANILLA), get(EXTRA_GROUPS), get(COMPATIBLE),
+                        get(GROUP_COSTS));
         }
 
         static ItemMode readItemMode()

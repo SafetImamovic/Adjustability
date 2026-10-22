@@ -18,6 +18,16 @@ Two enchantments conflict when either one's exclusive set contains the other. Va
 both vanilla and Adjustability follow: add an enchantment to a set to make it conflict, remove it to let it stack like
 any other.
 
+### Two ways to change what conflicts
+
+| | Datapack (`exclusive_set`) | Server config (`[exclusivity]`) |
+|---|---|---|
+| Affects | Vanilla and Adjustability: the enchanting table, `/enchant`, the anvil | Adjustability only |
+| Where | `data/<namespace>/enchantment/<name>.json` or the `#minecraft:exclusive_set/*` tags | `adjustability-server.toml` |
+| Good for | Changing the game's rules for everyone | Making extra pairs switchable, or letting a pair stack, without touching vanilla |
+
+See [Which enchantments conflict](server-config.md#which-enchantments-conflict) for the config.
+
 ## Adjustability's tags
 
 | Tag | Type | Default | Meaning |

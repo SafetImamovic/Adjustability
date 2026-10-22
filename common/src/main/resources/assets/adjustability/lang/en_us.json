@@ -15,6 +15,7 @@
     "key.adjustability.cycle": "Cycle held item's enchantments (+ Sneak: next group)",
     "adjustability.tooltip.hint": "%s: adjust",
     "adjustability.panel.cost": "Each switch: %s · cooldown %ss",
+    "adjustability.panel.cooldown": "Cooldown %ss",
     "adjustability.cost.free": "free",
     "adjustability.cost.levels": "%s level(s)",
     "adjustability.cost.points": "%s experience point(s)",

@@ -72,6 +72,6 @@ vanilla. Servers can keep dormant enchantments instead (`remove_dormant` in the
 
 ## If the mod is removed
 
-Items keep their active enchantments and keep working. The dormant ones stop showing and do nothing, because vanilla
-has no way to represent them; they're kept in the item's `custom_data`, so an item never fails to load. Putting the mod
-back brings them back.
+Items keep their active enchantments and keep working; the dormant ones stay in the item's data, inert and
+invisible, and come back if the mod does. See [Uninstalling](uninstalling.md) for `/adjustability flatten`, and
+[Where dormant enchantments are stored](storage.md) for the exact format.

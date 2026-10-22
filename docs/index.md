@@ -41,6 +41,12 @@ Adjustability is being rewritten for Minecraft 26.3. The first beta, 0.1.0, isn'
 will do. Progress: [ADJUSTABILITY.md](https://github.com/SafetImamovic/Adjustability/blob/master/ADJUSTABILITY.md).
 :::
 
+::: tip Safe to remove
+Dormant enchantments live in vanilla item data, so removing the mod never breaks an item: it keeps its active
+enchantments. [Uninstalling](/guide/uninstalling) explains `/adjustability flatten` and
+[where they're stored](/guide/storage).
+:::
+
 ## Install
 
 Minecraft Java **26.3**, on the client **and** the server.
