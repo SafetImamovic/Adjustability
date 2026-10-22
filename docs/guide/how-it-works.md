@@ -41,10 +41,10 @@ over the survival limit of 39 levels.
 
 ## Switching
 
-- **In your inventory** (or any chest, shulker box...): hover the item and press **Left Alt**. The Adjust screen lists
-  each group of conflicting enchantments, one button per enchantment; the active one has a ✔. Click a dormant one to
-  make it active. The container stays open; **Done** or Escape goes back to it. The item's tooltip shows the key as a
-  reminder (`Left Alt: adjust`).
+- **In your inventory** (or any chest, shulker box...): hover the item and press **Left Alt**. The Adjust panel
+  opens next to it, like a tooltip that stays: each group of conflicting enchantments, the active one marked ●, the
+  dormant ones ○. Click a dormant one to make it active. **Left Alt** again, **Escape** or a click outside closes it;
+  that click never picks up an item. The item's tooltip shows the key as a reminder (`Left Alt: adjust`).
 - **While playing:** bind **Cycle held item's enchantments** under Controls → Adjustability (unbound by default). One
   press steps the held item to its next choice, e.g. Fortune → Silk Touch → Fortune, and says which one is active above
   the hotbar.

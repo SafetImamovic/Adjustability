@@ -16,8 +16,8 @@ Changes per version that players, pack devs and mod devs will notice. Format:
   `[grindstone]` settings.
 - Tags `#adjustability:never_dormant` (curses), `#adjustability:not_combinable` and `#adjustability:not_adjustable`.
 - Operator commands `/adjustability inspect` and `/adjustability add <enchantment> [level]`.
-- Switch active enchantments: hover an item in any inventory and press Left Alt for the Adjust screen, or bind the
-  Cycle key to step the held item through its choices. Tridents bring Channeling back with Loyalty.
+- Switch active enchantments: hover an item in any inventory and press Left Alt to pin the Adjust panel next to it,
+  then click the enchantment you want; or bind the Cycle key to step the held item through its choices. Tridents bring Channeling back with Loyalty.
 - `[toggle]` server settings: on/off, cooldown (1 second), cost (free, XP levels or points, an item, durability),
   in-world Cycle key and command on/off. Curses are never switched off.
 - Player settings `adjustability-client.toml`: dormant lines and the key hint in tooltips, editable in game.

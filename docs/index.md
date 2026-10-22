@@ -54,7 +54,7 @@ Minecraft Java **26.3**, on the client **and** the server.
 
 | Action | Default |
 |---|---|
-| Open the Adjust screen | Hover an item in your inventory, press Left Alt |
+| Open the Adjust panel | Hover an item in your inventory, press Left Alt |
 | Cycle the held item's enchantments | Unbound (set it under Controls → Adjustability) |
 
 ## Commands

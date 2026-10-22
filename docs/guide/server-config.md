@@ -81,4 +81,4 @@ show_hint = true
 | Key | Default | What it does |
 |---|---|---|
 | `show_dormant` | `true` | List dormant enchantments in item tooltips. |
-| `show_hint` | `true` | On items with dormant enchantments, show which key opens the Adjust screen. |
+| `show_hint` | `true` | On items with dormant enchantments, show which key opens the Adjust panel. |
