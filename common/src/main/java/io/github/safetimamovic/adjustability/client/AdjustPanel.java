@@ -1,9 +1,11 @@
 package io.github.safetimamovic.adjustability.client;
 
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Cost;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelStyle;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
+import io.github.safetimamovic.adjustability.core.Exclusivity;
 import io.github.safetimamovic.adjustability.core.Toggler;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
 import io.github.safetimamovic.adjustability.graph.ConflictGraph;
@@ -59,6 +61,9 @@ public final class AdjustPanel
         private int width;
         private int height;
         private final List<Row> rows = new ArrayList<>();
+        /** Each group's switching cost when the groups' costs differ; empty when one cost covers all (footer). */
+        private final List<Component> groupCosts = new ArrayList<>();
+        private Component footer = Component.empty();
 
         AdjustPanel(AbstractContainerScreen<?> screen, int containerId, int slot, int slotRight, int slotTop)
         {
@@ -91,6 +96,7 @@ public final class AdjustPanel
                 ItemStack stack = this.item();
                 Minecraft minecraft = Minecraft.getInstance();
                 this.rows.clear();
+                this.groupCosts.clear();
                 if (stack.isEmpty() || minecraft.level == null)
                 {
                         return false;
@@ -109,6 +115,21 @@ public final class AdjustPanel
                         return false;
                 }
 
+                // One cost for every group goes in the footer; otherwise each group shows its own on its first row.
+                ToggleConfig toggle = AdjustabilityConfig.toggle();
+                List<Cost> costs = groups.stream()
+                        .map(group -> Exclusivity.groupCost(group).orElseGet(toggle::defaultCost)).toList();
+                boolean oneCost = costs.stream().distinct().count() == 1;
+                String cooldown = String.format(Locale.ROOT, "%.1f", toggle.cooldownTicks() / 20.0);
+                this.footer = oneCost
+                        ? Component.translatable("adjustability.panel.cost", Toggler.costText(costs.getFirst()),
+                                cooldown)
+                        : Component.translatable("adjustability.panel.cooldown", cooldown);
+                if (!oneCost && style.showCost())
+                {
+                        costs.forEach(cost -> this.groupCosts.add(Toggler.costText(cost)));
+                }
+
                 int rowY = font.lineHeight + PADDING + 3;
                 int textWidth = font.width(stack.getHoverName());
                 for (int group = 0; group < groups.size(); group++)
@@ -117,21 +138,28 @@ public final class AdjustPanel
                         {
                                 rowY += GROUP_GAP;
                         }
+                        boolean firstRow = true;
                         for (Holder<Enchantment> enchantment : graph.vertices())
                         {
                                 if (groups.get(group).contains(enchantment))
                                 {
                                         Component label = TooltipLines.name(enchantment, levels.getLevel(enchantment));
-                                        this.rows.add(new Row(enchantment, label, shownActive.getLevel(enchantment) > 0,
-                                                rowY, group));
-                                        textWidth = Math.max(textWidth, font.width(label) + 10);
+                                        this.rows.add(new Row(enchantment, label,
+                                                shownActive.getLevel(enchantment) > 0, rowY, group));
+                                        int width = font.width(label) + 10;
+                                        if (firstRow && !this.groupCosts.isEmpty())
+                                        {
+                                                width += 8 + font.width(this.groupCosts.get(group));
+                                        }
+                                        textWidth = Math.max(textWidth, width);
                                         rowY += ROW_HEIGHT;
+                                        firstRow = false;
                                 }
                         }
                 }
                 if (style.showCost())
                 {
-                        textWidth = Math.max(textWidth, font.width(footer()));
+                        textWidth = Math.max(textWidth, font.width(this.footer));
                         rowY += 3 + font.lineHeight;
                 }
                 this.width = textWidth + 2 * PADDING;
@@ -183,6 +211,7 @@ public final class AdjustPanel
                                 graphics.fill(this.x + PADDING, top - GROUP_GAP / 2 - 1, right - PADDING,
                                         top - GROUP_GAP / 2, separator(style.borderTop()));
                         }
+                        boolean firstOfGroup = row.group() != lastGroup;
                         lastGroup = row.group();
                         boolean hovered = !row.active() && this.rowAt(mouseX, mouseY).orElse(null) == row;
                         if (hovered)
@@ -193,10 +222,16 @@ public final class AdjustPanel
                                 row.active() ? style.activeMark() : DORMANT_TEXT, false);
                         graphics.text(font, row.label(), this.x + PADDING + 10, top + 1,
                                 row.active() || hovered ? ACTIVE_TEXT : DORMANT_TEXT, true);
+                        if (firstOfGroup && !this.groupCosts.isEmpty())
+                        {
+                                Component cost = this.groupCosts.get(row.group());
+                                graphics.text(font, cost, right - PADDING - font.width(cost), top + 1, FOOTER_TEXT,
+                                        false);
+                        }
                 }
                 if (style.showCost())
                 {
-                        graphics.text(font, footer(), this.x + PADDING, bottom - PADDING - font.lineHeight + 1,
+                        graphics.text(font, this.footer, this.x + PADDING, bottom - PADDING - font.lineHeight + 1,
                                 FOOTER_TEXT, false);
                 }
         }
@@ -270,13 +305,6 @@ public final class AdjustPanel
                         return ItemStack.EMPTY;
                 }
                 return menu.getSlot(this.slot).getItem();
-        }
-
-        private static Component footer()
-        {
-                ToggleConfig config = AdjustabilityConfig.toggle();
-                return Component.translatable("adjustability.panel.cost", Toggler.costText(config),
-                        String.format(Locale.ROOT, "%.1f", config.cooldownTicks() / 20.0));
         }
 
         private record Row(Holder<Enchantment> enchantment, Component label, boolean active, int y, int group)

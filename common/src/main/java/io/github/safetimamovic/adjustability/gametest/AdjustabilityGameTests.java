@@ -3,8 +3,12 @@ package io.github.safetimamovic.adjustability.gametest;
 import io.github.safetimamovic.adjustability.Constants;
 import io.github.safetimamovic.adjustability.ModRegistries;
 import io.github.safetimamovic.adjustability.core.Adjuster;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Cost;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ExclusivityConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ItemMode;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleCost;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
+import io.github.safetimamovic.adjustability.core.Exclusivity;
 import io.github.safetimamovic.adjustability.core.GrindstoneRules;
 import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.Toggler;
@@ -13,11 +17,14 @@ import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleNetwork;
 import java.lang.reflect.Method;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -69,6 +76,9 @@ public final class AdjustabilityGameTests
                 test(registrar, "toggle_keeps_repair_cost", AdjustabilityGameTests::toggleKeepsRepairCost);
                 test(registrar, "anvil_caps_merged_level", AdjustabilityGameTests::anvilCapsMergedLevel);
                 test(registrar, "grindstone_dormant_experience", AdjustabilityGameTests::grindstoneDormantExperience);
+                test(registrar, "exclusivity_server_rules", AdjustabilityGameTests::exclusivityServerRules);
+                test(registrar, "group_costs", AdjustabilityGameTests::groupCosts);
+                test(registrar, "pay_costs", AdjustabilityGameTests::payCosts);
         }
 
         /** Fortune pickaxe + Silk Touch book: Fortune stays active, Silk Touch is dormant, vanilla price + 1. */
@@ -402,6 +412,94 @@ public final class AdjustabilityGameTests
                 }
                 double average = (double) total / samples;
                 helper.assertTrue(average > 30.5, "average experience " + average + " should include Silk Touch's");
+                helper.succeed();
+        }
+
+        /** Extra groups, never-conflicting pairs, tags as groups, and turning vanilla's exclusive sets off. */
+        private static void exclusivityServerRules(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                Holder<Enchantment> sharpness = enchantment(helper, Enchantments.SHARPNESS);
+                Holder<Enchantment> fireAspect = enchantment(helper, Enchantments.FIRE_ASPECT);
+                Holder<Enchantment> infinity = enchantment(helper, Enchantments.INFINITY);
+                Holder<Enchantment> mending = enchantment(helper, Enchantments.MENDING);
+
+                ExclusivityConfig vanilla = new ExclusivityConfig(true, List.of(), List.of(), List.of());
+                helper.assertTrue(Exclusivity.conflict(fortune, silkTouch, vanilla), "vanilla: Fortune / Silk Touch");
+                helper.assertFalse(Exclusivity.conflict(sharpness, fireAspect, vanilla), "vanilla: Sharpness + Fire");
+
+                ExclusivityConfig custom = new ExclusivityConfig(true,
+                        List.of("minecraft:sharpness, minecraft:fire_aspect"),
+                        List.of("minecraft:infinity, minecraft:mending"), List.of());
+                helper.assertTrue(Exclusivity.conflict(fireAspect, sharpness, custom), "extra group conflicts");
+                helper.assertFalse(Exclusivity.conflict(infinity, mending, custom), "compatible overrides vanilla");
+                helper.assertTrue(Exclusivity.conflict(fortune, silkTouch, custom), "vanilla still applies");
+
+                ExclusivityConfig noVanilla = new ExclusivityConfig(false, List.of(), List.of(), List.of());
+                helper.assertFalse(Exclusivity.conflict(fortune, silkTouch, noVanilla), "vanilla off");
+                ExclusivityConfig tagGroup = new ExclusivityConfig(false, List.of("#minecraft:exclusive_set/mining"),
+                        List.of(), List.of());
+                helper.assertTrue(Exclusivity.conflict(fortune, silkTouch, tagGroup), "a single tag is a group");
+
+                helper.assertFalse(Exclusivity.isValidGroup("minecraft:fortune"), "one id isn't a group");
+                helper.assertFalse(Exclusivity.isValidGroup("minecraft:fortune, not an id!"), "bad id refused");
+                helper.succeed();
+        }
+
+        /** group_costs: any cost type per group, the first matching entry wins, other groups use the default. */
+        private static void groupCosts(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                Holder<Enchantment> riptide = enchantment(helper, Enchantments.RIPTIDE);
+                Holder<Enchantment> loyalty = enchantment(helper, Enchantments.LOYALTY);
+                Holder<Enchantment> protection = enchantment(helper, Enchantments.PROTECTION);
+                Holder<Enchantment> fireProtection = enchantment(helper, Enchantments.FIRE_PROTECTION);
+                ExclusivityConfig config = new ExclusivityConfig(true, List.of(), List.of(), List.of(
+                        "#minecraft:exclusive_set/mining = ITEM 2 minecraft:lapis_lazuli",
+                        "minecraft:riptide = XP_LEVELS 5",
+                        "minecraft:loyalty = XP_POINTS 99"));
+
+                helper.assertValueEqual(Exclusivity.groupCost(List.of(fortune, silkTouch), config),
+                        Optional.of(new Cost(ToggleCost.ITEM, 2, Identifier.withDefaultNamespace("lapis_lazuli"))),
+                        "mining group");
+                helper.assertValueEqual(Exclusivity.groupCost(List.of(loyalty, riptide), config).map(Cost::type),
+                        Optional.of(ToggleCost.XP_LEVELS), "trident group: the first entry that matches");
+                helper.assertTrue(Exclusivity.groupCost(List.of(protection, fireProtection), config).isEmpty(),
+                        "armor: no entry, the default cost applies");
+
+                helper.assertTrue(Exclusivity.isValidCost("#minecraft:exclusive_set/armor = NONE"), "NONE");
+                helper.assertTrue(Exclusivity.isValidCost("minecraft:riptide = durability 10"), "any case");
+                helper.assertFalse(Exclusivity.isValidCost("minecraft:riptide = ITEM 2"), "ITEM needs an item");
+                helper.assertFalse(Exclusivity.isValidCost("minecraft:riptide = GOLD 2"), "unknown cost type");
+                helper.assertFalse(Exclusivity.isValidCost("minecraft:riptide"), "no cost");
+                helper.succeed();
+        }
+
+        /** Paying takes the whole cost or nothing. */
+        private static void payCosts(GameTestHelper helper)
+        {
+                ServerPlayer player = survivalServerPlayer(helper);
+                ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+                player.getInventory().setItem(5, new ItemStack(Items.LAPIS_LAZULI, 3));
+                Cost twoLapis = new Cost(ToggleCost.ITEM, 2, Identifier.withDefaultNamespace("lapis_lazuli"));
+                helper.assertTrue(Toggler.pay(player, pickaxe, twoLapis), "3 lapis pay for 2");
+                helper.assertValueEqual(player.getInventory().getItem(5).getCount(), 1, "lapis left");
+                helper.assertFalse(Toggler.pay(player, pickaxe, twoLapis), "1 lapis doesn't pay for 2");
+                helper.assertValueEqual(player.getInventory().getItem(5).getCount(), 1, "nothing taken");
+
+                player.experienceLevel = 5;
+                Cost threeLevels = new Cost(ToggleCost.XP_LEVELS, 3, Identifier.withDefaultNamespace("air"));
+                helper.assertTrue(Toggler.pay(player, pickaxe, threeLevels), "5 levels pay for 3");
+                helper.assertValueEqual(player.experienceLevel, 2, "levels left");
+                helper.assertFalse(Toggler.pay(player, pickaxe, threeLevels), "2 levels don't pay for 3");
+
+                Cost durability = new Cost(ToggleCost.DURABILITY, 10, Identifier.withDefaultNamespace("air"));
+                helper.assertTrue(Toggler.pay(player, pickaxe, durability), "durability");
+                helper.assertValueEqual(pickaxe.getDamageValue(), 10, "damage taken");
+                pickaxe.setDamageValue(pickaxe.getMaxDamage() - 5);
+                helper.assertFalse(Toggler.pay(player, pickaxe, durability), "never breaks the item");
                 helper.succeed();
         }
 

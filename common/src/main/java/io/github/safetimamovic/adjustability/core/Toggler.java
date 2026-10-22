@@ -1,6 +1,7 @@
 package io.github.safetimamovic.adjustability.core;
 
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Cost;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
 import io.github.safetimamovic.adjustability.graph.ConflictGraph;
 import io.github.safetimamovic.adjustability.graph.Selection;
@@ -83,7 +84,7 @@ public final class Toggler
                 {
                         return Outcome.COOLDOWN;
                 }
-                if (!free && !pay(player, stack, config))
+                if (!free && !pay(player, stack, costOf(graph, target, config)))
                 {
                         return Outcome.CANT_AFFORD;
                 }
@@ -114,8 +115,29 @@ public final class Toggler
                         components.get(component));
         }
 
-        /** Tells the player how a switch went, above the hotbar. {@code target} may only be null if it didn't happen. */
-        public static void report(ServerPlayer player, Outcome outcome, @Nullable Holder<Enchantment> target)
+        /**
+         * What switching to {@code target} on {@code stack} costs: its group's {@code group_costs} entry, else the
+         * default cost.
+         */
+        public static Cost costOf(ItemStack stack, Holder<Enchantment> target, HolderLookup.Provider registries)
+        {
+                return costOf(Adjuster.resplit(stack, ItemEnchantments.EMPTY, registries).graph(), target,
+                        AdjustabilityConfig.toggle());
+        }
+
+        private static Cost costOf(ConflictGraph<Holder<Enchantment>> graph, Holder<Enchantment> target,
+                ToggleConfig config)
+        {
+                return graph.components().stream().filter(group -> group.contains(target)).findFirst()
+                        .flatMap(Exclusivity::groupCost).orElseGet(config::defaultCost);
+        }
+
+        /**
+         * Tells the player how a switch went, above the hotbar. {@code target} is only null if it didn't happen;
+         * {@code stack} is the item it was on, for the cost.
+         */
+        public static void report(ServerPlayer player, Outcome outcome, @Nullable Holder<Enchantment> target,
+                ItemStack stack)
         {
                 ToggleConfig config = AdjustabilityConfig.toggle();
                 Component message = switch (outcome)
@@ -126,35 +148,41 @@ public final class Toggler
                         case COOLDOWN -> Component.translatable("adjustability.toggle.cooldown",
                                 String.format(Locale.ROOT, "%.1f", config.cooldownTicks() / 20.0));
                         case CANT_AFFORD -> Component.translatable("adjustability.toggle.cant_afford",
-                                costText(config));
+                                costText(costOf(stack, Objects.requireNonNull(target),
+                                        player.level().registryAccess())));
                         default -> Component.translatable("adjustability.toggle." + outcome.key());
                 };
                 player.sendOverlayMessage(message);
         }
 
         /** "1 level", "3 Lapis Lazuli", ...; for the Adjust panel and messages. */
-        public static Component costText(ToggleConfig config)
+        public static Component costText(Cost cost)
         {
-                int amount = config.costAmount();
-                return switch (config.costType())
+                int amount = cost.amount();
+                return switch (cost.type())
                 {
                         case NONE -> Component.translatable("adjustability.cost.free");
                         case XP_LEVELS -> Component.translatable("adjustability.cost.levels", amount);
                         case XP_POINTS -> Component.translatable("adjustability.cost.points", amount);
                         case DURABILITY -> Component.translatable("adjustability.cost.durability", amount);
                         case ITEM -> Component.translatable("adjustability.cost.item", amount,
-                                BuiltInRegistries.ITEM.getValue(config.costItem()).getDefaultInstance().getHoverName());
+                                BuiltInRegistries.ITEM.getValue(cost.item()).getDefaultInstance().getHoverName());
                 };
         }
 
-        private static boolean pay(ServerPlayer player, ItemStack stack, ToggleConfig config)
+        /**
+         * Takes {@code cost} from the player (or from {@code stack}, for durability), if they can pay all of it.
+         *
+         * @return false, and nothing taken, if they can't
+         */
+        public static boolean pay(ServerPlayer player, ItemStack stack, Cost cost)
         {
-                int amount = config.costAmount();
+                int amount = cost.amount();
                 if (amount <= 0)
                 {
                         return true;
                 }
-                switch (config.costType())
+                switch (cost.type())
                 {
                         case NONE ->
                         {
@@ -194,7 +222,7 @@ public final class Toggler
                         }
                         case ITEM ->
                         {
-                                Item item = BuiltInRegistries.ITEM.getValue(config.costItem());
+                                Item item = BuiltInRegistries.ITEM.getValue(cost.item());
                                 var inventory = player.getInventory();
                                 var crafting = player.inventoryMenu.getCraftSlots();
                                 if (inventory.clearOrCountMatchingItems(candidate -> candidate.is(item), true, amount,

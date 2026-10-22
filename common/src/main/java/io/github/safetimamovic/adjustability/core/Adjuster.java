@@ -35,9 +35,10 @@ public final class Adjuster
         {
         }
 
+        /** Whether two enchantments can't both be active: vanilla's exclusive sets and the server's own rules. */
         public static boolean conflict(Holder<Enchantment> a, Holder<Enchantment> b)
         {
-                return !a.equals(b) && !Enchantment.areCompatible(a, b);
+                return Exclusivity.conflict(a, b);
         }
 
         /** Whether any two of these conflict; false for a normal vanilla item. */
