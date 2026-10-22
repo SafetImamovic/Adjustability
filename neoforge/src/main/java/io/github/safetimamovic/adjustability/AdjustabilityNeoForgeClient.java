@@ -2,12 +2,14 @@ package io.github.safetimamovic.adjustability;
 
 import io.github.safetimamovic.adjustability.client.AdjustClient;
 import io.github.safetimamovic.adjustability.client.AdjustKeys;
+import io.github.safetimamovic.adjustability.client.AdjustabilityClientCommand;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
@@ -22,6 +24,9 @@ public class AdjustabilityNeoForgeClient
         {
                 AdjustClient.init(ClientPacketDistributor::sendToServer);
                 container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
+                AdjustabilityClientCommand.init(parent -> new ConfigurationScreen(container, parent));
+                NeoForge.EVENT_BUS.addListener((RegisterClientCommandsEvent event) -> AdjustabilityClientCommand
+                        .register(event.getDispatcher()));
                 modEventBus.addListener((RegisterKeyMappingsEvent event) ->
                 {
                         event.registerCategory(AdjustKeys.CATEGORY);

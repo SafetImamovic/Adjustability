@@ -29,5 +29,15 @@
     "adjustability.toggle.not_dormant": "That enchantment isn't dormant on this item.",
     "adjustability.toggle.would_switch_off_curse": "Can't switch: a curse would be switched off.",
     "adjustability.toggle.cooldown": "Wait %ss between switches.",
-    "adjustability.toggle.cant_afford": "A switch costs %s."
+    "adjustability.toggle.cant_afford": "A switch costs %s.",
+    "adjustability.command.client_only": "This part of /adjustability runs on the client; use it in game with the mod installed.",
+    "adjustability.command.help.header": "Adjustability commands:",
+    "adjustability.command.help.help": "this list",
+    "adjustability.command.help.config": "open your settings",
+    "adjustability.command.help.keybinds": "rebind the Adjust and Cycle keys",
+    "adjustability.command.help.toggle": "make an enchantment on the held item active",
+    "adjustability.command.help.inspect": "(operators) show the held item's active and dormant enchantments",
+    "adjustability.command.help.add": "(operators) add an enchantment to the held item",
+    "adjustability.command.help.flatten": "(operators) remove dormant enchantments from players' items",
+    "adjustability.command.flatten.done": "Removed dormant enchantments from %s item(s) of %s player(s)."
 }
