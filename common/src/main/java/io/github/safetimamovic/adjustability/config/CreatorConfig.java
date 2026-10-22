@@ -55,6 +55,7 @@ public final class CreatorConfig
         private static final ConfigValue<List<? extends String>> GROUP_COSTS;
         private static final BooleanValue ALLOW_NONE;
         private static final EnumValue<ServerPanelActivation> PANEL_ACTIVATION;
+        private static final BooleanValue PLAY_SOUND;
 
         static
         {
@@ -153,6 +154,9 @@ public final class CreatorConfig
                                 "player's own choice ([panel] activation in their client file). TOGGLE or HOLD: that,",
                                 "for everyone.")
                         .defineEnum("panel_activation", ServerPanelActivation.PLAYER);
+                PLAY_SOUND = builder.comment("Play a sound on a switch (adjustability:item.switch, for the player and",
+                                "anyone nearby). Players can turn it down with their Players volume.")
+                        .define("play_sound", true);
                 builder.pop();
 
                 SPEC = builder.build();
@@ -201,7 +205,8 @@ public final class CreatorConfig
                         get(ALLOW_IN_WORLD_CYCLE),
                         get(ALLOW_COMMAND),
                         get(ALLOW_NONE),
-                        get(PANEL_ACTIVATION));
+                        get(PANEL_ACTIVATION),
+                        get(PLAY_SOUND));
         }
 
         private static <T> T get(ConfigValue<T> value)

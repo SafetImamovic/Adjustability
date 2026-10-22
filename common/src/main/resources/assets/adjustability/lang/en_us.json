@@ -49,5 +49,6 @@
     "adjustability.command.panel.invalid": "%s can't be %s",
     "adjustability.command.panel.reset": "The Adjust panel's settings are back to their defaults.",
     "adjustability.command.panel.unavailable": "The settings file isn't loaded yet.",
-    "adjustability.cycle.group": "Cycle key now switches: %s"
+    "adjustability.cycle.group": "Cycle key now switches: %s",
+    "subtitles.adjustability.item.switch": "Enchantment switched"
 }

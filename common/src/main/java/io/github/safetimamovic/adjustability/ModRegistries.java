@@ -1,5 +1,6 @@
 package io.github.safetimamovic.adjustability;
 
+import io.github.safetimamovic.adjustability.effect.ModSounds;
 import io.github.safetimamovic.adjustability.gametest.AdjustabilityGameTests;
 import io.github.safetimamovic.adjustability.gametest.TestAdjustableItem;
 import io.github.safetimamovic.adjustability.platform.Services;
@@ -29,6 +30,7 @@ public final class ModRegistries
 
         public static void registerAll(Registrar registrar)
         {
+                ModSounds.register(registrar);
                 AdjustabilityGameTests.register(registrar);
                 // Only for the GameTests: never in a released game.
                 if (Services.PLATFORM.isDevelopmentEnvironment())

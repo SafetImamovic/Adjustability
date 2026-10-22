@@ -4,6 +4,7 @@ import io.github.safetimamovic.adjustability.api.SwitchEvent;
 import io.github.safetimamovic.adjustability.api.SwitchResult;
 import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
+import io.github.safetimamovic.adjustability.effect.ModSounds;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Cost;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
 import io.github.safetimamovic.adjustability.graph.ConflictGraph;
@@ -21,6 +22,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -134,6 +136,11 @@ public final class Toggler
                 current.dormant().entrySet().forEach(entry -> all.set(entry.getKey(), entry.getIntValue()));
                 Adjuster.write(stack, Adjuster.split(graph, all.toImmutable(), next));
                 LAST_SWITCH.put(player, now);
+                if (config.playSound())
+                {
+                        player.level().playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.SWITCH,
+                                SoundSource.PLAYERS, 0.6F, none ? 0.8F : 1.3F);
+                }
                 Listeners.onSwitched(event);
                 return SwitchResult.DONE;
         }

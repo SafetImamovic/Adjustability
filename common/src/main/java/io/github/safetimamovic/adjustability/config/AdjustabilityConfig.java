@@ -78,7 +78,8 @@ public final class AdjustabilityConfig
                 boolean allowInWorldCycle,
                 boolean allowCommand,
                 boolean allowNone,
-                ServerPanelActivation panelActivation)
+                ServerPanelActivation panelActivation,
+                boolean playSound)
         {
                 /** The cost of a switch in a group no {@code group_costs} entry covers. */
                 public Cost defaultCost()
