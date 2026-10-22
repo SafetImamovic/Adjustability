@@ -50,18 +50,27 @@ public final class Toggler
                         return Outcome.NOTHING_TO_SWITCH;
                 }
                 HolderLookup.Provider registries = player.level().registryAccess();
-                ItemEnchantments active = Adjuster.activeOf(stack);
-                ItemEnchantments dormant = Adjuster.dormantOf(stack, registries);
-                if (dormant.getLevel(target) == 0)
+                // An item can arrive with conflicting active enchantments (/give, another mod): it's repaired first,
+                // never by deleting anything, keeping what's active active where possible.
+                Adjuster.Split current = Adjuster.resplit(stack, ItemEnchantments.EMPTY, registries);
+                boolean broken = !current.active().equals(Adjuster.activeOf(stack))
+                        || !current.dormant().equals(Adjuster.dormantOf(stack, registries));
+                if (current.dormant().getLevel(target) == 0)
                 {
+                        if (broken && current.active().getLevel(target) > 0)
+                        {
+                                Adjuster.write(stack, current);
+                                return Outcome.DONE;
+                        }
                         return Outcome.NOT_DORMANT;
                 }
 
-                ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(active);
-                dormant.entrySet().forEach(entry -> all.set(entry.getKey(), entry.getIntValue()));
-                ConflictGraph<Holder<Enchantment>> graph = Adjuster.graph(all.toImmutable());
+                ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(current.active());
+                current.dormant().entrySet().forEach(entry -> all.set(entry.getKey(), entry.getIntValue()));
+                ConflictGraph<Holder<Enchantment>> graph = current.graph();
                 Selection<Holder<Enchantment>> next = graph.activate(
-                        new Selection<>(active.keySet(), dormant.keySet()), target, config.autoFill());
+                        new Selection<>(current.active().keySet(), current.dormant().keySet()), target,
+                        config.autoFill());
                 if (next.dormant().stream().anyMatch(enchantment -> enchantment.is(ModTags.NEVER_DORMANT)))
                 {
                         return Outcome.WOULD_SWITCH_OFF_CURSE;
@@ -91,21 +100,18 @@ public final class Toggler
         public static Optional<Holder<Enchantment>> nextInCycle(ItemStack stack, int component,
                 HolderLookup.Provider registries)
         {
-                if (!DormantEnchantments.has(stack))
+                if (!DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack)))
                 {
                         return Optional.empty();
                 }
-                ItemEnchantments active = Adjuster.activeOf(stack);
-                ItemEnchantments dormant = Adjuster.dormantOf(stack, registries);
-                ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(active);
-                dormant.entrySet().forEach(entry -> all.set(entry.getKey(), entry.getIntValue()));
-                ConflictGraph<Holder<Enchantment>> graph = Adjuster.graph(all.toImmutable());
-                List<Set<Holder<Enchantment>>> components = graph.components();
+                Adjuster.Split current = Adjuster.resplit(stack, ItemEnchantments.EMPTY, registries);
+                List<Set<Holder<Enchantment>>> components = current.graph().components();
                 if (component < 0 || component >= components.size())
                 {
                         return Optional.empty();
                 }
-                return graph.next(new Selection<>(active.keySet(), dormant.keySet()), components.get(component));
+                return current.graph().next(new Selection<>(current.active().keySet(), current.dormant().keySet()),
+                        components.get(component));
         }
 
         /** Tells the player how a switch went, above the hotbar. {@code target} may only be null if it didn't happen. */
