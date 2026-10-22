@@ -20,7 +20,8 @@ Changes per version that players, pack devs and mod devs will notice. Format:
   then click the enchantment you want; or bind the Cycle key to step the held item through its choices. Tridents bring Channeling back with Loyalty.
 - `[toggle]` server settings: on/off, cooldown (1 second), cost (free, XP levels or points, an item, durability),
   in-world Cycle key and command on/off. Curses are never switched off.
-- Player settings `adjustability-client.toml`: dormant lines and the key hint in tooltips, editable in game.
+- Player settings `adjustability-client.toml`: dormant lines and the key hint in tooltips, and the Adjust panel's look
+  (side, colors, corner brackets, cost line), editable in game or with `/adjustability panel`.
 - Commands `/adjustability toggle <enchantment>` (everyone), `/adjustability flatten [targets]` (operators), and
   `help`, `config`, `keybinds`.
 

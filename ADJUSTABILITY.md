@@ -1011,7 +1011,10 @@ Settled 2026-10-22:
   (a click outside closes it and never reaches the slots), and draws it from `extractTooltip`, which every container
   screen calls last (recipe book screens skip the base `extractRenderState`). Drawn with `GuiGraphicsExtractor` fills
   and text only (26.x's renamed GUI drawing). Off in the creative inventory (client-only menu). It replaced a first
-  version that was a separate screen of vanilla buttons.
+  version that was a separate screen of vanilla buttons. Its look is the player's: `[panel]` in
+  `adjustability-client.toml` (side, every color, brackets on/off and length, cost line), editable in the config
+  screen or with `/adjustability panel [<setting> <value>|reset]`. The command tree is built from the config spec
+  (`PlayerConfig.PANEL_SETTINGS`) by `PanelCommand`, once for the client and once as a server stub for suggestions.
 - Cycle key: steps the first conflict group of the main-hand item (`ConflictGraph.next`). **Not done:** choosing
   another group (§9.2's modifier), blocking switches mid-block-break (§13).
 - Tests: 13 GameTests (6 new: switch, trident auto fill, refusal, cooldown, payload slot checks, cycle) on both loaders,

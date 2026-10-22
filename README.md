@@ -65,6 +65,7 @@ All rebindable under Controls → Adjustability, or with `/adjustability keybind
 | `/adjustability help` | Everyone | Lists these commands |
 | `/adjustability config` | Everyone | Opens the settings screen |
 | `/adjustability keybinds` | Everyone | Opens Controls to rebind the keys |
+| `/adjustability panel [<setting> <value>\|reset]` | Everyone | Shows or changes the Adjust panel's look |
 | `/adjustability toggle <enchantment>` | Everyone | Makes an enchantment on the held item active |
 | `/adjustability inspect` | Operators | Shows the held item's active and dormant enchantments and how they conflict |
 | `/adjustability add <enchantment> [level]` | Operators | Adds an enchantment to the held item, dormant if it conflicts |
