@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
+import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.core.Holder;
@@ -134,7 +135,80 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         }
                         context.getInput().pressKey(options -> options.keyInventory);
                         context.waitForScreen(null);
+
+                        cycleKey(context, world);
                 }
+        }
+
+        /**
+         * The Cycle key on boots with two conflict groups: Cycle steps the first (Depth Strider / Frost Walker),
+         * Sneak + Cycle picks the second (the Protections) and the next Cycle steps that one.
+         */
+        private static void cycleKey(ClientGameTestContext context, TestSingleplayerContext world)
+        {
+                context.runOnClient(minecraft ->
+                {
+                        AdjustKeys.CYCLE.setKey(InputConstants.Type.KEYBOARD.getOrCreate(InputConstants.KEY_V));
+                        KeyMapping.resetMapping();
+                });
+                world.getServer().runOnServer(server ->
+                {
+                        ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                        player.getInventory().setSelectedSlot(0);
+                        player.getInventory().setItem(0, boots(player));
+                });
+                world.getConnection().waitForClientboundPackets();
+                // The switch above started the 1 second cooldown.
+                context.waitTicks(25);
+
+                context.getInput().pressKey(AdjustKeys.CYCLE);
+                world.getConnection().waitForServerboundPackets();
+                assertActive(world, Enchantments.FROST_WALKER, "first press: the boots group");
+                context.waitTicks(25);
+
+                context.getInput().holdShift();
+                context.waitTick();
+                context.getInput().pressKey(AdjustKeys.CYCLE);
+                context.getInput().releaseShift();
+                context.waitTick();
+                context.takeScreenshot("adjustability_6_cycle_group");
+                context.getInput().pressKey(AdjustKeys.CYCLE);
+                world.getConnection().waitForServerboundPackets();
+                assertActive(world, Enchantments.FIRE_PROTECTION, "after Sneak + Cycle: the Protections");
+
+                context.runOnClient(minecraft ->
+                {
+                        AdjustKeys.CYCLE.setKey(InputConstants.UNKNOWN);
+                        KeyMapping.resetMapping();
+                });
+        }
+
+        private static void assertActive(TestSingleplayerContext world, ResourceKey<Enchantment> key, String when)
+        {
+                world.getServer().runOnServer(server ->
+                {
+                        ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                        ItemEnchantments active = Adjuster.activeOf(player.getInventory().getItem(0));
+                        if (active.getLevel(enchantment(player, key)) == 0)
+                        {
+                                throw new AssertionError(when + ": " + key.identifier() + " should be active, active: "
+                                        + active);
+                        }
+                });
+        }
+
+        private static ItemStack boots(ServerPlayer player)
+        {
+                ItemStack boots = new ItemStack(Items.DIAMOND_BOOTS);
+                ItemEnchantments.Mutable active = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+                active.set(enchantment(player, Enchantments.PROTECTION), 4);
+                active.set(enchantment(player, Enchantments.DEPTH_STRIDER), 3);
+                boots.set(DataComponents.ENCHANTMENTS, active.toImmutable());
+                ItemEnchantments.Mutable dormant = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+                dormant.set(enchantment(player, Enchantments.FIRE_PROTECTION), 4);
+                dormant.set(enchantment(player, Enchantments.FROST_WALKER), 2);
+                DormantEnchantments.set(boots, dormant.toImmutable());
+                return boots;
         }
 
         /** Runs an {@code /adjustability} client command as if typed in chat. */

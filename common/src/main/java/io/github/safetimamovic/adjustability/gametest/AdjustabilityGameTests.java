@@ -3,12 +3,16 @@ package io.github.safetimamovic.adjustability.gametest;
 import io.github.safetimamovic.adjustability.Constants;
 import io.github.safetimamovic.adjustability.ModRegistries;
 import io.github.safetimamovic.adjustability.core.Adjuster;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ItemMode;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
+import io.github.safetimamovic.adjustability.core.GrindstoneRules;
+import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.Toggler;
 import io.github.safetimamovic.adjustability.core.Toggler.Outcome;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleNetwork;
+import java.lang.reflect.Method;
 import java.util.function.Consumer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -21,6 +25,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.inventory.InventoryMenu;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -28,6 +33,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
+import net.minecraft.world.level.Level;
 
 /**
  * In-game tests for the anvil and grindstone rules, run by vanilla's GameTest framework on both loaders. Each test is a
@@ -57,6 +63,12 @@ public final class AdjustabilityGameTests
                 test(registrar, "toggle_cooldown", AdjustabilityGameTests::toggleCooldown);
                 test(registrar, "toggle_network_checks_slot", AdjustabilityGameTests::toggleNetworkChecksSlot);
                 test(registrar, "cycle_steps_held_item", AdjustabilityGameTests::cycleStepsHeldItem);
+                test(registrar, "allowlist_mode", AdjustabilityGameTests::allowlistMode);
+                test(registrar, "toggle_repairs_conflicting_active",
+                        AdjustabilityGameTests::toggleRepairsConflictingActive);
+                test(registrar, "toggle_keeps_repair_cost", AdjustabilityGameTests::toggleKeepsRepairCost);
+                test(registrar, "anvil_caps_merged_level", AdjustabilityGameTests::anvilCapsMergedLevel);
+                test(registrar, "grindstone_dormant_experience", AdjustabilityGameTests::grindstoneDormantExperience);
         }
 
         /** Fortune pickaxe + Silk Touch book: Fortune stays active, Silk Touch is dormant, vanilla price + 1. */
@@ -281,6 +293,115 @@ public final class AdjustabilityGameTests
                 ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
                 helper.assertValueEqual(Adjuster.activeOf(player.getMainHandItem()).getLevel(fortune), 3,
                         "second press: back to Fortune");
+                helper.succeed();
+        }
+
+        /** ALLOWLIST mode only takes items in #adjustability:adjustable, which is empty by default. */
+        private static void allowlistMode(GameTestHelper helper)
+        {
+                ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+                helper.assertTrue(ItemRules.canAdjust(pickaxe, ItemMode.DENYLIST), "DENYLIST: a pickaxe takes part");
+                helper.assertFalse(ItemRules.canAdjust(pickaxe, ItemMode.ALLOWLIST),
+                        "ALLOWLIST: a pickaxe not in the tag doesn't");
+                helper.assertFalse(ItemRules.canAdjust(ItemStack.EMPTY, ItemMode.DENYLIST), "never an empty slot");
+                helper.succeed();
+        }
+
+        /**
+         * An item with two conflicting active enchantments (/give, another mod) is repaired by the first switch,
+         * without losing either: what's asked for ends up active, the other dormant.
+         */
+        private static void toggleRepairsConflictingActive(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ItemEnchantments.Mutable both = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+                both.set(fortune, 3);
+                both.set(silkTouch, 1);
+
+                ItemStack toSilk = new ItemStack(Items.DIAMOND_PICKAXE);
+                toSilk.set(DataComponents.ENCHANTMENTS, both.toImmutable());
+                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), toSilk, silkTouch),
+                        Outcome.DONE, "switch to Silk Touch");
+                helper.assertValueEqual(Adjuster.activeOf(toSilk).getLevel(silkTouch), 1, "active Silk Touch");
+                helper.assertValueEqual(Adjuster.activeOf(toSilk).getLevel(fortune), 0, "Fortune no longer active");
+                helper.assertValueEqual(dormant(helper, toSilk).getLevel(fortune), 3, "Fortune kept, dormant");
+
+                ItemStack toFortune = new ItemStack(Items.DIAMOND_PICKAXE);
+                toFortune.set(DataComponents.ENCHANTMENTS, both.toImmutable());
+                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), toFortune, fortune),
+                        Outcome.DONE, "asking for the one that stays active repairs too");
+                helper.assertValueEqual(Adjuster.activeOf(toFortune).getLevel(fortune), 3, "active Fortune");
+                helper.assertValueEqual(dormant(helper, toFortune).getLevel(silkTouch), 1, "Silk Touch kept, dormant");
+                helper.succeed();
+        }
+
+        /** Switching never touches the anvil's prior-work penalty. */
+        private static void toggleKeepsRepairCost(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                pickaxe.set(DataComponents.REPAIR_COST, 7);
+
+                Toggler.activate(survivalServerPlayer(helper), pickaxe, silkTouch);
+
+                helper.assertValueEqual(pickaxe.getOrDefault(DataComponents.REPAIR_COST, 0), 7, "repair cost");
+                helper.succeed();
+        }
+
+        /** Merging into a dormant set never goes past an enchantment's max level. */
+        private static void anvilCapsMergedLevel(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, silkTouch, 1);
+                DormantEnchantments.set(pickaxe, single(fortune, 3));
+                AnvilMenu anvil = anvil(helper);
+                anvil.getSlot(AnvilMenu.INPUT_SLOT).set(pickaxe);
+                anvil.getSlot(AnvilMenu.ADDITIONAL_SLOT).set(book(fortune, 3));
+
+                ItemStack result = anvil.getSlot(AnvilMenu.RESULT_SLOT).getItem();
+                int levels = Adjuster.activeOf(result).getLevel(fortune) + dormant(helper, result).getLevel(fortune);
+                helper.assertValueEqual(levels, 3, "Fortune level, active or dormant");
+                helper.succeed();
+        }
+
+        /** The grindstone pays experience for dormant enchantments too, like for active ones. */
+        private static void grindstoneDormantExperience(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                helper.assertValueEqual(GrindstoneRules.dormantExperience(pickaxe, helper.getLevel().registryAccess()),
+                        silkTouch.value().getMinCost(1), "experience for dormant Silk Touch");
+
+                // End to end through the result slot's own experience code (private, in an anonymous class, so by
+                // reflection). Vanilla pays a random amount between half and all of the sum: Fortune III alone
+                // averages about 25, with Silk Touch about 36. 40 samples tell them apart with a wide margin.
+                Player player = survivalPlayer(helper);
+                GrindstoneMenu grindstone = new GrindstoneMenu(0, player.getInventory());
+                grindstone.getSlot(GrindstoneMenu.INPUT_SLOT).set(pickaxe);
+                Slot result = grindstone.getSlot(GrindstoneMenu.RESULT_SLOT);
+                int samples = 40;
+                int total = 0;
+                try
+                {
+                        Method experience = result.getClass().getDeclaredMethod("getExperienceAmount", Level.class);
+                        experience.setAccessible(true);
+                        for (int i = 0; i < samples; i++)
+                        {
+                                total += (int) experience.invoke(result, helper.getLevel());
+                        }
+                }
+                catch (ReflectiveOperationException exception)
+                {
+                        throw new IllegalStateException("The grindstone result slot changed", exception);
+                }
+                double average = (double) total / samples;
+                helper.assertTrue(average > 30.5, "average experience " + average + " should include Silk Touch's");
                 helper.succeed();
         }
 
