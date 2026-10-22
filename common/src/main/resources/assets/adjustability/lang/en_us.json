@@ -12,7 +12,7 @@
     "adjustability.command.add.dormant": "Added %s, dormant: it conflicts with an active enchantment.",
     "key.category.adjustability.controls": "Adjustability",
     "key.adjustability.adjust": "Adjust (hover an item)",
-    "key.adjustability.cycle": "Cycle held item's enchantments",
+    "key.adjustability.cycle": "Cycle held item's enchantments (+ Sneak: next group)",
     "adjustability.tooltip.hint": "%s: adjust",
     "adjustability.panel.cost": "Each switch: %s · cooldown %ss",
     "adjustability.cost.free": "free",
@@ -43,5 +43,6 @@
     "adjustability.command.panel.set": "%s is now %s",
     "adjustability.command.panel.invalid": "%s can't be %s",
     "adjustability.command.panel.reset": "The Adjust panel's settings are back to their defaults.",
-    "adjustability.command.panel.unavailable": "The settings file isn't loaded yet."
+    "adjustability.command.panel.unavailable": "The settings file isn't loaded yet.",
+    "adjustability.cycle.group": "Cycle key now switches: %s"
 }
