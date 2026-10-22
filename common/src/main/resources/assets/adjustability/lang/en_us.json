@@ -9,5 +9,17 @@
     "adjustability.command.inspect.none": "none",
     "adjustability.command.inspect.invalid": "  The stored split breaks Adjustability's rules (two active enchantments conflict, or a dormant one conflicts with nothing). It's fixed the next time the item goes through an anvil.",
     "adjustability.command.add.active": "Added %s, active.",
-    "adjustability.command.add.dormant": "Added %s, dormant: it conflicts with an active enchantment."
+    "adjustability.command.add.dormant": "Added %s, dormant: it conflicts with an active enchantment.",
+    "adjustability.cost.free": "free",
+    "adjustability.cost.levels": "%s level(s)",
+    "adjustability.cost.points": "%s experience point(s)",
+    "adjustability.cost.durability": "%s durability",
+    "adjustability.cost.item": "%s × %s",
+    "adjustability.toggle.done": "%s is now active",
+    "adjustability.toggle.disabled": "Switching enchantments is turned off on this server.",
+    "adjustability.toggle.nothing_to_switch": "Nothing to switch on this item.",
+    "adjustability.toggle.not_dormant": "That enchantment isn't dormant on this item.",
+    "adjustability.toggle.would_switch_off_curse": "Can't switch: a curse would be switched off.",
+    "adjustability.toggle.cooldown": "Wait %ss between switches.",
+    "adjustability.toggle.cant_afford": "A switch costs %s."
 }
