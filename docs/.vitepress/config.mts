@@ -54,6 +54,7 @@ export default defineConfig({
           items: [
             { text: 'Tags and exclusive sets', link: '/guide/tags' },
             { text: 'Modded enchantments', link: '/guide/modded-enchantments' },
+            { text: 'Compatibility', link: '/guide/compatibility' },
           ],
         },
         {
