@@ -44,7 +44,8 @@ over the survival limit of 39 levels.
 - **In your inventory** (or any chest, shulker box...): hover the item and press **Left Alt**. The Adjust panel
   opens next to it, like a tooltip that stays: each group of conflicting enchantments, the active one marked ●, the
   dormant ones ○. Click a dormant one to make it active. **Left Alt** again, **Escape** or a click outside closes it;
-  that click never picks up an item. The item's tooltip shows the key as a reminder (`Left Alt: adjust`). Its colors,
+  that click never picks up an item. Prefer holding the key? `/adjustability panel activation hold`: the panel is
+  open while you hold Left Alt (click while holding), and closes when you let go. The item's tooltip shows the key as a reminder (`Left Alt: adjust`). Its colors,
   side and decorations are yours to change: `/adjustability panel`, or the [player settings](server-config.md#player-settings).
 - **While playing:** bind **Cycle held item's enchantments** under Controls → Adjustability (unbound by default). One
   press steps the held item to its next choice, e.g. Fortune → Silk Touch → Fortune, and says which one is active above
@@ -54,6 +55,10 @@ over the survival limit of 39 levels.
 
 Switching has a cooldown (1 second by default) and can cost XP, an item or durability; the server decides. Creative
 players switch for free and without a cooldown. A curse is never switched off.
+
+Some servers also allow **none** (`allow_none`): the panel then has a **None** row for each group, and choosing it
+leaves every enchantment of that group dormant, e.g. a pickaxe mining with neither Fortune nor Silk Touch. The Cycle
+key goes Fortune → Silk Touch → none → Fortune.
 
 Switching while breaking a block is fine: the drops come from what's active when the block breaks, so it never
 counts both. An item that somehow has two conflicting enchantments active (from `/give` or another mod) is fixed the

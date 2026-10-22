@@ -5,6 +5,7 @@ import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleNetwork;
+import java.util.function.Supplier;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
@@ -31,9 +32,10 @@ public class AdjustabilityNeoForge
                 modEventBus.addListener((RegisterEvent event) -> ModRegistries.registerAll(new ModRegistries.Registrar()
                 {
                         @Override
-                        public <T> void register(ResourceKey<? extends Registry<T>> registry, Identifier id, T value)
+                        public <T> void register(ResourceKey<? extends Registry<T>> registry, Identifier id,
+                                Supplier<T> value)
                         {
-                                event.register(registry, id, () -> value);
+                                event.register(registry, id, value);
                         }
                 }));
                 modEventBus.addListener((RegisterPayloadHandlersEvent event) -> event.registrar("1")

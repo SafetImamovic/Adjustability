@@ -2,6 +2,7 @@ package io.github.safetimamovic.adjustability.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelActivation;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import io.github.safetimamovic.adjustability.core.ItemRules;
@@ -131,7 +132,8 @@ public final class AdjustClient
 
         /**
          * A key pressed in a container screen. The Adjust key over an item with conflicting enchantments pins the panel
-         * next to it (or closes it if it's already pinned there); Escape or the Adjust key elsewhere close it.
+         * next to it. In TOGGLE mode, pressing it again over the same item (or not over an item) closes it; in HOLD
+         * mode, letting go does ({@link #onKeyReleased}). Escape closes it in both.
          *
          * @return whether the key was used
          */
@@ -140,10 +142,16 @@ public final class AdjustClient
         {
                 AdjustPanel open = panel(screen);
                 boolean adjustKey = AdjustKeys.ADJUST.matches(event);
+                boolean toggle = activation() == PanelActivation.TOGGLE;
                 if (open != null && (event.key() == InputConstants.KEY_ESCAPE
-                        || adjustKey && (hovered == null || hovered.index == open.slot())))
+                        || adjustKey && toggle && (hovered == null || hovered.index == open.slot())))
                 {
                         panel = null;
+                        return true;
+                }
+                if (open != null && adjustKey && (hovered == null || hovered.index == open.slot()))
+                {
+                        // HOLD: already open over this item.
                         return true;
                 }
                 if (!adjustKey || hovered == null || !hovered.hasItem())
@@ -166,6 +174,22 @@ public final class AdjustClient
                         leftPos + hovered.x + 16, topPos + hovered.y);
                 panel = opened.refresh(minecraft.font) ? opened : null;
                 return panel != null;
+        }
+
+        /**
+         * A key let go in a container screen: in HOLD mode, letting go of the Adjust key closes the panel.
+         *
+         * @return whether the key was used
+         */
+        public static boolean onKeyReleased(AbstractContainerScreen<?> screen, KeyEvent event)
+        {
+                if (panel(screen) == null || !AdjustKeys.ADJUST.matches(event)
+                        || activation() != PanelActivation.HOLD)
+                {
+                        return false;
+                }
+                panel = null;
+                return true;
         }
 
         /**
@@ -233,6 +257,17 @@ public final class AdjustClient
                 {
                         panel = null;
                 }
+        }
+
+        /** How the Adjust key works: the server's {@code panel_activation} if it sets one, else the player's own. */
+        private static PanelActivation activation()
+        {
+                return switch (AdjustabilityConfig.toggle().panelActivation())
+                {
+                        case TOGGLE -> PanelActivation.TOGGLE;
+                        case HOLD -> PanelActivation.HOLD;
+                        case PLAYER -> AdjustabilityConfig.player().panel().activation();
+                };
         }
 
         private static @Nullable Component hint()

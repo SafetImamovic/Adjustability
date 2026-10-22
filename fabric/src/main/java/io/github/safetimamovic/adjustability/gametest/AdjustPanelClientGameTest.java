@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import io.github.safetimamovic.adjustability.client.AdjustClient;
 import io.github.safetimamovic.adjustability.client.AdjustKeys;
 import io.github.safetimamovic.adjustability.client.AdjustPanel;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ServerPanelActivation;
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
@@ -125,10 +126,8 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         command(context, "panel border_top_color #FF00E5FF");
                         command(context, "panel bracket_color 00E5FF");
                         command(context, "panel bracket_length 99");
-                        String side = context.computeOnClient(minecraft -> String.valueOf(
-                                PlayerConfig.current(PlayerConfig.PANEL_SETTINGS.getFirst())));
-                        int bracketLength = context.computeOnClient(minecraft -> (Integer) PlayerConfig.current(
-                                PlayerConfig.PANEL_SETTINGS.get(6)));
+                        String side = context.computeOnClient(minecraft -> String.valueOf(setting("side")));
+                        int bracketLength = context.computeOnClient(minecraft -> (Integer) setting("bracket_length"));
                         if (!side.equals("LEFT") || bracketLength != 9)
                         {
                                 throw new AssertionError("side should be LEFT and an out-of-range bracket_length "
@@ -148,6 +147,24 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                                 throw new AssertionError("Left Alt again should close the panel");
                         }
 
+                        // HOLD: open while the key is held, closed when it's let go.
+                        command(context, "panel activation hold");
+                        hoverSlot(context, HOTBAR_0);
+                        context.waitTick();
+                        context.getInput().holdKey(AdjustKeys.ADJUST);
+                        context.waitTick();
+                        if (!panelOpen(context))
+                        {
+                                throw new AssertionError("HOLD: holding the Adjust key should open the panel");
+                        }
+                        context.getInput().releaseKey(AdjustKeys.ADJUST);
+                        context.waitTick();
+                        if (panelOpen(context))
+                        {
+                                throw new AssertionError("HOLD: letting go of the Adjust key should close the panel");
+                        }
+                        command(context, "panel activation toggle");
+
                         // Two groups with different costs: each shows its own on its first row.
                         hoverSlot(context, HOTBAR_0 + 1);
                         context.waitTick();
@@ -159,9 +176,75 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         context.getInput().pressKey(options -> options.keyInventory);
                         context.waitForScreen(null);
 
+                        noneAndServerActivation(context, world);
                         cycleKey(context, world);
                         groupCosts(world, List.of());
                 }
+        }
+
+        /**
+         * With {@code allow_none}: the panel's None row leaves the mining group with nothing active. And the server's
+         * {@code panel_activation = HOLD} wins over the player's TOGGLE: a press (down and up) doesn't leave it open.
+         */
+        private static void noneAndServerActivation(ClientGameTestContext context, TestSingleplayerContext world)
+        {
+                serverSetting(world, "toggle.allow_none", true);
+                world.getServer().runOnServer(server -> server.getPlayerList().getPlayers().getFirst().getInventory()
+                        .setItem(0, pickaxe(server.getPlayerList().getPlayers().getFirst())));
+                world.getConnection().waitForClientboundPackets();
+                context.waitTicks(25);
+                context.getInput().pressKey(options -> options.keyInventory);
+                context.waitForScreen(InventoryScreen.class);
+                hoverSlot(context, HOTBAR_0);
+                context.waitTick();
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.waitTick();
+                context.takeScreenshot("adjustability_7_none_row");
+                int[] none = context.computeOnClient(minecraft ->
+                {
+                        AdjustPanel panel = AdjustClient.panel((AbstractContainerScreen<?>) minecraft.gui.screen());
+                        Holder<Enchantment> fortune = minecraft.level.registryAccess()
+                                .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+                        return panel.noneRowCentre(fortune).orElseThrow(() -> new AssertionError("No None row"));
+                });
+                moveTo(context, none[0], none[1]);
+                context.waitTick();
+                context.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
+                world.getConnection().waitForServerboundPackets();
+                world.getConnection().waitForClientboundPackets();
+                context.waitTicks(2);
+                world.getServer().runOnServer(server ->
+                {
+                        ItemEnchantments active = Adjuster.activeOf(server.getPlayerList().getPlayers().getFirst()
+                                .getInventory().getItem(0));
+                        if (active.getLevel(enchantment(server.getPlayerList().getPlayers().getFirst(),
+                                Enchantments.FORTUNE)) > 0)
+                        {
+                                throw new AssertionError("None: Fortune should be dormant, active: " + active);
+                        }
+                });
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.waitTick();
+
+                serverSetting(world, "toggle.panel_activation", ServerPanelActivation.HOLD);
+                world.getConnection().waitForClientboundPackets();
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.waitTick();
+                if (panelOpen(context))
+                {
+                        throw new AssertionError("Server HOLD: a press and release should leave the panel closed");
+                }
+                serverSetting(world, "toggle.panel_activation", ServerPanelActivation.PLAYER);
+                serverSetting(world, "toggle.allow_none", false);
+                context.getInput().pressKey(options -> options.keyInventory);
+                context.waitForScreen(null);
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <T> void serverSetting(TestSingleplayerContext world, String path, T value)
+        {
+                world.getServer().runOnServer(server -> ((ConfigValue<T>) CreatorConfig.SPEC.getValues().get(path))
+                        .set(value));
         }
 
         /**
@@ -249,6 +332,18 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 dormant.set(enchantment(player, Enchantments.FROST_WALKER), 2);
                 DormantEnchantments.set(boots, dormant.toImmutable());
                 return boots;
+        }
+
+        private static boolean panelOpen(ClientGameTestContext context)
+        {
+                return context.computeOnClient(
+                        minecraft -> AdjustClient.panel((AbstractContainerScreen<?>) minecraft.gui.screen()) != null);
+        }
+
+        private static Object setting(String name)
+        {
+                return PlayerConfig.PANEL_SETTINGS.stream().filter(value -> PlayerConfig.name(value).equals(name))
+                        .findFirst().map(PlayerConfig::current).orElseThrow();
         }
 
         /** Runs an {@code /adjustability} client command as if typed in chat. */

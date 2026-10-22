@@ -10,6 +10,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
+import java.util.function.Supplier;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
@@ -26,11 +27,12 @@ public class AdjustabilityFabric implements ModInitializer
                 {
                         @Override
                         @SuppressWarnings({"unchecked", "rawtypes"})
-                        public <T> void register(ResourceKey<? extends Registry<T>> registry, Identifier id, T value)
+                        public <T> void register(ResourceKey<? extends Registry<T>> registry, Identifier id,
+                                Supplier<T> value)
                         {
                                 Registry<T> target = (Registry<T>) BuiltInRegistries.REGISTRY
                                         .getValueOrThrow((ResourceKey) registry);
-                                Registry.register(target, id, value);
+                                Registry.register(target, id, value.get());
                         }
                 });
                 ConfigRegistry.INSTANCE.register(Constants.MOD_ID, ModConfig.Type.SERVER, CreatorConfig.SPEC,

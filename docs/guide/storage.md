@@ -60,4 +60,4 @@ enchantments and which ones conflict.
 - Don't write `adjustability:dormant` by hand unless you mean to: the entry is checked on every switch, but nothing
   stops a datapack from putting an enchantment there that conflicts with nothing. It then shows as dormant and becomes
   active the next time the item is switched or goes through an anvil.
-- A Java API for reading and changing the split is planned ([Java API](java-api.md)).
+- From Java, use the [Java API](java-api.md) instead of reading `custom_data` yourself.

@@ -3,9 +3,15 @@ package io.github.safetimamovic.adjustability.gametest;
 import com.mojang.brigadier.StringReader;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.safetimamovic.adjustability.Constants;
+import io.github.safetimamovic.adjustability.api.AdjustabilityApi;
+import io.github.safetimamovic.adjustability.api.AdjustabilityListener;
+import io.github.safetimamovic.adjustability.api.SwitchEvent;
+import io.github.safetimamovic.adjustability.api.SwitchResult;
+import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.ModRegistries;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Cost;
+import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ExclusivityConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ItemMode;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleCost;
@@ -14,7 +20,6 @@ import io.github.safetimamovic.adjustability.core.Exclusivity;
 import io.github.safetimamovic.adjustability.core.GrindstoneRules;
 import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.Toggler;
-import io.github.safetimamovic.adjustability.core.Toggler.Outcome;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleNetwork;
@@ -37,6 +42,7 @@ import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -45,6 +51,7 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 
 /**
  * In-game tests for the anvil and grindstone rules, run by vanilla's GameTest framework on both loaders. Each test is a
@@ -84,6 +91,15 @@ public final class AdjustabilityGameTests
                 test(registrar, "group_costs", AdjustabilityGameTests::groupCosts);
                 test(registrar, "pay_costs", AdjustabilityGameTests::payCosts);
                 test(registrar, "docs_give_example", AdjustabilityGameTests::docsGiveExample);
+                test(registrar, "api_add_and_read", AdjustabilityGameTests::apiAddAndRead);
+                test(registrar, "api_listener_switch", AdjustabilityGameTests::apiListenerSwitch);
+                test(registrar, "api_listener_anvil", AdjustabilityGameTests::apiListenerAnvil);
+                test(registrar, "api_listener_that_throws", AdjustabilityGameTests::apiListenerThatThrows);
+                test(registrar, "api_adjustable_item", AdjustabilityGameTests::apiAdjustableItem);
+                test(registrar, "none_switch", AdjustabilityGameTests::noneSwitch);
+                test(registrar, "none_not_allowed", AdjustabilityGameTests::noneNotAllowed);
+                test(registrar, "none_survives_anvil", AdjustabilityGameTests::noneSurvivesAnvil);
+                test(registrar, "cycle_through_none", AdjustabilityGameTests::cycleThroughNone);
         }
 
         /** Fortune pickaxe + Silk Touch book: Fortune stays active, Silk Touch is dormant, vanilla price + 1. */
@@ -205,9 +221,10 @@ public final class AdjustabilityGameTests
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                 DormantEnchantments.set(pickaxe, single(silkTouch, 1));
 
-                Outcome outcome = Toggler.activate(survivalServerPlayer(helper), pickaxe, silkTouch);
+                SwitchResult outcome = Toggler.activate(survivalServerPlayer(helper), pickaxe, silkTouch,
+                        SwitchSource.API);
 
-                helper.assertValueEqual(outcome, Outcome.DONE, "outcome");
+                helper.assertValueEqual(outcome, SwitchResult.DONE, "outcome");
                 helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(silkTouch), 1, "active Silk Touch");
                 helper.assertValueEqual(dormant(helper, pickaxe).getLevel(fortune), 3, "dormant Fortune, level kept");
                 helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(fortune), 0, "active Fortune");
@@ -226,7 +243,7 @@ public final class AdjustabilityGameTests
                 dormant.set(channeling, 1);
                 DormantEnchantments.set(trident, dormant.toImmutable());
 
-                Toggler.activate(survivalServerPlayer(helper), trident, loyalty);
+                Toggler.activate(survivalServerPlayer(helper), trident, loyalty, SwitchSource.API);
 
                 ItemEnchantments active = Adjuster.activeOf(trident);
                 helper.assertValueEqual(active.getLevel(loyalty), 3, "active Loyalty");
@@ -243,8 +260,9 @@ public final class AdjustabilityGameTests
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                 DormantEnchantments.set(pickaxe, single(silkTouch, 1));
 
-                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), pickaxe, fortune),
-                        Outcome.NOT_DORMANT, "outcome");
+                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), pickaxe, fortune,
+                                SwitchSource.API),
+                        SwitchResult.NOT_DORMANT, "outcome");
                 helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(fortune), 3, "Fortune still active");
                 helper.succeed();
         }
@@ -258,8 +276,10 @@ public final class AdjustabilityGameTests
                 DormantEnchantments.set(pickaxe, single(silkTouch, 1));
                 ServerPlayer player = survivalServerPlayer(helper);
 
-                helper.assertValueEqual(Toggler.activate(player, pickaxe, silkTouch), Outcome.DONE, "first switch");
-                helper.assertValueEqual(Toggler.activate(player, pickaxe, fortune), Outcome.COOLDOWN, "second switch");
+                helper.assertValueEqual(Toggler.activate(player, pickaxe, silkTouch, SwitchSource.API),
+                        SwitchResult.DONE, "first switch");
+                helper.assertValueEqual(Toggler.activate(player, pickaxe, fortune, SwitchSource.API),
+                        SwitchResult.COOLDOWN, "second switch");
                 helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(silkTouch), 1, "still Silk Touch");
                 helper.succeed();
         }
@@ -279,12 +299,12 @@ public final class AdjustabilityGameTests
                 ResourceKey<Enchantment> silkKey = silkTouch.unwrapKey().orElseThrow();
 
                 ToggleNetwork.onToggle(player, new ToggleEnchantmentPayload(containerId, InventoryMenu.RESULT_SLOT,
-                        silkKey));
-                ToggleNetwork.onToggle(player, new ToggleEnchantmentPayload(containerId + 1, HOTBAR_0, silkKey));
+                        silkKey, false));
+                ToggleNetwork.onToggle(player, new ToggleEnchantmentPayload(containerId + 1, HOTBAR_0, silkKey, false));
                 helper.assertValueEqual(Adjuster.activeOf(player.getInventory().getItem(0)).getLevel(fortune), 3,
                         "wrong slot or menu: nothing changes");
 
-                ToggleNetwork.onToggle(player, new ToggleEnchantmentPayload(containerId, HOTBAR_0, silkKey));
+                ToggleNetwork.onToggle(player, new ToggleEnchantmentPayload(containerId, HOTBAR_0, silkKey, false));
                 helper.assertValueEqual(Adjuster.activeOf(player.getInventory().getItem(0)).getLevel(silkTouch), 1,
                         "hotbar slot: switched");
                 helper.succeed();
@@ -336,16 +356,18 @@ public final class AdjustabilityGameTests
 
                 ItemStack toSilk = new ItemStack(Items.DIAMOND_PICKAXE);
                 toSilk.set(DataComponents.ENCHANTMENTS, both.toImmutable());
-                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), toSilk, silkTouch),
-                        Outcome.DONE, "switch to Silk Touch");
+                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), toSilk, silkTouch,
+                                SwitchSource.API),
+                        SwitchResult.DONE, "switch to Silk Touch");
                 helper.assertValueEqual(Adjuster.activeOf(toSilk).getLevel(silkTouch), 1, "active Silk Touch");
                 helper.assertValueEqual(Adjuster.activeOf(toSilk).getLevel(fortune), 0, "Fortune no longer active");
                 helper.assertValueEqual(dormant(helper, toSilk).getLevel(fortune), 3, "Fortune kept, dormant");
 
                 ItemStack toFortune = new ItemStack(Items.DIAMOND_PICKAXE);
                 toFortune.set(DataComponents.ENCHANTMENTS, both.toImmutable());
-                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), toFortune, fortune),
-                        Outcome.DONE, "asking for the one that stays active repairs too");
+                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), toFortune, fortune,
+                                SwitchSource.API),
+                        SwitchResult.DONE, "asking for the one that stays active repairs too");
                 helper.assertValueEqual(Adjuster.activeOf(toFortune).getLevel(fortune), 3, "active Fortune");
                 helper.assertValueEqual(dormant(helper, toFortune).getLevel(silkTouch), 1, "Silk Touch kept, dormant");
                 helper.succeed();
@@ -360,7 +382,7 @@ public final class AdjustabilityGameTests
                 DormantEnchantments.set(pickaxe, single(silkTouch, 1));
                 pickaxe.set(DataComponents.REPAIR_COST, 7);
 
-                Toggler.activate(survivalServerPlayer(helper), pickaxe, silkTouch);
+                Toggler.activate(survivalServerPlayer(helper), pickaxe, silkTouch, SwitchSource.API);
 
                 helper.assertValueEqual(pickaxe.getOrDefault(DataComponents.REPAIR_COST, 0), 7, "repair cost");
                 helper.succeed();
@@ -534,6 +556,250 @@ public final class AdjustabilityGameTests
                 helper.succeed();
         }
 
+        /** Reading and adding through the API; the docs' reward example. */
+        private static void apiAddAndRead(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                Holder<Enchantment> efficiency = enchantment(helper, Enchantments.EFFICIENCY);
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+
+                helper.assertTrue(AdjustabilityApi.addEnchantment(pickaxe, silkTouch, 1,
+                        helper.getLevel().registryAccess()), "added");
+                helper.assertTrue(AdjustabilityApi.hasDormant(pickaxe), "Silk Touch went dormant");
+                helper.assertValueEqual(AdjustabilityApi.dormantEnchantments(pickaxe,
+                        helper.getLevel().registryAccess()).getLevel(silkTouch), 1, "dormant Silk Touch");
+                AdjustabilityApi.addEnchantment(pickaxe, efficiency, 5, helper.getLevel().registryAccess());
+                helper.assertValueEqual(AdjustabilityApi.activeEnchantments(pickaxe).getLevel(efficiency), 5,
+                        "no conflict: active");
+                helper.assertTrue(AdjustabilityApi.conflict(fortune, silkTouch), "conflict");
+
+                ItemStack reward = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                helper.assertValueEqual(ApiExamples.giveAndSwitch(survivalServerPlayer(helper), reward, silkTouch),
+                        SwitchResult.DONE, "docs example: give and switch");
+                helper.assertValueEqual(AdjustabilityApi.activeEnchantments(reward).getLevel(silkTouch), 1,
+                        "Silk Touch active");
+
+                AdjustabilityApi.flatten(pickaxe);
+                helper.assertFalse(AdjustabilityApi.hasDormant(pickaxe), "flattened");
+                helper.succeed();
+        }
+
+        /** A listener refuses a switch (the docs' "not while burning" example) and hears about allowed ones. */
+        private static void apiListenerSwitch(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                int[] switched = {0};
+                AdjustabilityListener counter = new AdjustabilityListener()
+                {
+                        @Override
+                        public void onSwitched(SwitchEvent event)
+                        {
+                                switched[0]++;
+                        }
+                };
+                AdjustabilityApi.addListener(ApiExamples.NO_SWITCHING_WHILE_BURNING);
+                AdjustabilityApi.addListener(counter);
+                try
+                {
+                        ServerPlayer burning = survivalServerPlayer(helper);
+                        burning.igniteForSeconds(5);
+                        ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                        DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                        helper.assertValueEqual(AdjustabilityApi.activate(burning, pickaxe, silkTouch),
+                                SwitchResult.CANCELLED, "refused while burning");
+                        helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(fortune), 3, "nothing changed");
+                        helper.assertValueEqual(switched[0], 0, "no onSwitched for a refused switch");
+
+                        helper.assertValueEqual(AdjustabilityApi.activate(survivalServerPlayer(helper), pickaxe,
+                                silkTouch), SwitchResult.DONE, "allowed when not burning");
+                        helper.assertValueEqual(switched[0], 1, "onSwitched once");
+                }
+                finally
+                {
+                        AdjustabilityApi.removeListener(ApiExamples.NO_SWITCHING_WHILE_BURNING);
+                        AdjustabilityApi.removeListener(counter);
+                }
+                helper.succeed();
+        }
+
+        /** A listener can refuse an anvil result (the docs' golden pickaxe example). */
+        private static void apiListenerAnvil(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                AdjustabilityApi.addListener(ApiExamples.NO_ADJUSTABLE_GOLD);
+                try
+                {
+                        AnvilMenu gold = anvil(helper);
+                        gold.getSlot(AnvilMenu.INPUT_SLOT).set(enchanted(Items.GOLDEN_PICKAXE, fortune, 3));
+                        gold.getSlot(AnvilMenu.ADDITIONAL_SLOT).set(book(silkTouch, 1));
+                        helper.assertTrue(gold.getSlot(AnvilMenu.RESULT_SLOT).getItem().isEmpty(), "gold: refused");
+
+                        AnvilMenu diamond = anvil(helper);
+                        diamond.getSlot(AnvilMenu.INPUT_SLOT).set(enchanted(Items.DIAMOND_PICKAXE, fortune, 3));
+                        diamond.getSlot(AnvilMenu.ADDITIONAL_SLOT).set(book(silkTouch, 1));
+                        helper.assertFalse(diamond.getSlot(AnvilMenu.RESULT_SLOT).getItem().isEmpty(),
+                                "diamond: allowed");
+                }
+                finally
+                {
+                        AdjustabilityApi.removeListener(ApiExamples.NO_ADJUSTABLE_GOLD);
+                }
+                helper.succeed();
+        }
+
+        /** A listener that throws is logged and counts as allowing. */
+        private static void apiListenerThatThrows(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                AdjustabilityListener broken = new AdjustabilityListener()
+                {
+                        @Override
+                        public boolean allowSwitch(SwitchEvent event)
+                        {
+                                throw new IllegalStateException("a broken listener, on purpose (GameTest)");
+                        }
+                };
+                AdjustabilityApi.addListener(broken);
+                try
+                {
+                        ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                        DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                        helper.assertValueEqual(AdjustabilityApi.activate(survivalServerPlayer(helper), pickaxe,
+                                silkTouch), SwitchResult.DONE, "switched anyway");
+                }
+                finally
+                {
+                        AdjustabilityApi.removeListener(broken);
+                }
+                helper.succeed();
+        }
+
+        /** An item's own rules through AdjustableItem: a limit of one, and none once renamed. */
+        private static void apiAdjustableItem(GameTestHelper helper)
+        {
+                Item item = TestAdjustableItem.instance();
+                if (item == null)
+                {
+                        helper.fail("The test item is only registered in the development environment");
+                        return;
+                }
+                ItemStack stack = new ItemStack(item);
+                helper.assertTrue(ItemRules.canAdjust(stack, ItemMode.DENYLIST), "takes part");
+                helper.assertValueEqual(ItemRules.maxDormant(stack, 4), 1, "its limit is lower than the server's");
+                helper.assertValueEqual(ItemRules.maxDormant(stack, 0), 1, "its limit with no server limit");
+                helper.assertValueEqual(ItemRules.maxDormant(new ItemStack(Items.DIAMOND_PICKAXE), 0),
+                        Integer.MAX_VALUE, "no limit at all for a vanilla item");
+                stack.set(DataComponents.CUSTOM_NAME, Component.literal("Renamed"));
+                helper.assertFalse(AdjustabilityApi.canHoldDormant(stack), "renamed: the item says no");
+                helper.succeed();
+        }
+
+        /** With allow_none: a group can be left with nothing active, and switched back on. */
+        private static void noneSwitch(GameTestHelper helper)
+        {
+                withAllowNone(() ->
+                {
+                        Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                        Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                        ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                        DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+
+                        helper.assertValueEqual(Toggler.deactivate(helper.makeMockServerPlayerInLevel(), pickaxe,
+                                silkTouch, SwitchSource.API), SwitchResult.DONE, "none");
+                        helper.assertTrue(Adjuster.activeOf(pickaxe).isEmpty(), "nothing active");
+                        helper.assertValueEqual(dormant(helper, pickaxe).size(), 2, "both kept, dormant");
+
+                        helper.assertValueEqual(Toggler.activate(helper.makeMockServerPlayerInLevel(), pickaxe,
+                                silkTouch, SwitchSource.API), SwitchResult.DONE, "back on");
+                        helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(silkTouch), 1, "Silk Touch");
+                        helper.assertValueEqual(dormant(helper, pickaxe).getLevel(fortune), 3, "Fortune dormant");
+                });
+                helper.succeed();
+        }
+
+        /** Without allow_none (the default), none is refused. */
+        private static void noneNotAllowed(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                helper.assertValueEqual(Toggler.deactivate(survivalServerPlayer(helper), pickaxe, fortune,
+                        SwitchSource.API), SwitchResult.NONE_NOT_ALLOWED, "refused");
+                helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(fortune), 3, "Fortune still active");
+                helper.succeed();
+        }
+
+        /** With allow_none, an anvil keeps a group left on none that way while adding something else. */
+        private static void noneSurvivesAnvil(GameTestHelper helper)
+        {
+                withAllowNone(() ->
+                {
+                        Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                        Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                        Holder<Enchantment> efficiency = enchantment(helper, Enchantments.EFFICIENCY);
+                        ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+                        ItemEnchantments.Mutable both = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+                        both.set(fortune, 3);
+                        both.set(silkTouch, 1);
+                        DormantEnchantments.set(pickaxe, both.toImmutable());
+                        AnvilMenu anvil = anvil(helper);
+                        anvil.getSlot(AnvilMenu.INPUT_SLOT).set(pickaxe);
+                        anvil.getSlot(AnvilMenu.ADDITIONAL_SLOT).set(book(efficiency, 5));
+
+                        ItemStack result = anvil.getSlot(AnvilMenu.RESULT_SLOT).getItem();
+                        helper.assertValueEqual(Adjuster.activeOf(result).getLevel(efficiency), 5, "new: active");
+                        helper.assertValueEqual(Adjuster.activeOf(result).getLevel(fortune)
+                                + Adjuster.activeOf(result).getLevel(silkTouch), 0, "mining group still on none");
+                        helper.assertValueEqual(dormant(helper, result).size(), 2, "both still dormant");
+                });
+                helper.succeed();
+        }
+
+        /** With allow_none, the Cycle key goes Fortune, Silk Touch, none, Fortune. */
+        private static void cycleThroughNone(GameTestHelper helper)
+        {
+                withAllowNone(() ->
+                {
+                        Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                        Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                        ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, silkTouch, 1);
+                        DormantEnchantments.set(pickaxe, single(fortune, 3));
+                        player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
+
+                        ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
+                        helper.assertTrue(Adjuster.activeOf(player.getMainHandItem()).isEmpty(),
+                                "after the last choice: none");
+                        ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
+                        helper.assertValueEqual(Adjuster.activeOf(player.getMainHandItem()).getLevel(fortune), 3,
+                                "after none: the first choice");
+                });
+                helper.succeed();
+        }
+
+        /** Runs {@code body} with {@code [toggle] allow_none} on, as an admin would set it, and resets it after. */
+        @SuppressWarnings("unchecked")
+        private static void withAllowNone(Runnable body)
+        {
+                ConfigValue<Boolean> allowNone = (ConfigValue<Boolean>) CreatorConfig.SPEC.getValues()
+                        .get("toggle.allow_none");
+                boolean before = allowNone.get();
+                allowNone.set(true);
+                try
+                {
+                        body.run();
+                }
+                finally
+                {
+                        allowNone.set(before);
+                }
+        }
+
         private static ServerPlayer survivalServerPlayer(GameTestHelper helper)
         {
                 return (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
@@ -541,7 +807,7 @@ public final class AdjustabilityGameTests
 
         private static void test(ModRegistries.Registrar registrar, String name, Consumer<GameTestHelper> function)
         {
-                registrar.register(Registries.TEST_FUNCTION, Constants.id(name), function);
+                registrar.register(Registries.TEST_FUNCTION, Constants.id(name), () -> function);
         }
 
         private static AnvilMenu anvil(GameTestHelper helper)

@@ -4,6 +4,7 @@ import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.AnvilCon
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ExclusivityConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.GrindstoneConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ItemMode;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ServerPanelActivation;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleCost;
 import io.github.safetimamovic.adjustability.core.Exclusivity;
@@ -52,6 +53,8 @@ public final class CreatorConfig
         private static final BooleanValue ALLOW_IN_WORLD_CYCLE;
         private static final BooleanValue ALLOW_COMMAND;
         private static final ConfigValue<List<? extends String>> GROUP_COSTS;
+        private static final BooleanValue ALLOW_NONE;
+        private static final EnumValue<ServerPanelActivation> PANEL_ACTIVATION;
 
         static
         {
@@ -142,6 +145,14 @@ public final class CreatorConfig
                                 "that covers it wins. Creative players still switch for free.")
                         .defineListAllowEmpty("group_costs", List.of(),
                                 () -> "#minecraft:exclusive_set/mining = XP_LEVELS 3", Exclusivity::isValidCost);
+                ALLOW_NONE = builder.comment("A group of conflicting enchantments may have none of them active: the",
+                                "Adjust panel gets a None row per group and the Cycle key steps through none. Off: one",
+                                "of each group is always active (items left on none are fixed by their next switch).")
+                        .define("allow_none", false);
+                PANEL_ACTIVATION = builder.comment("How the Adjust key works for everyone on this server. PLAYER: each",
+                                "player's own choice ([panel] activation in their client file). TOGGLE or HOLD: that,",
+                                "for everyone.")
+                        .defineEnum("panel_activation", ServerPanelActivation.PLAYER);
                 builder.pop();
 
                 SPEC = builder.build();
@@ -188,7 +199,9 @@ public final class CreatorConfig
                         get(COST_AMOUNT),
                         Identifier.parse(get(COST_ITEM)),
                         get(ALLOW_IN_WORLD_CYCLE),
-                        get(ALLOW_COMMAND));
+                        get(ALLOW_COMMAND),
+                        get(ALLOW_NONE),
+                        get(PANEL_ACTIVATION));
         }
 
         private static <T> T get(ConfigValue<T> value)

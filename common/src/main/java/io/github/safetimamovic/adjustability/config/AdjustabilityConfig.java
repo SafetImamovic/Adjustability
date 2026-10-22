@@ -76,7 +76,9 @@ public final class AdjustabilityConfig
                 int costAmount,
                 Identifier costItem,
                 boolean allowInWorldCycle,
-                boolean allowCommand)
+                boolean allowCommand,
+                boolean allowNone,
+                ServerPanelActivation panelActivation)
         {
                 /** The cost of a switch in a group no {@code group_costs} entry covers. */
                 public Cost defaultCost()
@@ -122,8 +124,9 @@ public final class AdjustabilityConfig
         {
         }
 
-        /** The Adjust panel's look; colors are ARGB. */
+        /** The Adjust panel's look and how its key works; colors are ARGB. */
         public record PanelStyle(
+                PanelActivation activation,
                 PanelSide side,
                 int background,
                 int borderTop,
@@ -135,6 +138,21 @@ public final class AdjustabilityConfig
                 int activeMark,
                 boolean showCost)
         {
+        }
+
+        /** The server's say on the Adjust key: PLAYER leaves it to each player's {@link PanelActivation}. */
+        public enum ServerPanelActivation
+        {
+                PLAYER,
+                TOGGLE,
+                HOLD
+        }
+
+        /** TOGGLE: press the Adjust key to open the panel, again to close it. HOLD: open while the key is held. */
+        public enum PanelActivation
+        {
+                TOGGLE,
+                HOLD
         }
 
         public enum PanelSide

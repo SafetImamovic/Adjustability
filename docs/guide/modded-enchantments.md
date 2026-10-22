@@ -16,5 +16,7 @@ To check one, hold an item with it and run `/adjustability inspect` (operators):
 enchantments and which ones conflict. `/adjustability add <enchantment> [level]` puts one on the held item, dormant if
 it conflicts.
 
+Mods that want to read or change dormant enchantments, or veto switches, use the [Java API](java-api.md).
+
 Mods that replace the anvil completely can stop Adjustability's anvil path from running. Players can still switch
 enchantments on items that already hold them.

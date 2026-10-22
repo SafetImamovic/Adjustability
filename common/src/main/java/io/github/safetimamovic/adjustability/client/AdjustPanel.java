@@ -108,7 +108,8 @@ public final class AdjustPanel
                 ItemEnchantments levels = all.toImmutable();
                 ConflictGraph<Holder<Enchantment>> graph = Adjuster.graph(levels);
                 // What the server will treat as active: the stored split, repaired if it conflicts (see Toggler).
-                ItemEnchantments shownActive = Adjuster.split(levels, active.keySet()).active();
+                ItemEnchantments shownActive = Adjuster.normalize(stack, minecraft.level.registryAccess()).active();
+                boolean allowNone = AdjustabilityConfig.toggle().allowNone();
                 List<Set<Holder<Enchantment>>> groups = graph.components();
                 if (groups.isEmpty())
                 {
@@ -139,13 +140,15 @@ public final class AdjustPanel
                                 rowY += GROUP_GAP;
                         }
                         boolean firstRow = true;
+                        boolean anyActive = groups.get(group).stream()
+                                .anyMatch(enchantment -> shownActive.getLevel(enchantment) > 0);
                         for (Holder<Enchantment> enchantment : graph.vertices())
                         {
                                 if (groups.get(group).contains(enchantment))
                                 {
                                         Component label = TooltipLines.name(enchantment, levels.getLevel(enchantment));
                                         this.rows.add(new Row(enchantment, label,
-                                                shownActive.getLevel(enchantment) > 0, rowY, group));
+                                                shownActive.getLevel(enchantment) > 0, rowY, group, false));
                                         int width = font.width(label) + 10;
                                         if (firstRow && !this.groupCosts.isEmpty())
                                         {
@@ -155,6 +158,17 @@ public final class AdjustPanel
                                         rowY += ROW_HEIGHT;
                                         firstRow = false;
                                 }
+                        }
+                        if (allowNone)
+                        {
+                                // Any enchantment of the group stands for it; the server makes the whole group
+                                // dormant.
+                                Holder<Enchantment> any = graph.vertices().stream().filter(groups.get(group)::contains)
+                                        .findFirst().orElseThrow();
+                                Component label = Component.translatable("adjustability.panel.none");
+                                this.rows.add(new Row(any, label, !anyActive, rowY, group, true));
+                                textWidth = Math.max(textWidth, font.width(label) + 10);
+                                rowY += ROW_HEIGHT;
                         }
                 }
                 if (style.showCost())
@@ -272,14 +286,23 @@ public final class AdjustPanel
         {
                 this.rowAt(mouseX, mouseY).filter(row -> !row.active()).ifPresent(row -> row.enchantment().unwrapKey()
                         .ifPresent(key -> AdjustClient.send(
-                                new ToggleEnchantmentPayload(this.containerId, this.slot, key))));
+                                new ToggleEnchantmentPayload(this.containerId, this.slot, key, row.none()))));
         }
 
         /** Centre of an enchantment's row, in screen coordinates; for the client GameTest. */
         public Optional<int[]> rowCentre(Holder<Enchantment> enchantment)
         {
-                return this.rows.stream().filter(row -> row.enchantment().equals(enchantment)).findFirst()
-                        .map(row -> new int[]{this.x + this.width / 2, this.y + row.y() + ROW_HEIGHT / 2});
+                return this.rows.stream().filter(row -> !row.none() && row.enchantment().equals(enchantment))
+                        .findFirst().map(row -> new int[]{this.x + this.width / 2, this.y + row.y() + ROW_HEIGHT / 2});
+        }
+
+        /** Centre of the None row of the group {@code anyInGroup} belongs to; for the client GameTest. */
+        public Optional<int[]> noneRowCentre(Holder<Enchantment> anyInGroup)
+        {
+                Optional<Integer> group = this.rows.stream().filter(row -> row.enchantment().equals(anyInGroup))
+                        .map(Row::group).findFirst();
+                return group.flatMap(index -> this.rows.stream().filter(row -> row.none() && row.group() == index)
+                        .findFirst().map(row -> new int[]{this.x + this.width / 2, this.y + row.y() + ROW_HEIGHT / 2}));
         }
 
         private Optional<Row> rowAt(double mouseX, double mouseY)
@@ -307,7 +330,9 @@ public final class AdjustPanel
                 return menu.getSlot(this.slot).getItem();
         }
 
-        private record Row(Holder<Enchantment> enchantment, Component label, boolean active, int y, int group)
+        /** A row: an enchantment, or with {@code none}, the group's None choice ({@code enchantment} is any of it). */
+        private record Row(Holder<Enchantment> enchantment, Component label, boolean active, int y, int group,
+                boolean none)
         {
         }
 }
