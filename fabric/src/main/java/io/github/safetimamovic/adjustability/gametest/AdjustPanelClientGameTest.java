@@ -4,10 +4,12 @@ import com.mojang.blaze3d.platform.InputConstants;
 import io.github.safetimamovic.adjustability.client.AdjustClient;
 import io.github.safetimamovic.adjustability.client.AdjustKeys;
 import io.github.safetimamovic.adjustability.client.AdjustPanel;
+import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import java.lang.reflect.Field;
+import java.util.List;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -27,6 +29,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
+import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 
 /**
  * Drives a real client through the Adjust panel: open the inventory, hover a Fortune pickaxe holding a dormant Silk
@@ -46,12 +49,18 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 {
                         world.getConnection().waitForChunksRender();
                         command(context, "panel reset");
+                        // Mining switches cost a lapis, Protections a level, the boots group the default (free).
+                        groupCosts(world, List.of("#minecraft:exclusive_set/mining = ITEM 1 minecraft:lapis_lazuli",
+                                "#minecraft:exclusive_set/armor = XP_LEVELS 1"));
                         world.getServer().runOnServer(server ->
                         {
                                 ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
                                 // Survival: the creative inventory uses a client-only menu, where Adjust is off.
                                 player.setGameMode(GameType.SURVIVAL);
                                 player.getInventory().setItem(0, pickaxe(player));
+                                player.getInventory().setItem(1, boots(player));
+                                player.getInventory().setItem(9, new ItemStack(Items.LAPIS_LAZULI, 5));
+                                player.setExperienceLevels(10);
                         });
                         world.getConnection().waitForClientboundPackets();
 
@@ -104,6 +113,11 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                                 {
                                         throw new AssertionError("The click must not have picked anything up");
                                 }
+                                if (player.getInventory().getItem(9).getCount() != 4)
+                                {
+                                        throw new AssertionError("The mining group's cost is one lapis, lapis left: "
+                                                + player.getInventory().getItem(9).getCount());
+                                }
                         });
 
                         // The panel's look from chat: settings change, are saved, and show right away.
@@ -133,11 +147,37 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         {
                                 throw new AssertionError("Left Alt again should close the panel");
                         }
+
+                        // Two groups with different costs: each shows its own on its first row.
+                        hoverSlot(context, HOTBAR_0 + 1);
+                        context.waitTick();
+                        context.getInput().pressKey(AdjustKeys.ADJUST);
+                        context.waitTick();
+                        context.takeScreenshot("adjustability_5b_group_costs");
+                        context.getInput().pressKey(AdjustKeys.ADJUST);
+                        context.waitTick();
                         context.getInput().pressKey(options -> options.keyInventory);
                         context.waitForScreen(null);
 
                         cycleKey(context, world);
+                        groupCosts(world, List.of());
                 }
+        }
+
+        /**
+         * Sets {@code [toggle] group_costs} on the running server through the config spec (the integrated server and
+         * the client share it), as an admin editing the file would.
+         */
+        @SuppressWarnings("unchecked")
+        private static void groupCosts(TestSingleplayerContext world, List<String> entries)
+        {
+                world.getServer().runOnServer(server ->
+                {
+                        ConfigValue<List<? extends String>> value =
+                                (ConfigValue<List<? extends String>>) CreatorConfig.SPEC
+                                .getValues().get("toggle.group_costs");
+                        value.set(entries);
+                });
         }
 
         /**
