@@ -28,6 +28,8 @@ dependencies {
     // NeoForge's config API (ModConfigSpec). NeoForge has it built in; on Fabric, Forge Config API Port provides the
     // same classes, so config specs can live in common.
     compileOnly("fuzs.forgeconfigapiport:forgeconfigapiport-common-neoforgeapi:${forgeconfigapiport_version}")
+    // JEI info pages (compat/jei). Never loaded without JEI: it finds the plugin itself.
+    compileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
 }
 
 configurations {

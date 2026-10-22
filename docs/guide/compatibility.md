@@ -12,7 +12,7 @@ panel, the Cycle key, hold mode and the None row in a real game client.
 | Mod | Version | Loader | Result |
 |---|---|---|---|
 | Easy Anvils (+ Puzzles Lib) | 26.3.1 (26.3.15) | Fabric, NeoForge | Works: dormant enchantments, anvil prices and limits as without it |
-| JEI (+ MezzConfig) | 31.16.0.89 (0.6.8) | Fabric, NeoForge | Works: the Adjust panel draws above JEI's item list; Left Alt and clicks reach the panel |
+| JEI (+ MezzConfig) | 31.16.0.89 (0.6.8) | Fabric, NeoForge | Works: the Adjust panel draws above JEI's item list; Left Alt and clicks reach the panel. Info pages on the anvils and the grindstone (after 0.1.0) |
 | Mouse Tweaks | 26.3-2.31 | Fabric | Works: clicks on the panel don't reach Mouse Tweaks |
 | Enchantment Descriptions (+ Bookshelf, Prickle) | 26.3.0.2 | Fabric | Works: descriptions show under active enchantments; dormant lines follow |
 | AppleSkin | 3.0.10 | Fabric | Works |

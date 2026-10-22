@@ -63,5 +63,7 @@
     "advancements.adjustability.neither.title": "Neither",
     "advancements.adjustability.neither.description": "Leave a group of enchantments with none of them active",
     "subtitles.adjustability.item.switch": "Enchantment switched",
-    "stat.adjustability.switches": "Enchantment Switches"
+    "stat.adjustability.switches": "Enchantment Switches",
+    "adjustability.jei.anvil": "Adjustability: conflicting enchantments can be combined here, from a book or another item. What was active stays active; the new conflicting enchantment is kept dormant (listed with ⇄, doing nothing). Hover the item in any inventory and press the Adjust key (Left Alt) to choose which one is active. Two books with conflicting enchantments combine into one.",
+    "adjustability.jei.grindstone": "Adjustability: a grindstone removes dormant enchantments too, and gives experience for them like for active ones. Curses stay."
 }
