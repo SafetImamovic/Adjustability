@@ -28,6 +28,13 @@ loom {
             ideConfigGenerated(true)
             runDir('runs/server')
         }
+        // Drives a real client through the Adjust screen and exits: ./gradlew :fabric:runClientGametest
+        clientGametest {
+            client()
+            setConfigName('Fabric Client Game Test')
+            vmArg('-Dfabric.client.gametest')
+            runDir('runs/clientgametest')
+        }
         // Runs every GameTest headless and exits: ./gradlew :fabric:runGametest
         gametest {
             server()

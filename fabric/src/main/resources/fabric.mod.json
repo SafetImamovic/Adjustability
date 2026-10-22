@@ -21,6 +21,9 @@
         ],
         "client": [
             "io.github.safetimamovic.adjustability.AdjustabilityFabricClient"
+        ],
+        "fabric-client-gametest": [
+            "io.github.safetimamovic.adjustability.gametest.AdjustScreenClientGameTest"
         ]
     },
     "mixins": [
