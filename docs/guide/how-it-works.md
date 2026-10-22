@@ -48,11 +48,16 @@ over the survival limit of 39 levels.
   side and decorations are yours to change: `/adjustability panel`, or the [player settings](server-config.md#player-settings).
 - **While playing:** bind **Cycle held item's enchantments** under Controls → Adjustability (unbound by default). One
   press steps the held item to its next choice, e.g. Fortune → Silk Touch → Fortune, and says which one is active above
-  the hotbar.
+  the hotbar. Items with more than one group of conflicts (boots: the Protections, and Depth Strider / Frost Walker):
+  **Sneak + Cycle** picks which group the key steps.
 - **By command:** `/adjustability toggle minecraft:silk_touch` on the held item.
 
 Switching has a cooldown (1 second by default) and can cost XP, an item or durability; the server decides. Creative
 players switch for free and without a cooldown. A curse is never switched off.
+
+Switching while breaking a block is fine: the drops come from what's active when the block breaks, so it never
+counts both. An item that somehow has two conflicting enchantments active (from `/give` or another mod) is fixed the
+first time you switch it or use it in an anvil; nothing is lost, the extra one becomes dormant.
 
 The Adjust key doesn't work in the creative inventory, which shows items through a menu only your client knows about;
 switch to survival or use the command. Some combinations bring
@@ -61,8 +66,8 @@ because Loyalty and Channeling don't conflict with each other.
 
 ## Grindstones
 
-A grindstone removes dormant enchantments too. The experience it gives comes from the active ones only, as in vanilla.
-Curses stay, like vanilla. Servers can keep dormant enchantments instead (`remove_dormant` in the
+A grindstone removes dormant enchantments too, and gives experience for them like for active ones. Curses stay, like
+vanilla. Servers can keep dormant enchantments instead (`remove_dormant` in the
 [server config](server-config.md)).
 
 ## If the mod is removed

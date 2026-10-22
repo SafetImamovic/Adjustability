@@ -687,17 +687,19 @@ Enchantment-modifying mods that read `DataComponents.ENCHANTMENTS` need nothing:
 
 The mod's value proposition depends on "toggle, never stack". Things that could break it:
 
-| Risk | Mitigation |
-|---|---|
-| Rapid toggling to get effectively both (e.g. Fortune for ores, Silk for glass, mid-swing) | That's the intended use, and the cooldown (default 1 s) prevents per-tick abuse. No toggling while a block is being broken (server checks `player.gameMode` destroy progress **(verify)**). |
-| Armor: all four Protections "available" | Only one active. `max_conflicts_per_component` lets packs cap it. |
-| Infinity + Mending | Allowed by default (one active). Packs add `minecraft:infinity` to `#adjustability:not_combinable`. Document in cookbook. |
-| Grindstone keeps dormant / resets prior-work penalty | Grindstone removes dormant too (§8.4). |
-| Dupe via anvil output desync | Server computes the result; mixin only changes vanilla's own result calculation. GameTest. |
-| Packet spoofing (toggle on someone else's container, on a slot not open, activate an enchantment that isn't there) | §9.3 checks; listed in `SECURITY.md` scope. |
-| Curses dodged | `#adjustability:never_dormant` contains curses by default and the invariant check enforces it. |
-| Enchantment levels above max via merging dormant duplicates | Merge rule uses vanilla level rules (§8.2); invariant: an enchantment appears once. |
-| Prior-work penalty bypass | Toggling never touches `repair_cost`. Anvil merges add vanilla's penalty. |
+| Risk | Decision (M3, 2026-10-22) | Covered by |
+|---|---|---|
+| Rapid switching to get effectively both (Fortune for ores, Silk Touch for glass) | Intended use. The cooldown (1 s default, `cooldown_ticks`) stops per-tick switching. **Switching mid-break is allowed, on purpose:** drops are worked out when the block breaks, from what's active then, so it never gives both; blocking it would only annoy. | `toggle_cooldown` GameTest |
+| Armor: all four Protections "available" | Only one is ever active. Packs cap how many an item holds with `max_conflicts_per_component`. | Graph unit tests; `max_conflicts_per_component` in the anvil |
+| Infinity + Mending | Allowed (one active at a time), decided 2026-10-22. Packs opt out with `#adjustability:not_combinable`. | Cookbook recipe |
+| Grindstone keeps dormant / resets the prior-work penalty | The grindstone removes dormant enchantments too, and pays their experience like active ones. | `grindstone_removes_dormant`, `grindstone_dormant_experience` GameTests |
+| Dupe via anvil output desync | The server computes the result; the mixin only changes vanilla's own calculation, no extra slots or transfers. | Anvil GameTests run the real menu |
+| Packet spoofing (another player's container, a slot not open, a result slot, an enchantment not on the item) | Rejected silently by `ToggleNetwork` before `Toggler` runs; listed in `SECURITY.md`. | `toggle_network_checks_slot` GameTest |
+| Curses dodged | `#adjustability:never_dormant` (curses by default) always stays active: first in every split, and a switch that would turn one off is refused. No vanilla curse conflicts with anything, so there's no vanilla case to test; a test needs a test datapack (later). | Code path only |
+| Levels above max via merging dormant duplicates | Vanilla's level rule, capped at the max level; an enchantment is either active or dormant, never both. | `anvil_caps_merged_level` GameTest |
+| Prior-work penalty bypass | Switching never touches `repair_cost`; anvil merges add vanilla's penalty. | `toggle_keeps_repair_cost` GameTest |
+| Items with conflicting active enchantments (`/give`, other mods) | Repaired by the first switch or anvil use, never by deleting: what was active stays active where possible, the rest becomes dormant. The panel and Cycle key already show the repaired split. | `toggle_repairs_conflicting_active` GameTest |
+| Items a pack doesn't want adjustable | `#adjustability:not_adjustable`, or `[items] mode = ALLOWLIST` with `#adjustability:adjustable`. | `allowlist_mode` GameTest |
 
 ---
 
@@ -1026,12 +1028,27 @@ Settled 2026-10-22:
 - Player config `adjustability-client.toml` (`show_dormant`, `show_hint`) with the in-game config screen (NeoForge
   mod list, Mod Menu on Fabric, `/adjustability config`).
 
+### M3 state (rules and exploits, 2026-10-22)
+
+- Every row of §13 has a decision and a test, or says why not (curses: no vanilla case).
+- `[items] mode` (DENYLIST / ALLOWLIST) and `#adjustability:adjustable`; one check, `core/ItemRules`, used by the
+  anvil, switching, the command and the panel. Books follow `combine_books`, not the item rules.
+- Repair: `Toggler` and the Cycle key work on the repaired split (`Adjuster.resplit`), so an item with conflicting
+  active enchantments is fixed by its first switch, losing nothing.
+- Grindstone experience for dormant enchantments: a mixin on the result slot (`GrindstoneMenu$4`, the same anonymous
+  class on both loaders) adds them where vanilla adds up active ones. The GameTest samples the real method 40 times;
+  with the mixin removed it fails (average 26 instead of about 36).
+- Sneak + Cycle picks which conflict group the Cycle key steps, shown above the hotbar; covered by the client
+  GameTest (boots: Depth Strider / Frost Walker, then the Protections).
+- 18 GameTests on both loaders.
+
 ---
 
 ## 21. Open questions
 
 1. ~~**Storage container**~~: decided, `custom_data` (see M1 state above).
-2. **Armor toggling in combat**: should toggling armor be blocked while the player took damage in the last N seconds?
+2. **Armor toggling in combat**: should switching armor be blocked while the player took damage in the last N seconds?
+   Not done in M3: the cooldown already limits it; revisit if players report it.
 3. **Server-only mode** (M8): demand check after the beta.
 4. **Name collision**: search Modrinth/CurseForge for "Adjustability" before the first public release.
 

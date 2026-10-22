@@ -24,7 +24,8 @@ any other.
 |---|---|---|---|
 | `#adjustability:never_dormant` | Enchantment | `#minecraft:curse` | Always active. Can't be switched off, so curses can't be dodged. |
 | `#adjustability:not_combinable` | Enchantment | empty | Conflicts involving these keep vanilla behavior: the anvil skips them. |
-| `#adjustability:not_adjustable` | Item | empty | Items that never hold dormant enchantments. |
+| `#adjustability:not_adjustable` | Item | empty | Items that never hold dormant enchantments, in either mode. |
+| `#adjustability:adjustable` | Item | empty | With `[items] mode = ALLOWLIST` in the [server config](server-config.md#items): the only items that can hold dormant enchantments. |
 
 Add to a tag without replacing the defaults:
 
