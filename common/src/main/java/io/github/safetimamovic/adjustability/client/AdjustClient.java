@@ -4,6 +4,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
+import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
 import java.util.function.Consumer;
@@ -97,7 +98,8 @@ public final class AdjustClient
                         return false;
                 }
                 ItemStack stack = hovered.getItem();
-                if (!DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack)))
+                if (!ItemRules.canAdjust(stack)
+                        || !DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack)))
                 {
                         return false;
                 }

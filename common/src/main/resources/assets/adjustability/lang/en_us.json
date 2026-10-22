@@ -1,7 +1,7 @@
 {
     "adjustability.tooltip.dormant": "  ⇄ %s",
     "adjustability.command.no_item": "Hold an item in your main hand.",
-    "adjustability.command.not_adjustable": "This item can't hold dormant enchantments (#adjustability:not_adjustable).",
+    "adjustability.command.not_adjustable": "This item can't hold dormant enchantments (#adjustability:not_adjustable, or not in #adjustability:adjustable in allowlist mode).",
     "adjustability.command.inspect.header": "Enchantments on %s",
     "adjustability.command.inspect.active": "  Active: %s",
     "adjustability.command.inspect.dormant": "  Dormant: %s",

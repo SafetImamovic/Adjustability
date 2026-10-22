@@ -31,6 +31,12 @@ public final class AdjustabilityConfig
                 return PlayerConfig.read();
         }
 
+        /** Whether items take part unless denied, or only when allowed. */
+        public static ItemMode itemMode()
+        {
+                return CreatorConfig.readItemMode();
+        }
+
         /** Current grindstone settings. */
         public static GrindstoneConfig grindstone()
         {
@@ -65,6 +71,12 @@ public final class AdjustabilityConfig
                 boolean allowInWorldCycle,
                 boolean allowCommand)
         {
+        }
+
+        public enum ItemMode
+        {
+                DENYLIST,
+                ALLOWLIST
         }
 
         public enum ToggleCost

@@ -45,7 +45,7 @@ public final class Toggler
                 {
                         return Outcome.DISABLED;
                 }
-                if (stack.isEmpty() || stack.is(ModTags.NOT_ADJUSTABLE))
+                if (!ItemRules.canAdjust(stack))
                 {
                         return Outcome.NOTHING_TO_SWITCH;
                 }
