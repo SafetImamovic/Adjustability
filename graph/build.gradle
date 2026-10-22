@@ -1,0 +1,34 @@
+// Pure-Java conflict graph logic (independent sets, toggling). No Minecraft dependencies, so it is
+// unit-testable on its own and shared by every target: compiled into the loader jars like `common`.
+plugins {
+    id 'java-library'
+}
+
+java {
+    toolchain.languageVersion = JavaLanguageVersion.of(java_version)
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation(platform("org.junit:junit-bom:${junit_version}"))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+    testRuntimeOnly('org.junit.platform:junit-platform-launcher')
+}
+
+tasks.named('test', Test) {
+    useJUnitPlatform()
+}
+
+configurations {
+    graphJava {
+        canBeResolved = false
+        canBeConsumed = true
+    }
+}
+
+artifacts {
+    graphJava sourceSets.main.java.sourceDirectories.singleFile
+}
