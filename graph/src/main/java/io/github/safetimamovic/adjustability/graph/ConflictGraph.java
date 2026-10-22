@@ -140,6 +140,83 @@ public final class ConflictGraph<T>
                 return Collections.unmodifiableList(result);
         }
 
+        /**
+         * Splits the vertices into an active and a dormant set: walks {@code preferred} first, then the remaining
+         * vertices in vertex order, and makes each one active unless it conflicts with one already active. The result
+         * is a maximal independent set; vertices earlier in {@code preferred} win their conflicts.
+         *
+         * @param preferred vertices to keep active if possible, most important first; unknown ones are ignored
+         */
+        public Selection<T> select(List<T> preferred)
+        {
+                List<Integer> order = new ArrayList<>(this.vertices.size());
+                BitSet queued = new BitSet(this.vertices.size());
+                for (T vertex : preferred)
+                {
+                        Integer i = this.index.get(vertex);
+                        if (i != null && !queued.get(i))
+                        {
+                                queued.set(i);
+                                order.add(i);
+                        }
+                }
+                for (int i = 0; i < this.vertices.size(); i++)
+                {
+                        if (!queued.get(i))
+                        {
+                                order.add(i);
+                        }
+                }
+                BitSet active = new BitSet(this.vertices.size());
+                for (int i : order)
+                {
+                        if (!this.neighbours[i].intersects(active))
+                        {
+                                active.set(i);
+                        }
+                }
+                return this.selection(active);
+        }
+
+        /**
+         * Makes {@code vertex} active: what it conflicts with becomes dormant, and with {@code autoFill}, dormant
+         * vertices that no longer conflict with anything active come back (in vertex order). Returns {@code current}
+         * unchanged if {@code vertex} isn't in the graph.
+         */
+        public Selection<T> activate(Selection<T> current, T vertex, boolean autoFill)
+        {
+                Integer target = this.index.get(vertex);
+                if (target == null)
+                {
+                        return current;
+                }
+                BitSet active = this.bits(current.active());
+                active.andNot(this.neighbours[target]);
+                active.set(target);
+                if (autoFill)
+                {
+                        for (int i = 0; i < this.vertices.size(); i++)
+                        {
+                                if (!active.get(i) && !this.neighbours[i].intersects(active))
+                                {
+                                        active.set(i);
+                                }
+                        }
+                }
+                return this.selection(active);
+        }
+
+        private Selection<T> selection(BitSet active)
+        {
+                Set<T> on = new LinkedHashSet<>();
+                Set<T> off = new LinkedHashSet<>();
+                for (int i = 0; i < this.vertices.size(); i++)
+                {
+                        (active.get(i) ? on : off).add(this.vertices.get(i));
+                }
+                return new Selection<>(Collections.unmodifiableSet(on), Collections.unmodifiableSet(off));
+        }
+
         private BitSet bits(Set<T> set)
         {
                 BitSet bits = new BitSet(this.vertices.size());
