@@ -245,7 +245,7 @@ Adjustability/
 │     │  ├─ tags/ModTags.java           # enchantment + item TagKeys
 │     │  ├─ config/                     # CreatorConfig, PlayerConfig, AdjustabilityConfig
 │     │  ├─ network/                    # ToggleEnchantmentPayload, CycleEnchantmentPayload
-│     │  ├─ client/                     # AdjustKeys, AdjustScreen, TooltipLines, client command
+│     │  ├─ client/                     # AdjustKeys, AdjustPanel, AdjustClient, client command
 │     │  ├─ mixin/                      # AnvilMenuMixin, GrindstoneMenuMixin (MixinExtras only)
 │     │  └─ platform/                   # Services + IPlatformHelper (ServiceLoader)
 │     └─ resources/
@@ -329,7 +329,7 @@ Code style: the Throwable Mobs one (`CONTRIBUTING.md`): Java 25, **8-space inden
  (client     │   validate → cost → graph.activate(...) → write both components│
   intent)    │   → item updates sync to the client the normal way             │
              └────────────────────────────────────────────────────────────────┘
- Client: tooltip lines from the components; AdjustScreen lists conflicts; keys send payloads.
+ Client: tooltip lines from the components; the Adjust panel lists conflicts; keys send payloads.
 ```
 
 ---
@@ -529,6 +529,11 @@ a free way to strip prior-work cost (§13).
 ## 9. Toggling: controls, UI and networking
 
 ### 9.1 In the inventory: the Adjust screen
+
+> **Superseded (2026-10-22):** shipped first as a separate screen built from vanilla buttons, then replaced at the
+> user's request by the **Adjust panel**: a tooltip-like menu pinned next to the item inside the container screen, in
+> the 2024 magenta style (dark panel, magenta gradient border, corner brackets). Left Alt pins it, a click on a row
+> switches, Left Alt / Escape / a click outside closes it. Drawn with plain fills and text, no sprite. See "M2 state".
 
 - Hover an item with dormant enchantments, press **Adjust** (default **Left Alt**; the 2024 Ctrl conflicts with vanilla
   Ctrl+Q / Ctrl-click in some screens and with many inventory mods — **verify**; rebindable under Controls →
@@ -996,20 +1001,26 @@ Settled 2026-10-22:
 ### M2 state (switching, 2026-10-22)
 
 - Server: `core/Toggler` holds every check (item can take part, target dormant, no curse switched off, cooldown,
-  cost) for all three ways in: the Adjust screen, the Cycle key and `/adjustability toggle`. `network/ToggleNetwork`
+  cost) for all three ways in: the Adjust panel, the Cycle key and `/adjustability toggle`. `network/ToggleNetwork`
   re-checks the payload: the menu id must be the open one, the slot one the player could take from, never a result
   slot. Cooldown is per player (server ticks), not vanilla's item cooldown, so the tool itself isn't blocked.
-- Client: the Adjust screen is built only from vanilla widgets and layouts (26.x renamed GUI drawing to
-  `GuiGraphicsExtractor`; nothing custom to break). One button per enchantment per conflict group, active one ✔ and
-  disabled, cost line under them. It reads the item from the open menu and rebuilds when the server's update lands.
-  A client mixin on `AbstractContainerScreen` reads the hovered slot, handles the key, and skips the client-side
-  `menu.removed()` for exactly the switch to the Adjust screen, so the container stays open (and crafting grids
-  aren't emptied on the client only). Off in the creative inventory (client-only menu).
+- Client: the **Adjust panel**, a tooltip-like menu pinned next to the item inside the container screen, in the 2024
+  magenta style. One row per enchantment per conflict group (● active, ○ dormant, hovered row highlighted), cost line
+  at the bottom. Rows are rebuilt from the slot's item every frame, so it shows the server's state. A client mixin on
+  `AbstractContainerScreen` gives it the hovered slot and screen position, the Adjust key and Escape, mouse clicks
+  (a click outside closes it and never reaches the slots), and draws it from `extractTooltip`, which every container
+  screen calls last (recipe book screens skip the base `extractRenderState`). Drawn with `GuiGraphicsExtractor` fills
+  and text only (26.x's renamed GUI drawing). Off in the creative inventory (client-only menu). It replaced a first
+  version that was a separate screen of vanilla buttons. Its look is the player's: `[panel]` in
+  `adjustability-client.toml` (side, every color, brackets on/off and length, cost line), editable in the config
+  screen or with `/adjustability panel [<setting> <value>|reset]`. The command tree is built from the config spec
+  (`PlayerConfig.PANEL_SETTINGS`) by `PanelCommand`, once for the client and once as a server stub for suggestions.
 - Cycle key: steps the first conflict group of the main-hand item (`ConflictGraph.next`). **Not done:** choosing
   another group (§9.2's modifier), blocking switches mid-block-break (§13).
 - Tests: 13 GameTests (6 new: switch, trident auto fill, refusal, cooldown, payload slot checks, cycle) on both loaders,
   and one **Fabric client GameTest** (`./gradlew :fabric:runClientGametest`) that opens the inventory in a real client,
-  hovers, presses Left Alt, clicks Silk Touch, checks the server, and saves screenshots. NeoForge has no client test
+  hovers, presses Left Alt, clicks the Silk Touch row, checks the server (switched, inventory still open, nothing
+  picked up), closes the panel with Left Alt, and saves screenshots. NeoForge has no client test
   framework; its client was checked to start, and the screen code is the same common code. The client test isn't in
   CI yet (needs a virtual display).
 - Player config `adjustability-client.toml` (`show_dormant`, `show_hint`) with the in-game config screen (NeoForge

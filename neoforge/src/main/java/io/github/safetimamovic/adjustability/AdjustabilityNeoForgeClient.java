@@ -16,7 +16,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 import net.neoforged.neoforge.common.NeoForge;
 
-/** Client-only setup (key mappings, the Adjust screen, client commands), so dedicated servers never load it. */
+/** Client-only setup (key mappings, the Adjust panel, client commands), so dedicated servers never load it. */
 @Mod(value = Constants.MOD_ID, dist = Dist.CLIENT)
 public class AdjustabilityNeoForgeClient
 {

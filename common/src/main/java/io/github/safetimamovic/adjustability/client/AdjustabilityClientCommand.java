@@ -3,6 +3,7 @@ package io.github.safetimamovic.adjustability.client;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import io.github.safetimamovic.adjustability.Constants;
+import io.github.safetimamovic.adjustability.PanelCommand;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -15,7 +16,8 @@ import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Client side of {@code /adjustability}: {@code help}, {@code config} and {@code keybinds}, for every player. They share
+ * Client side of {@code /adjustability}: {@code help}, {@code config}, {@code keybinds} and {@code panel}, for every
+ * player. They share
  * the root with the server's {@code toggle}, {@code inspect}, {@code add} and {@code flatten}; both loaders send a
  * subcommand the client doesn't know on to the server.
  * The server has stubs of these for suggestions (see {@code AdjustabilityCommand}). Each loader registers this with its
@@ -24,8 +26,8 @@ import org.jspecify.annotations.Nullable;
 public final class AdjustabilityClientCommand
 {
         /** Subcommands in help order; from {@code toggle} on they are the server's, the last three for game masters. */
-        private static final List<String> SUBCOMMANDS = List.of("help", "config", "keybinds", "toggle", "inspect",
-                "add", "flatten");
+        private static final List<String> SUBCOMMANDS = List.of("help", "config", "keybinds", "panel", "toggle",
+                "inspect", "add", "flatten");
 
         private static UnaryOperator<@Nullable Screen> configScreen = parent -> parent;
 
@@ -48,7 +50,8 @@ public final class AdjustabilityClientCommand
                                 .executes(context -> open(() -> configScreen.apply(null))))
                         .then(LiteralArgumentBuilder.<S>literal("keybinds")
                                 .executes(context -> open(
-                                        () -> new KeyBindsScreen(null, Minecraft.getInstance().options)))));
+                                        () -> new KeyBindsScreen(null, Minecraft.getInstance().options))))
+                        .then(PanelCommand.tree(new PanelSettingsActions<>())));
         }
 
         /** "/adjustability keybinds" and the like; clicking it puts it in the chat box. */

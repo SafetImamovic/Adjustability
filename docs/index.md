@@ -54,7 +54,7 @@ Minecraft Java **26.3**, on the client **and** the server.
 
 | Action | Default |
 |---|---|
-| Open the Adjust screen | Hover an item in your inventory, press Left Alt |
+| Open the Adjust panel | Hover an item in your inventory, press Left Alt |
 | Cycle the held item's enchantments | Unbound (set it under Controls → Adjustability) |
 
 ## Commands
@@ -64,6 +64,7 @@ Minecraft Java **26.3**, on the client **and** the server.
 | `/adjustability help` | Everyone | Lists the commands |
 | `/adjustability config` | Everyone | Opens the settings |
 | `/adjustability keybinds` | Everyone | Opens Controls |
+| `/adjustability panel [<setting> <value>\|reset]` | Everyone | Shows or changes the Adjust panel's look |
 | `/adjustability toggle <enchantment>` | Everyone | Makes an enchantment on the held item active |
 | `/adjustability inspect` | Operators | Shows the held item's active and dormant enchantments and how they conflict |
 | `/adjustability add <enchantment> [level]` | Operators | Adds an enchantment to the held item, dormant if it conflicts |

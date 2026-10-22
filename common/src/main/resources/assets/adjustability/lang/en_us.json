@@ -14,10 +14,7 @@
     "key.adjustability.adjust": "Adjust (hover an item)",
     "key.adjustability.cycle": "Cycle held item's enchantments",
     "adjustability.tooltip.hint": "%s: adjust",
-    "adjustability.screen.title": "Adjust %s",
-    "adjustability.screen.active": "✔ %s",
-    "adjustability.screen.nothing": "Nothing to adjust: no enchantments on this item conflict.",
-    "adjustability.screen.cost": "Each switch: %s · cooldown %ss",
+    "adjustability.panel.cost": "Each switch: %s · cooldown %ss",
     "adjustability.cost.free": "free",
     "adjustability.cost.levels": "%s level(s)",
     "adjustability.cost.points": "%s experience point(s)",
@@ -39,5 +36,12 @@
     "adjustability.command.help.inspect": "(operators) show the held item's active and dormant enchantments",
     "adjustability.command.help.add": "(operators) add an enchantment to the held item",
     "adjustability.command.help.flatten": "(operators) remove dormant enchantments from players' items",
-    "adjustability.command.flatten.done": "Removed dormant enchantments from %s item(s) of %s player(s)."
+    "adjustability.command.flatten.done": "Removed dormant enchantments from %s item(s) of %s player(s).",
+    "adjustability.command.help.panel": "show or change the Adjust panel's look",
+    "adjustability.command.panel.header": "Adjust panel settings (click one to change it):",
+    "adjustability.command.panel.footer": "Colors: #RRGGBB or #AARRGGBB. /adjustability panel reset for the defaults.",
+    "adjustability.command.panel.set": "%s is now %s",
+    "adjustability.command.panel.invalid": "%s can't be %s",
+    "adjustability.command.panel.reset": "The Adjust panel's settings are back to their defaults.",
+    "adjustability.command.panel.unavailable": "The settings file isn't loaded yet."
 }

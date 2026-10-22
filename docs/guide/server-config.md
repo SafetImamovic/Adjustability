@@ -76,9 +76,41 @@ remove_dormant = true
 [tooltip]
 show_dormant = true
 show_hint = true
+
+[panel]
+side = "AUTO"
+background_color = "#F0080008"
+border_top_color = "#C0FF00FF"
+border_bottom_color = "#C0A00090"
+show_brackets = true
+bracket_color = "#FFC71FC0"
+bracket_length = 9
+highlight_color = "#50FF00FF"
+active_color = "#FFFF55FF"
+show_cost = true
 ```
 
 | Key | Default | What it does |
 |---|---|---|
 | `show_dormant` | `true` | List dormant enchantments in item tooltips. |
-| `show_hint` | `true` | On items with dormant enchantments, show which key opens the Adjust screen. |
+| `show_hint` | `true` | On items with dormant enchantments, show which key opens the Adjust panel. |
+| `side` | `AUTO` | Where the Adjust panel opens: `AUTO` (right of the item, left if there's no room), `RIGHT` or `LEFT`. It always stays inside the screen. |
+| `background_color` | `#F0080008` | The panel's background. |
+| `border_top_color` | `#C0FF00FF` | The border at the top; fades into `border_bottom_color` down the sides. |
+| `border_bottom_color` | `#C0A00090` | The border at the bottom. |
+| `show_brackets` | `true` | The bracket decorations at the corners. |
+| `bracket_color` | `#FFC71FC0` | The corner brackets. |
+| `bracket_length` | `9` | Length of each bracket arm, 2 to 32 GUI pixels. |
+| `highlight_color` | `#50FF00FF` | Behind the row under the mouse. |
+| `active_color` | `#FFFF55FF` | The ● in front of active enchantments. |
+| `show_cost` | `true` | The cost and cooldown line at the bottom. |
+
+Colors are `#RRGGBB` or `#AARRGGBB`, where `AA` is the opacity (`FF` solid, `00` invisible).
+
+The panel settings can also be changed from chat, and apply right away:
+
+| Command | What it does |
+|---|---|
+| `/adjustability panel` | Lists the panel settings and their values; click one to change it |
+| `/adjustability panel <setting> <value>` | Changes one, e.g. `/adjustability panel side left` or `/adjustability panel bracket_color #00E5FF` |
+| `/adjustability panel reset` | Puts them all back to the defaults |
