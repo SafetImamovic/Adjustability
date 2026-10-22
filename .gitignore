@@ -11,7 +11,8 @@ out
 *.ipr
 *.iws
 *.iml
-.idea
+.idea/*
+!.idea/scopes
 
 # gradle
 build
@@ -20,7 +21,20 @@ build
 # other
 eclipse
 run
-.idea
+runs
 
-# Files from Forge MDK
-forge*changelog.txt
+# neovim / jdtls
+.factorypath
+.eclipse
+
+# Local planning notes, not published
+docs/plans/
+
+# JVM crash dumps
+hs_err_*.log
+replay_*.log
+
+# Docs site (VitePress)
+node_modules/
+docs/.vitepress/cache/
+docs/.vitepress/dist/

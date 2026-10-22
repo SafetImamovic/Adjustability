@@ -1,120 +1,117 @@
+<p align="center">
+  <img src="common/src/main/resources/adjustability.png" alt="Adjustability icon: a netherite pickaxe" width="160">
+</p>
 
-<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
+<h1 align="center">Adjustability</h1>
 
-<a href="https://github.com/SafetImamovic/Adjustability/blob/master/README.md"><img src="https://img.shields.io/badge/Lang-EN-red" alt="Project Documentation"></a> <a href="https://github.com/SafetImamovic/Adjustability/blob/master/README.bs.md"><img src="https://img.shields.io/badge/Lang-BS-blue" alt="Project Documentation"></a> <a href="https://safetimamovic.github.io/Adjustability/"><img src="https://img.shields.io/badge/Adjustability%20Documentation-black" alt="Adjustability Documentation"></a>
+<p align="center">
+  Put Fortune and Silk Touch on the same pickaxe, and switch between them. Items hold mutually exclusive enchantments;
+  one side of each conflict is active at a time, never both.
+</p>
 
-</div>
+<p align="center">
+  <a href="https://github.com/SafetImamovic/Adjustability/actions/workflows/build.yml"><img src="https://github.com/SafetImamovic/Adjustability/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/SafetImamovic/Adjustability/releases"><img src="https://img.shields.io/github/v/release/SafetImamovic/Adjustability?include_prereleases&sort=semver&label=release" alt="Latest release"></a>
+  <a href="https://safetimamovic.github.io/Adjustability/"><img src="https://img.shields.io/badge/docs-online-c71fc0" alt="Docs"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
+</p>
 
-<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
+<p align="center">
+  <a href="https://github.com/SafetImamovic/Adjustability/releases"><b>Download</b></a> ·
+  <a href="https://safetimamovic.github.io/Adjustability/"><b>Docs</b></a> ·
+  <a href="CHANGELOG.md"><b>Changelog</b></a> ·
+  <a href="https://github.com/SafetImamovic/Adjustability/issues/new/choose"><b>Report a bug</b></a>
+</p>
 
-<p align="center"><img src="https://static.wikia.nocookie.net/minecraft_gamepedia/images/6/68/Enchanted_Netherite_Pickaxe.gif/revision/latest?cb=20201120003744" alt="Logo" width="200"></p>
-<h1 align="center"> Adjustability
-<br>
-<a href="https://github.com/safetimamovic/adjustability"><img src="https://img.shields.io/badge/Supported%20Versions-1.20-blue" alt="Supported Versions"></a>
-<br><br>
-</h1>
+Minecraft Java **26.3** · **Fabric** + **NeoForge** · MIT · **In development**
 
-</div>
+> Adjustability is being rewritten for 26.3. There's no release yet; the features below are the plan for the first
+> beta. The 2024 prototype for Forge 1.20.6 is kept under the
+> [`legacy-1.20.6-forge`](https://github.com/SafetImamovic/Adjustability/tree/legacy-1.20.6-forge) tag.
 
+- **Fabric:** needs [Fabric API](https://modrinth.com/mod/fabric-api) and
+  [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port).
+- **NeoForge:** nothing extra.
+- Install on both the client and the server.
 
+Design, math, API and roadmap: [ADJUSTABILITY.md](ADJUSTABILITY.md).
 
-<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
+## What it does
 
-Have you ever found yourself frustrated by Minecraft's limitation of only allowing **one mutually exclusive enchantment** per item?
+- **Combine:** put conflicting enchantments on one item in an anvil, from books or another item. Two books with
+  conflicting enchantments make one book that holds them all.
+- **Active and dormant:** one side of each conflict is active and works like vanilla; the others are dormant, shown in
+  the tooltip, doing nothing. Fortune and Silk Touch never work at the same time.
+- **Switch:** in your inventory (hover, Left Alt) or with one key while playing. Tridents do the right thing:
+  switching to Loyalty brings Channeling back with it.
+- **Your rules:** cost and cooldown of switching, anvil price, how many enchantments an item can hold, and which ones
+  may be combined at all.
+- **Modded enchantments just work:** conflicts come from the game's own enchantment data, so modded enchantments and
+  datapack changes need no setup.
 
+## Controls
 
+All rebindable under Controls → Adjustability, or with `/adjustability keybinds`.
 
-For instance, you can't have both **Fortune** and **Silk Touch** on a pickaxe or multiple types of **Protection** on
-your armor at the same time.
+| Action | Default |
+|---|---|
+| Open the Adjust screen | Left Alt, while hovering an item in your inventory |
+| Cycle the held item's enchantments | Unbound |
 
-What if you could seamlessly switch between these enchantments without needing multiple tools or armor pieces?
+## Commands
 
-</div>
+| Command | Who | What |
+|---|---|---|
+| `/adjustability help` | Everyone | Lists these commands |
+| `/adjustability config` | Everyone | Opens the settings screen |
+| `/adjustability keybinds` | Everyone | Opens Controls to rebind the keys |
+| `/adjustability toggle <enchantment>` | Everyone | Makes an enchantment on the held item active |
+| `/adjustability inspect` | Operators | Shows the held item's active and dormant enchantments and how they conflict |
+| `/adjustability flatten [<targets>]` | Operators | Removes dormant enchantments from items, before uninstalling |
 
-<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
+## Configuration
 
-## Introducing Adjustability
+- `config/adjustability-server.toml`: gameplay, synced from the server (costs, cooldowns, limits).
+- `config/adjustability-client.toml`: personal (tooltip hint, sounds), editable in game.
+- Datapacks: Adjustability's tags, and vanilla's `exclusive_set` in enchantment files. Reload with `/reload`.
 
-**Adjustability** for **Minecraft 1.20** is here to solve that problem.
+Guide for admins, pack devs and mod devs: [safetimamovic.github.io/Adjustability](https://safetimamovic.github.io/Adjustability/)
+(source in [docs/guide](docs/guide/README.md)).
 
-This mod allows players to toggle between **mutually exclusive enchantments** on their items, giving you the flexibility
-to adapt to different tasks on the fly.
+## Issues and ideas
 
-Whether you're mining diamonds and need Fortune or harvesting grass blocks with Silk Touch, **Adjustability** lets you
-do it all with just one tool or piece of armor.
+- Bugs and crashes: [open a bug report](https://github.com/SafetImamovic/Adjustability/issues/new/choose) with your
+  `latest.log` uploaded to [mclo.gs](https://mclo.gs).
+- A modded enchantment that misbehaves: use the enchantment compat form.
+- Changes per version: [CHANGELOG.md](CHANGELOG.md).
 
-</div>
+## Building
 
-<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
+Requires JDK 25.
 
-## Key Features
+```sh
+./gradlew build                     # jars in fabric/build/libs and neoforge/build/libs
+./gradlew :graph:test               # unit tests
+./gradlew :fabric:runClient         # dev client (Fabric)
+./gradlew :neoforge:runClient       # dev client (NeoForge); :neoforge:runClient2 for a second one
+./gradlew :fabric:runServer         # dedicated server
+./gradlew :fabric:runClient --debug-jvm   # wait for a debugger on port 5005
+```
 
-- **Toggle Enchantments**: Switch between enchantments like Fortune, Silk Touch, and different types of protection as
-  needed.
-- **No Stacking**: Enchantments do not stack; Adjustability provides a convenient way to toggle between them during
-  gameplay.
-- **Modpack Integration**: Modpack developers can configure the mod with features like XP costs for toggling, enhancing
-  gameplay customization.
+## Layout
 
-</div>
+| Module | Contents |
+|---|---|
+| `graph/` | Pure-Java conflict graph logic (independent sets, toggling). No Minecraft imports; unit tested. |
+| `common/` | Almost all code. Compiles against vanilla only. Public API in `api/`. |
+| `fabric/` | Fabric entrypoint and Fabric-specific glue. |
+| `neoforge/` | NeoForge entrypoint and NeoForge-specific glue. |
+| `build-logic/` | Shared Gradle conventions. |
 
-<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
+Loader-specific calls from `common` go through `platform/Services` (Java `ServiceLoader`).
 
-## Using Adjustability
+## Contributing
 
-### Getting Started
+See [CONTRIBUTING.md](CONTRIBUTING.md): short branches off `master`, atomic Conventional Commits, PRs against `master`.
 
-1. **Installation**: Download Adjustability from [GitHub](https://github.com/SafetImamovic) and install it into your
-   Minecraft 1.20 instance using your preferred mod loader.
-
-### Using the Mod
-
-1. **Enchanting Items**: Enchant your item with mutually exclusive enchantments using the crafting table or enchanting
-   table.
-2. **Toggling Enchantments**: In-game, use the toggle function (default key: TBD) to switch between available
-   enchantments on the item.
-
-</div>
-
-<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
-
-## Developers
-
-I want this documentation to be a helpful resource for players, modpack developers, and mod creators.
-
-### Modpack Developers
-
-#### Customization Options
-
-- **Cost-Based Toggling**: Implement XP costs or other resource requirements for enchantment toggling.
-- **Compatibility**: Ensure Adjustability works seamlessly with other mods in your modpack for an enhanced player
-  experience.
-
-### Mod Developers
-
-Interested in contributing to Adjustability or have feedback?
-
-- Fork the repository on [GitHub](https://github.com/SafetImamovic) and submit your enhancements via pull requests.
-
-</div>
-
-<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
-
-## Contact Information
-
-Reach out via email at `safet.imamovic.22@size.ba` or find me in Minecraft as `SS_P_I_NN`.
-
-</div>
-
-<div style="border: 1px solid white; border-radius: 20px; padding: 2px 16px; margin-bottom: 20px;">
-
-## Conclusion
-
-Adjustability is my personal project aimed at deepening my Java and Minecraft modding skills while providing players,
-modpack developers, and mod creators with a powerful tool for enchantment management in Minecraft.
-
-> I'm not an expert or professional Java developer, I'm actually a beginner at learning Java, but I'm passionate about
-> creating mods that enhance the Minecraft experience. I hope Adjustability will be a valuable addition to your gameplay
-> and modpacks.
-
-*Thank you for exploring Adjustability! I'm excited to hear your thoughts and suggestions.*
+Based on [MultiLoader-Template](https://github.com/jaredlll08/MultiLoader-Template).

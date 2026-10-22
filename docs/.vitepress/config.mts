@@ -1,0 +1,86 @@
+import { defineConfig } from 'vitepress'
+
+const repo = 'https://github.com/SafetImamovic/Adjustability'
+
+// Served from GitHub Pages at /Adjustability/, built by .github/workflows/docs.yml.
+export default defineConfig({
+  title: 'Adjustability',
+  description: 'Hold mutually exclusive enchantments on one item and switch between them. Docs for players, pack devs and mod devs.',
+  lang: 'en-US',
+  base: '/Adjustability/',
+  cleanUrls: true,
+  lastUpdated: true,
+  // Local planning notes live next to the guide but are gitignored; never publish them.
+  srcExclude: ['plans/**'],
+  // The guide's index stays README.md so it also reads well on GitHub.
+  rewrites: {
+    'guide/README.md': 'guide/index.md',
+  },
+  head: [['link', { rel: 'icon', type: 'image/png', href: '/Adjustability/adjustability.png' }]],
+
+  themeConfig: {
+    logo: '/adjustability.png',
+
+    nav: [
+      { text: 'Guide', link: '/guide/' },
+      { text: 'Cookbook', link: '/guide/cookbook' },
+      {
+        text: 'Links',
+        items: [
+          { text: 'Download (GitHub releases)', link: `${repo}/releases` },
+          { text: 'Changelog', link: `${repo}/blob/master/CHANGELOG.md` },
+          { text: 'Report a bug', link: `${repo}/issues/new/choose` },
+        ],
+      },
+    ],
+
+    sidebar: {
+      '/guide/': [
+        {
+          text: 'Guide',
+          items: [
+            { text: 'Overview', link: '/guide/' },
+            { text: 'How it works', link: '/guide/how-it-works' },
+          ],
+        },
+        {
+          text: 'Server admins',
+          items: [{ text: 'Server config', link: '/guide/server-config' }],
+        },
+        {
+          text: 'Pack devs',
+          items: [
+            { text: 'Tags and exclusive sets', link: '/guide/tags' },
+            { text: 'Modded enchantments', link: '/guide/modded-enchantments' },
+          ],
+        },
+        {
+          text: 'Mod devs',
+          items: [{ text: 'Java API', link: '/guide/java-api' }],
+        },
+        {
+          text: 'Background',
+          items: [{ text: 'The math', link: '/guide/math' }],
+        },
+        {
+          text: 'Examples',
+          items: [{ text: 'Cookbook', link: '/guide/cookbook' }],
+        },
+      ],
+    },
+
+    socialLinks: [{ icon: 'github', link: repo }],
+
+    search: { provider: 'local' },
+
+    editLink: {
+      pattern: `${repo}/edit/master/docs/:path`,
+      text: 'Edit this page on GitHub',
+    },
+
+    footer: {
+      message: 'Released under the MIT License.',
+      copyright: 'Not an official Minecraft product. Not approved by or associated with Mojang or Microsoft.',
+    },
+  },
+})

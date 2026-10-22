@@ -1,0 +1,45 @@
+name: Enchantment compat
+description: A modded (or datapack) enchantment that misbehaves when it's combined, dormant or switched.
+labels: [compat]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Conflicts come from each enchantment's `exclusive_set`, so most modded enchantments work without setup. See
+        [modded enchantments](https://safetimamovic.github.io/Adjustability/guide/modded-enchantments) first.
+
+  - type: input
+    id: enchantment
+    attributes:
+      label: Enchantment
+      description: Its id, and the mod or datapack it comes from.
+      placeholder: examplemod:vein_mining (Example Mod 2.1.0)
+    validations:
+      required: true
+
+  - type: input
+    id: item
+    attributes:
+      label: Item
+      description: The item it was on, and the enchantments it conflicts with.
+      placeholder: Diamond pickaxe, with Silk Touch
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: |
+        What you did (anvil, switch, grindstone...), what you expected, and what happened instead. For example: it
+        still works while dormant, it can't be combined, it disappears.
+    validations:
+      required: true
+
+  - type: textarea
+    id: mods
+    attributes:
+      label: Other enchantment or anvil mods
+      description: Anything else that changes enchanting, anvils or grindstones. "None" is a fine answer.
+    validations:
+      required: true

@@ -1,0 +1,56 @@
+plugins {
+    id 'multiloader-common'
+}
+
+configurations {
+    commonJava {
+        canBeResolved = true
+    }
+    commonResources {
+        canBeResolved = true
+    }
+    // :graph sources are compiled into the loader jar, same as :common.
+    graphJava {
+        canBeResolved = true
+    }
+}
+
+dependencies {
+    compileOnly(project(':common')) {
+        def loaderAttribute = Attribute.of('io.github.mcgradleconventions.loader', String)
+        attributes {
+            attribute(loaderAttribute, 'common')
+        }
+    }
+    commonJava(project(path: ':common', configuration: 'commonJava'))
+    commonResources(project(path: ':common', configuration: 'commonResources'))
+    graphJava(project(path: ':graph', configuration: 'graphJava'))
+}
+
+tasks.named('compileJava', JavaCompile) {
+    dependsOn(configurations.commonJava)
+    source(configurations.commonJava)
+    dependsOn(configurations.graphJava)
+    source(configurations.graphJava)
+}
+
+processResources {
+    dependsOn(configurations.commonResources)
+    from(configurations.commonResources)
+}
+
+tasks.named('javadoc', Javadoc).configure {
+    dependsOn(configurations.commonJava)
+    source(configurations.commonJava)
+    dependsOn(configurations.graphJava)
+    source(configurations.graphJava)
+}
+
+tasks.named('sourcesJar', Jar) {
+    dependsOn(configurations.commonJava)
+    from(configurations.commonJava)
+    dependsOn(configurations.graphJava)
+    from(configurations.graphJava)
+    dependsOn(configurations.commonResources)
+    from(configurations.commonResources)
+}
