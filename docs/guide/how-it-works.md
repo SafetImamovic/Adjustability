@@ -44,7 +44,8 @@ over the survival limit of 39 levels.
 - **In your inventory** (or any chest, shulker box...): hover the item and press **Left Alt**. The Adjust panel
   opens next to it, like a tooltip that stays: each group of conflicting enchantments, the active one marked ●, the
   dormant ones ○. Click a dormant one to make it active. **Left Alt** again, **Escape** or a click outside closes it;
-  that click never picks up an item. The item's tooltip shows the key as a reminder (`Left Alt: adjust`). Its colors,
+  that click never picks up an item. Prefer holding the key? `/adjustability panel activation hold`: the panel is
+  open while you hold Left Alt (click while holding), and closes when you let go. The item's tooltip shows the key as a reminder (`Left Alt: adjust`). Its colors,
   side and decorations are yours to change: `/adjustability panel`, or the [player settings](server-config.md#player-settings).
 - **While playing:** bind **Cycle held item's enchantments** under Controls → Adjustability (unbound by default). One
   press steps the held item to its next choice, e.g. Fortune → Silk Touch → Fortune, and says which one is active above

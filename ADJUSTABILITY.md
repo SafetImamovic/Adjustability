@@ -1065,8 +1065,17 @@ Settled 2026-10-22:
   `SwitchSource`, which asks the listeners; the anvil asks them before splitting; `ItemRules` consults
   `AdjustableItem`. Listener failures are logged and count as allowing.
 - The docs page's examples are a real class (`gametest/ApiExamples`) the GameTests run. 26 GameTests on both loaders.
-- Not tested: `AdjustableItem` (needs a registered item; the check is two lines in `ItemRules`). No `-api` Maven
-  artifact yet (M9).
+- `AdjustableItem` is tested with `gametest/TestAdjustableItem`, registered only in the development environment
+  (`Services.PLATFORM.isDevelopmentEnvironment()`); the `Registrar` takes suppliers so NeoForge creates it during
+  its register event.
+- `common:apiJar` / `apiSourcesJar`: `adjustability-api-<mc>-<version>.jar` with only the `api` package, built with
+  `build`, attached to releases and CI artifacts. No Maven repository yet (M9).
+- `[panel] activation = TOGGLE | HOLD` (player setting and `/adjustability panel activation`); HOLD closes on the
+  key's release through a `keyReleased` override the client mixin adds to `AbstractContainerScreen` (only the
+  creative screen overrides it, where the panel is off). Covered by the client GameTest.
+- NeoForge client: no client test framework there; a dev run that force-loads the container screen confirms the
+  client mixin applies to NeoForge's patched class. The panel itself is only driven on Fabric. 27 GameTests on both
+  loaders.
 
 ---
 

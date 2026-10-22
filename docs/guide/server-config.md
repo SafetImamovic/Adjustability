@@ -138,6 +138,7 @@ show_dormant = true
 show_hint = true
 
 [panel]
+activation = "TOGGLE"
 side = "AUTO"
 background_color = "#F0080008"
 border_top_color = "#C0FF00FF"
@@ -154,6 +155,7 @@ show_cost = true
 |---|---|---|
 | `show_dormant` | `true` | List dormant enchantments in item tooltips. |
 | `show_hint` | `true` | On items with dormant enchantments, show which key opens the Adjust panel. |
+| `activation` | `TOGGLE` | How the Adjust key works. `TOGGLE`: press it to pin the panel, press it again (or Escape, or click outside) to close it. `HOLD`: the panel is open while you hold the key and closes when you let go. |
 | `side` | `AUTO` | Where the Adjust panel opens: `AUTO` (right of the item, left if there's no room), `RIGHT` or `LEFT`. It always stays inside the screen. |
 | `background_color` | `#F0080008` | The panel's background. |
 | `border_top_color` | `#C0FF00FF` | The border at the top; fades into `border_bottom_color` down the sides. |
@@ -172,5 +174,5 @@ The panel settings can also be changed from chat, and apply right away:
 | Command | What it does |
 |---|---|
 | `/adjustability panel` | Lists the panel settings and their values; click one to change it |
-| `/adjustability panel <setting> <value>` | Changes one, e.g. `/adjustability panel side left` or `/adjustability panel bracket_color #00E5FF` |
+| `/adjustability panel <setting> <value>` | Changes one, e.g. `/adjustability panel activation hold`, `/adjustability panel side left` or `/adjustability panel bracket_color #00E5FF` |
 | `/adjustability panel reset` | Puts them all back to the defaults |

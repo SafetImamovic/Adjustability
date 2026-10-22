@@ -4,8 +4,23 @@ For mod devs who want to read or change an item's active and dormant enchantment
 switches and anvil results. Everything is in `io.github.safetimamovic.adjustability.api` and works the same on Fabric
 and NeoForge; call it from your common code.
 
-> **Experimental until 1.0.** The API is marked `@ApiStatus.Experimental`: names may still change. There's no separate
-> `-api` artifact yet; depend on the mod jar `compileOnly` (and at runtime in dev).
+> **Experimental until 1.0.** The API is marked `@ApiStatus.Experimental`: names may still change.
+
+## Depending on it
+
+Every [release](https://github.com/SafetImamovic/Adjustability/releases) has an `adjustability-api-<mc>-<version>.jar`
+(and its `-sources.jar`) with just the `api` package. Build against it `compileOnly`, and put the full mod jar (Fabric
+or NeoForge) in your dev runtime. There's no Maven repository yet; drop the jars in a `libs/` folder:
+
+```groovy
+dependencies {
+    compileOnly(files('libs/adjustability-api-26.3-0.1.0.jar'))
+    // Fabric (Loom): localRuntime(files('libs/adjustability-fabric-26.3-0.1.0.jar'))
+    // NeoForge (ModDevGradle): runtimeOnly(files('libs/adjustability-neoforge-26.3-0.1.0.jar'))
+}
+```
+
+Players install Adjustability themselves; don't bundle it.
 
 **Most mods need none of this.** Anything that reads enchantments the vanilla way (`DataComponents.ENCHANTMENTS`,
 `EnchantmentHelper`) already sees exactly the active ones, and dormant ones do nothing. See
@@ -82,7 +97,8 @@ These examples are compiled and run by the mod's own tests (`gametest/ApiExample
 
 ## `AdjustableItem`
 
-Implement it on your `Item` class for item-specific rules. The server's tags and config still apply on top.
+Implement it on your `Item` class for item-specific rules. The server's tags and config still apply on top. (The
+mod's tests use a development-only item, `gametest/TestAdjustableItem`, that does exactly this.)
 
 | Method | Default | Meaning |
 |---|---|---|
