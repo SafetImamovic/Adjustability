@@ -16,6 +16,7 @@ panel, the Cycle key, hold mode and the None row in a real game client.
 | Mouse Tweaks | 26.3-2.31 | Fabric | Works: clicks on the panel don't reach Mouse Tweaks |
 | Enchantment Descriptions (+ Bookshelf, Prickle) | 26.3.0.2 | Fabric | Works: descriptions show under active enchantments; dormant lines follow |
 | AppleSkin | 3.0.10 | Fabric | Works |
+| Enchantment Switch (+ Puzzles Lib) | 26.3.0 (26.3.15) | Fabric | Loads and every test passes (0.2.0). Its Edit Enchantments key is unbound by default, so Left Alt stays with Adjustability. Not tested: its menu on an item that also has dormant enchantments |
 
 On NeoForge, only the server-side tests ran with these mods; NeoForge has no client test framework.
 
