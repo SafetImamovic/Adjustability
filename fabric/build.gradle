@@ -11,7 +11,7 @@ dependencies {
 }
 
 loom {
-    def aw = project(':common').file("src/main/resources/${mod_id}.accesswidener")
+    def aw = rootProject.file("common/src/main/resources/${mod_id}.accesswidener")
     if (aw.exists()) {
         accessWidenerPath.set(aw)
     }
@@ -28,14 +28,14 @@ loom {
             ideConfigGenerated(true)
             runDir('runs/server')
         }
-        // Drives a real client through the Adjust panel and exits: ./gradlew :fabric:runClientGametest
+        // Drives a real client through the Adjust panel and exits: ./gradlew :fabric:26.3:runClientGametest
         clientGametest {
             client()
             setConfigName('Fabric Client Game Test')
             vmArg('-Dfabric.client.gametest')
             runDir('runs/clientgametest')
         }
-        // Runs every GameTest headless and exits: ./gradlew :fabric:runGametest
+        // Runs every GameTest headless and exits: ./gradlew :fabric:26.3:runGametest
         gametest {
             server()
             setConfigName('Fabric Game Test')
@@ -64,7 +64,7 @@ sourceSets.configureEach {
     }
 }
 
-// ./gradlew :fabric:runGametest -PwriteDocs rewrites docs/reference/ (the generated_docs GameTest)
+// ./gradlew :fabric:26.3:runGametest -PwriteDocs rewrites docs/reference/ (the generated_docs GameTest)
 tasks.matching { it.name == 'runGametest' }.configureEach {
     if (project.hasProperty('writeDocs')) {
         environment('ADJUSTABILITY_WRITE_DOCS', '1')

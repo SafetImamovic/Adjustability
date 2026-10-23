@@ -32,16 +32,16 @@ jobs:
 
       # Vanilla's GameTest framework on both loaders, headless; any failed test fails the run.
       - name: Game tests
-        run: ./gradlew :fabric:runGametest :neoforge:runGameTestServer
+        run: ./gradlew :fabric:26.3:runGametest :neoforge:26.3:runGameTestServer
 
       - name: Upload jars
         uses: actions/upload-artifact@v7
         with:
           name: adjustability-jars
           path: |
-            fabric/build/libs/*.jar
-            neoforge/build/libs/*.jar
-            common/build/libs/adjustability-api-*.jar
+            fabric/versions/*/build/libs/*.jar
+            neoforge/versions/*/build/libs/*.jar
+            common/versions/*/build/libs/adjustability-api-*.jar
             !**/*-sources.jar
             !**/*-javadoc.jar
           if-no-files-found: error

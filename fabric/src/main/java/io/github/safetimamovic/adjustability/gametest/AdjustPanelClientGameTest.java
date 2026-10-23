@@ -35,7 +35,7 @@ import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 /**
  * Drives a real client through the Adjust panel: open the inventory, hover a Fortune pickaxe holding a dormant Silk
  * Touch, press the Adjust key, click the Silk Touch row, and check the server switched it and the inventory is still
- * open. Screenshots go to {@code runs/clientgametest/screenshots}. Run with {@code ./gradlew :fabric:runClientGametest}.
+ * open. Screenshots go to {@code fabric/versions/26.3/runs/clientgametest/screenshots}. Run with {@code ./gradlew :fabric:26.3:runClientGametest}.
  * Fabric only: NeoForge has no client test framework; the panel and mixin are the same common code on both.
  */
 public class AdjustPanelClientGameTest implements FabricClientGameTest
