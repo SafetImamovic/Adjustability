@@ -26,7 +26,8 @@
             "io.github.safetimamovic.adjustability.compat.jei.AdjustabilityJeiPlugin"
         ],
         "fabric-client-gametest": [
-            "io.github.safetimamovic.adjustability.gametest.AdjustPanelClientGameTest"
+            "io.github.safetimamovic.adjustability.gametest.AdjustPanelClientGameTest",
+            "io.github.safetimamovic.adjustability.gametest.SwitchGifClientGameTest"
         ]
     },
     "mixins": [
