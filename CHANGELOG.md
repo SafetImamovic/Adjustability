@@ -5,6 +5,8 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-10-23
+
 ### Added
 
 - Minecraft 1.21.1, on Fabric and NeoForge (21.1.1 or newer), with the same features as 26.3. Its server config is
