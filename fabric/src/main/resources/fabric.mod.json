@@ -22,6 +22,9 @@
         "client": [
             "io.github.safetimamovic.adjustability.AdjustabilityFabricClient"
         ],
+        "jei_mod_plugin": [
+            "io.github.safetimamovic.adjustability.compat.jei.AdjustabilityJeiPlugin"
+        ],
         "fabric-client-gametest": [
             "io.github.safetimamovic.adjustability.gametest.AdjustPanelClientGameTest"
         ]

@@ -69,6 +69,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         context.waitForScreen(InventoryScreen.class);
                         hoverSlot(context, HOTBAR_0);
                         context.waitTick();
+                        cleanScreen(context);
                         context.takeScreenshot("adjustability_1_tooltip");
 
                         context.getInput().pressKey(AdjustKeys.ADJUST);
@@ -90,6 +91,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         });
                         moveTo(context, row[0], row[1]);
                         context.waitTick();
+                        cleanScreen(context);
                         context.takeScreenshot("adjustability_3_hover_row");
                         context.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
                         world.getConnection().waitForServerboundPackets();
@@ -344,6 +346,17 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
         {
                 return PlayerConfig.PANEL_SETTINGS.stream().filter(value -> PlayerConfig.name(value).equals(name))
                         .findFirst().map(PlayerConfig::current).orElseThrow();
+        }
+
+        /** No chat lines or toasts (command feedback, advancements) in the screenshots the docs use. */
+        private static void cleanScreen(ClientGameTestContext context)
+        {
+                context.runOnClient(minecraft ->
+                {
+                        minecraft.gui.hud.getChat().clearMessages(false);
+                        minecraft.gui.toastManager().clear();
+                });
+                context.waitTick();
         }
 
         /** Runs an {@code /adjustability} client command as if typed in chat. */

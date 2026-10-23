@@ -47,7 +47,7 @@ public final class PlayerConfig
                 ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
 
                 builder.comment("Item tooltips.").push("tooltip");
-                SHOW_DORMANT = builder.comment("List dormant enchantments in the tooltip, after the active ones.")
+                SHOW_DORMANT = builder.comment("List dormant enchantments in the tooltip, each under the active one it conflicts with.")
                         .define("show_dormant", true);
                 SHOW_HINT = builder.comment("On items with dormant enchantments, show which key opens the Adjust panel.")
                         .define("show_hint", true);

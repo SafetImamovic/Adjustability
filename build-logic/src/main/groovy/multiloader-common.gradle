@@ -36,6 +36,17 @@ repositories {
             includeGroup('maven.modrinth')
         }
     }
+    exclusiveContent {
+        forRepository {
+            maven {
+                name = 'BlameJared'
+                url = 'https://maven.blamejared.com'
+            }
+        }
+        filter {
+            includeGroup('mezz.jei')
+        }
+    }
 }
 
 tasks.withType(Jar).configureEach {

@@ -22,6 +22,8 @@ dependencies {
             attribute(loaderAttribute, 'common')
         }
     }
+    // Optional JEI integration in common (compat/jei); loaders compile common's sources too.
+    compileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
     commonJava(project(path: ':common', configuration: 'commonJava'))
     commonResources(project(path: ':common', configuration: 'commonResources'))
     graphJava(project(path: ':graph', configuration: 'graphJava'))

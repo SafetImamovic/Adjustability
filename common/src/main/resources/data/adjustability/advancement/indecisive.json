@@ -1,0 +1,28 @@
+{
+    "parent": "adjustability:root",
+    "criteria": {
+        "indecisive": {
+            "trigger": "adjustability:switched",
+            "conditions": {
+                "min_switches": 100
+            }
+        }
+    },
+    "display": {
+        "icon": {
+            "id": "minecraft:clock"
+        },
+        "title": {
+            "translate": "advancements.adjustability.indecisive.title"
+        },
+        "description": {
+            "translate": "advancements.adjustability.indecisive.description"
+        },
+        "frame": "challenge"
+    },
+    "requirements": [
+        [
+            "indecisive"
+        ]
+    ]
+}

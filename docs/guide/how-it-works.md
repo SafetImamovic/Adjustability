@@ -13,10 +13,11 @@ and Mending. Adjustability lets an item **hold** them anyway, with only one side
 An item never has two conflicting enchantments active. Fortune III and Silk Touch on one pickaxe means it mines with
 one of them, never both.
 
-![A pickaxe tooltip: Fortune III and Efficiency V active, Silk Touch dormant, and the Left Alt hint](/screenshots/tooltip.png)
+![A pickaxe tooltip: Fortune III, Silk Touch dormant under it, Efficiency V, and the Left Alt hint](/screenshots/tooltip.png)
 
-Dormant enchantments are listed in dark gray with `⇄`, right after the active ones, followed by a reminder of the key
-that opens the Adjust panel.
+Dormant enchantments are listed in dark gray with `⇄`, each right under the active enchantment it conflicts with
+(Silk Touch under Fortune), followed by a reminder of the key that opens the Adjust panel. One with nothing active to
+conflict with (possible when the server allows none) comes after the last active one.
 
 ## Getting conflicting enchantments on an item
 
@@ -65,6 +66,24 @@ The Adjust key doesn't work in the creative inventory, which shows items through
 switch to survival or use the command. Some combinations bring
 more than one enchantment back: on a trident, switching from Riptide to Loyalty also makes Channeling active again,
 because Loyalty and Channeling don't conflict with each other.
+
+Each switch plays a short enchanting sound (`adjustability:item.switch`) that you and players nearby hear; servers can
+turn it off (`play_sound`), resource packs can replace it.
+
+## Advancements
+
+Adjustability has its own advancement tab:
+
+| Advancement | How |
+|---|---|
+| **Adjustability** | Have an item with a dormant enchantment in your inventory |
+| **Change of Plans** | Switch which enchantment is active |
+| **Best of Both** | Switch a tool that holds both Fortune and Silk Touch |
+| **Every Angle Covered** (goal) | Switch a piece of armor that holds all four Protections |
+| **Indecisive** (challenge) | Switch 100 times |
+| **Neither** (hidden) | Leave a group with none of its enchantments active (servers with `allow_none`) |
+
+Your switches are counted under Statistics → General → Enchantment Switches.
 
 ## Grindstones
 

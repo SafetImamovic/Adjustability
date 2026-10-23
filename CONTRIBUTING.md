@@ -200,6 +200,10 @@ If you add something players will notice, add a line under `## [Unreleased]` in 
 
 - **Unit tests** (JUnit 5, `graph/src/test`) for pure logic — conflict graphs, toggling. The `graph` module has no Minecraft imports so it stays testable; keep it that way.
 - **GameTests** for in-game behavior (e.g. "a Silk Touch book on a Fortune pickaxe makes Silk Touch dormant").
+- **Generated docs:** `docs/reference/` is written from the code (config specs, the enchantment registry). The
+  `generated_docs` GameTest fails when it's out of date; regenerate with `./gradlew :fabric:runGametest -PwriteDocs`.
+  `hand_written_docs` checks that `guide/server-config.md` lists every setting with its real default and that every
+  setting has a name in `en_us.json`.
 - **Manual testing:** for multiplayer features, run a dedicated server and connect two clients.
 - Bug fixes should come with a test that fails without the fix whenever practical.
 

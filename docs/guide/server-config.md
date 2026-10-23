@@ -18,10 +18,9 @@ Keys may still change before 0.1.0.
 mode = "DENYLIST"
 ```
 
-| `mode` | Which items can hold dormant enchantments |
-|---|---|
-| `DENYLIST` (default) | Every item except those in `#adjustability:not_adjustable`. |
-| `ALLOWLIST` | Only items in `#adjustability:adjustable` (empty by default), and still not those in `#adjustability:not_adjustable`. |
+| Key | Default | What it does |
+|---|---|---|
+| `mode` | `DENYLIST` | Which items can hold dormant enchantments. `DENYLIST`: every item except those in `#adjustability:not_adjustable`. `ALLOWLIST`: only items in `#adjustability:adjustable` (empty by default), and still not those in `#adjustability:not_adjustable`. |
 
 Enchanted books aren't affected: whether two books combine is `combine_books`. See [Tags](tags.md).
 
@@ -104,6 +103,7 @@ panel_activation = "PLAYER"
 | `group_costs` | `[]` | Own costs for particular groups, instead of `cost_type` / `cost_amount` / `cost_item`. See below. |
 | `allow_none` | `false` | A group may have **none** of its enchantments active: the Adjust panel gets a **None** row per group, and the Cycle key steps through none after the last choice. Switching to none costs the same as any switch in that group. Turned back off, items left on none get one of the group active again at their next switch or anvil use. |
 | `panel_activation` | `PLAYER` | How the Adjust key works for everyone: `PLAYER` (each player's own `activation` setting), `TOGGLE` or `HOLD`. |
+| `play_sound` | `true` | A sound on each switch (`adjustability:item.switch`, an enchanting table sound by default; resource packs can replace it). The player and anyone nearby hear it. |
 
 ### Per-group costs
 
