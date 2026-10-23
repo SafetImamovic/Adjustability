@@ -31,7 +31,7 @@ Minecraft Java **1.21.1** and **26.3** · **Fabric** + **NeoForge** · MIT · **
 
 - **Fabric:** needs [Fabric API](https://modrinth.com/mod/fabric-api) and
   [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port).
-- **NeoForge:** 21.1.264 (1.21.1) or 26.3.0.95 (26.3) or newer, nothing extra.
+- **NeoForge:** 21.1.1 (1.21.1) or 26.3.0.95 (26.3) or newer, nothing extra.
 - Install on both the client and the server. Works with Easy Anvils, JEI, Mouse Tweaks and more:
   [compatibility](https://safetimamovic.github.io/Adjustability/guide/compatibility).
 
