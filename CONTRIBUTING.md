@@ -212,6 +212,12 @@ If you add something players will notice, add a line under `## [Unreleased]` in 
   ```sh
   set -- *gif_*.png && ffmpeg -y -loop 1 -t 1.8 -i $1 -loop 1 -t 1.0 -i $2 -loop 1 -t 0.9 -i $3     -loop 1 -t 1.2 -i $4 -loop 1 -t 2.4 -i $5 -filter_complex "[0][1][2][3][4]concat=n=5:v=1:a=0,fps=10,  crop=448:414:236:66,split[a][b];[a]palettegen=max_colors=128:stats_mode=full[p];[b][p]paletteuse=dither=none"     -loop 0 ../../../../docs/public/screenshots/switch.gif
   ```
+
+  `showcase.gif` (README, docs home, Modrinth) is filmed by hand; from a screen recording:
+
+  ```sh
+  ffmpeg -i clip.mp4 -filter_complex "fps=10,scale=640:-2:flags=lanczos,split[a][b];[a]palettegen=max_colors=96:\n  stats_mode=diff[p];[b][p]paletteuse=dither=none:diff_mode=rectangle" -loop 0 docs/public/screenshots/showcase.gif
+  ```
 - **Manual testing:** for multiplayer features, run a dedicated server and connect two clients.
 - Bug fixes should come with a test that fails without the fix whenever practical.
 

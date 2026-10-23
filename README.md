@@ -26,7 +26,7 @@
 Minecraft Java **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
 
 <p align="center">
-  <img src="docs/public/screenshots/switch.gif" alt="Switching a netherite pickaxe from Fortune III to Silk Touch: hover it, Left Alt, click Silk Touch" width="448">
+  <img src="docs/public/screenshots/showcase.gif" alt="A netherite pickaxe gets Silk Touch from a book in an anvil and keeps Fortune; switched to Fortune in the Adjust panel it mines diamonds, switched to Silk Touch it mines the ore blocks" width="640">
 </p>
 
 - **Fabric:** needs [Fabric API](https://modrinth.com/mod/fabric-api) and
