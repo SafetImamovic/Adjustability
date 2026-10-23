@@ -55,6 +55,10 @@ jobs:
       - name: Build and test
         run: ./gradlew build
 
+      # Vanilla's GameTest framework on both loaders, headless; any failed test stops the release.
+      - name: Game tests
+        run: ./gradlew :fabric:runGametest :neoforge:runGameTestServer
+
       - uses: softprops/action-gh-release@v3
         with:
           name: Adjustability ${{ steps.version.outputs.version }}

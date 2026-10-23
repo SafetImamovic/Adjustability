@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/SafetImamovic/Adjustability/actions/workflows/build.yml"><img src="https://github.com/SafetImamovic/Adjustability/actions/workflows/build.yml/badge.svg" alt="Build"></a>
+  <a href="https://github.com/SafetImamovic/Adjustability/actions/workflows/release.yml"><img src="https://github.com/SafetImamovic/Adjustability/actions/workflows/release.yml/badge.svg" alt="Release"></a>
   <a href="https://github.com/SafetImamovic/Adjustability/releases"><img src="https://img.shields.io/github/v/release/SafetImamovic/Adjustability?include_prereleases&sort=semver&label=release" alt="Latest release"></a>
   <a href="https://safetimamovic.github.io/Adjustability/"><img src="https://img.shields.io/badge/docs-online-c71fc0" alt="Docs"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT license"></a>
