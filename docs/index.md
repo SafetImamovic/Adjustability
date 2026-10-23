@@ -36,7 +36,7 @@ features:
     linkText: How it works
 ---
 
-![Switching a netherite pickaxe from Fortune III to Silk Touch: hover it, Left Alt, click Silk Touch](/screenshots/switch.gif)
+![A netherite pickaxe gets Silk Touch from a book in an anvil and keeps Fortune; switched to Fortune in the Adjust panel it mines diamonds, switched to Silk Touch it mines the ore blocks](/screenshots/showcase.gif)
 
 ::: info Beta
 0.1.0 is the first beta: everything here works and is tested, and settings may still change before 1.0.

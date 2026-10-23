@@ -39,6 +39,8 @@ over the survival limit of 39 levels.
 
 ## Switching
 
+![Switching a netherite pickaxe from Fortune III to Silk Touch: hover it, Left Alt, click Silk Touch](/screenshots/switch.gif)
+
 - **In your inventory** (or any chest, shulker box...): hover the item and press **Left Alt**. The Adjust panel
   opens next to it, like a tooltip that stays: each group of conflicting enchantments, the active one marked ●, the
   dormant ones ○. Click a dormant one to make it active. **Left Alt** again, **Escape** or a click outside closes it;
