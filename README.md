@@ -37,7 +37,6 @@ Minecraft Java **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
 
 The 2024 prototype for Forge 1.20.6 is kept under the
 [`legacy-1.20.6-forge`](https://github.com/SafetImamovic/Adjustability/tree/legacy-1.20.6-forge) tag.
-- Install on both the client and the server.
 
 Design, math, API and roadmap: [ADJUSTABILITY.md](ADJUSTABILITY.md).
 
