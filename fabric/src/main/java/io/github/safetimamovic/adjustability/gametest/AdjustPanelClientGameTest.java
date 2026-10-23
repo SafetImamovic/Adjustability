@@ -16,6 +16,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
@@ -35,7 +36,7 @@ import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 /**
  * Drives a real client through the Adjust panel: open the inventory, hover a Fortune pickaxe holding a dormant Silk
  * Touch, press the Adjust key, click the Silk Touch row, and check the server switched it and the inventory is still
- * open. Screenshots go to {@code runs/clientgametest/screenshots}. Run with {@code ./gradlew :fabric:runClientGametest}.
+ * open. Screenshots go to {@code fabric/versions/26.3/runs/clientgametest/screenshots}. Run with {@code ./gradlew :fabric:26.3:runClientGametest}.
  * Fabric only: NeoForge has no client test framework; the panel and mixin are the same common code on both.
  */
 public class AdjustPanelClientGameTest implements FabricClientGameTest
@@ -181,7 +182,63 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         noneAndServerActivation(context, world);
                         cycleKey(context, world);
                         groupCosts(world, List.of());
+                        creativeInventory(context, world);
                 }
+        }
+
+        /**
+         * In creative the inventory is a menu only the client has (the server keeps the player's inventory menu), so
+         * a click on the panel must name the item's slot in the server's menu: switching from the hotbar works there.
+         */
+        private static void creativeInventory(ClientGameTestContext context, TestSingleplayerContext world)
+        {
+                world.getServer().runOnServer(server ->
+                {
+                        ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                        player.setGameMode(GameType.CREATIVE);
+                        player.getInventory().setItem(0, pickaxe(player));
+                });
+                world.getConnection().waitForClientboundPackets();
+                // The Cycle key's switches started the 1 second cooldown.
+                context.waitTicks(25);
+                context.getInput().pressKey(options -> options.keyInventory);
+                context.waitForScreen(CreativeModeInventoryScreen.class);
+                int hotbar = context.computeOnClient(minecraft ->
+                {
+                        AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) minecraft.gui.screen();
+                        ItemStack pickaxe = minecraft.player.getInventory().getItem(0);
+                        return screen.getMenu().slots.stream().filter(slot -> slot.getItem() == pickaxe).findFirst()
+                                .orElseThrow(() -> new AssertionError("The creative screen doesn't show the hotbar"))
+                                .index;
+                });
+                hoverSlot(context, hotbar);
+                context.waitTick();
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.waitTick();
+                int[] row = context.computeOnClient(minecraft ->
+                {
+                        AdjustPanel panel = AdjustClient.panel((AbstractContainerScreen<?>) minecraft.gui.screen());
+                        if (panel == null)
+                        {
+                                throw new AssertionError("Creative: Left Alt over a hotbar item should open the panel");
+                        }
+                        Holder<Enchantment> silkTouch = minecraft.level.registryAccess()
+                                .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH);
+                        return panel.rowCentre(silkTouch).orElseThrow(
+                                () -> new AssertionError("Creative: no Silk Touch row in the panel"));
+                });
+                moveTo(context, row[0], row[1]);
+                context.waitTick();
+                context.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
+                world.getConnection().waitForServerboundPackets();
+                world.getConnection().waitForClientboundPackets();
+                context.waitTicks(2);
+                assertActive(world, Enchantments.SILK_TOUCH, "creative: after clicking Silk Touch in the panel");
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.getInput().pressKey(options -> options.keyInventory);
+                context.waitForScreen(null);
+                world.getServer().runOnServer(server -> server.getPlayerList().getPlayers().getFirst()
+                        .setGameMode(GameType.SURVIVAL));
         }
 
         /**

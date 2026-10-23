@@ -33,11 +33,18 @@ abstract class AnvilMenuMixin extends ItemCombinerMenu
         @Final
         private DataSlot cost;
 
+        //? if >=26.1 {
         private AnvilMenuMixin(MenuType<?> menuType, int containerId, Inventory inventory, ContainerLevelAccess access,
                 ItemCombinerMenuSlotDefinition definition)
         {
                 super(menuType, containerId, inventory, access, definition);
         }
+        //?} else {
+        /*private AnvilMenuMixin(MenuType<?> menuType, int containerId, Inventory inventory, ContainerLevelAccess access)
+        {
+                super(menuType, containerId, inventory, access);
+        }
+        *///?}
 
         @WrapOperation(method = {"createResult", "createResultInternal"}, at = @At(value = "INVOKE",
                 target = "Lnet/minecraft/world/item/enchantment/Enchantment;areCompatible(Lnet/minecraft/core/Holder;Lnet/minecraft/core/Holder;)Z"))

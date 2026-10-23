@@ -29,7 +29,7 @@ import net.minecraft.world.level.GameType;
 /**
  * Records the frames of the switch GIF on the README, the docs home page and Modrinth: a netherite pickaxe with
  * Fortune III active and Silk Touch dormant, Left Alt, click Silk Touch, and the tooltip after. Default settings, so
- * the switch is free. Frames go to {@code runs/clientgametest/screenshots} as {@code gif_*}; CONTRIBUTING.md has the
+ * the switch is free. Frames go to {@code fabric/versions/26.3/runs/clientgametest/screenshots} as {@code gif_*}; CONTRIBUTING.md has the
  * ffmpeg command that turns them into {@code docs/public/screenshots/switch.gif}.
  */
 public class SwitchGifClientGameTest implements FabricClientGameTest

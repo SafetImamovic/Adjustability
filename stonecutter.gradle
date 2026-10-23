@@ -1,0 +1,31 @@
+plugins {
+    id 'dev.kikugie.stonecutter'
+    // see https://maven.fabricmc.net/fabric-loom/fabric-loom.gradle.plugin/maven-metadata.xml for new versions
+    id 'net.fabricmc.fabric-loom' version '1.18.2' apply false
+    // Loom for obfuscated Minecraft (before 26.1), applied by fabric/build.gradle for those versions
+    id 'net.fabricmc.fabric-loom-remap' version '1.18.2' apply false
+    // see https://projects.neoforged.net/neoforged/moddevgradle for new versions
+    id 'net.neoforged.moddev' version '2.0.148' apply false
+}
+
+// The version the sources in */src are written for; switch with the "Set active project" tasks.
+stonecutter.active '26.3'
+
+stonecutter.parameters {
+    replacements {
+        // Mojang renamed ResourceLocation to Identifier in 1.21.11; the sources use the new name.
+        string(eval(current.version, '<1.21.11')) {
+            replace('Identifier', 'ResourceLocation')
+            replace('.identifier()', '.location()')
+        }
+        // An item's components were a DataComponentHolder (ItemStack implements both) before 1.21.5.
+        string(eval(current.version, '<1.21.5')) {
+            replace('DataComponentGetter', 'DataComponentHolder')
+        }
+        // GUI drawing before 26.1: GuiGraphics, and drawString for text.
+        string(eval(current.version, '<26.1')) {
+            replace('GuiGraphicsExtractor', 'GuiGraphics')
+            replace('graphics.text(', 'graphics.drawString(')
+        }
+    }
+}

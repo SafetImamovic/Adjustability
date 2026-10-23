@@ -1,11 +1,12 @@
 # Compatibility
 
-Adjustability works on Minecraft 26.3 with **Fabric** (Fabric API, Forge Config API Port) and **NeoForge 26.3.0.95 or
-newer**, on both the client and the server.
+Adjustability works on Minecraft **1.21.1** and **26.3** with **Fabric** (Fabric API, Forge Config API Port) and
+**NeoForge** (21.1.1 or newer for 1.21.1, 26.3.0.95 or newer for 26.3), on both the client and the server. Both
+versions have the same features.
 
 ## Tested with
 
-These mods were installed alongside Adjustability 0.1.0 and the mod's full automated test suite was run: the anvil,
+These mods were installed alongside Adjustability 0.1.0 on 26.3 and the mod's full automated test suite was run: the anvil,
 grindstone and switching tests on the server, and on Fabric the client test that opens the inventory, uses the Adjust
 panel, the Cycle key, hold mode and the None row in a real game client.
 
@@ -27,8 +28,8 @@ On NeoForge, only the server-side tests ran with these mods; NeoForge has no cli
 - **Mods that replace the anvil entirely** can stop dormant enchantments from being made in it; switching still works
   on items that already have them, and `/adjustability add` adds them by command.
 - **Enchanting tables and `/enchant`** follow vanilla's conflicts, not the server's `[exclusivity]` rules.
-- **The creative inventory** has no Adjust panel (it uses a menu only the client knows); switch in survival, or use the
-  Cycle key or `/adjustability toggle`.
+- **The creative inventory:** the Adjust panel works on your own items (the hotbar, and every slot on the inventory
+  tab), not on the creative tabs' items.
 - **Keys:** Left Alt is the Adjust key by default. If another mod uses Left Alt in inventories, rebind one of them
   under Controls.
 

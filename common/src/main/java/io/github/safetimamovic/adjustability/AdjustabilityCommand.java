@@ -52,28 +52,36 @@ public final class AdjustabilityCommand
         {
         }
 
+        private static boolean gamemaster(CommandSourceStack source)
+        {
+                //? if >=1.21.11 {
+                return Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(source);
+                //?} else
+                /*return source.hasPermission(Commands.LEVEL_GAMEMASTERS);*/
+        }
+
         public static void register(CommandDispatcher<CommandSourceStack> dispatcher, CommandBuildContext context)
         {
                 LiteralArgumentBuilder<CommandSourceStack> root = Commands.literal(Constants.MOD_ID)
                         .executes(AdjustabilityCommand::clientOnly)
                         .then(Commands.literal("toggle")
                                 .requires(source -> AdjustabilityConfig.toggle().allowCommand()
-                                        || Commands.hasPermission(Commands.LEVEL_GAMEMASTERS).test(source))
+                                        || gamemaster(source))
                                 .then(Commands.argument("enchantment",
                                                 ResourceArgument.resource(context, Registries.ENCHANTMENT))
                                         .executes(AdjustabilityCommand::toggle)))
                         .then(Commands.literal("flatten")
-                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                .requires(AdjustabilityCommand::gamemaster)
                                 .executes(command -> flatten(command,
                                         List.of(command.getSource().getPlayerOrException())))
                                 .then(Commands.argument("targets", EntityArgument.players())
                                         .executes(command -> flatten(command,
                                                 EntityArgument.getPlayers(command, "targets")))))
                         .then(Commands.literal("inspect")
-                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                .requires(AdjustabilityCommand::gamemaster)
                                 .executes(AdjustabilityCommand::inspect))
                         .then(Commands.literal("add")
-                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
+                                .requires(AdjustabilityCommand::gamemaster)
                                 .then(Commands.argument("enchantment",
                                                 ResourceArgument.resource(context, Registries.ENCHANTMENT))
                                         .executes(command -> add(command, 1))

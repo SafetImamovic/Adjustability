@@ -64,8 +64,8 @@ Switching while breaking a block is fine: the drops come from what's active when
 counts both. An item that somehow has two conflicting enchantments active (from `/give` or another mod) is fixed the
 first time you switch it or use it in an anvil; nothing is lost, the extra one becomes dormant.
 
-The Adjust key doesn't work in the creative inventory, which shows items through a menu only your client knows about;
-switch to survival or use the command. Some combinations bring
+In the creative inventory the Adjust key works on your own items: the hotbar, and every slot on the inventory tab.
+Some combinations bring
 more than one enchantment back: on a trident, switching from Riptide to Loyalty also makes Channeling active again,
 because Loyalty and Channeling don't conflict with each other.
 

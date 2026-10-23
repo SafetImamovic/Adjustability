@@ -20,6 +20,9 @@ public final class ModSounds
 
         public static void register(ModRegistries.Registrar registrar)
         {
+                //? if >=26.1 {
                 registrar.register(Registries.SOUND_EVENT, SWITCH.location(), () -> SWITCH);
+                //?} else
+                /*registrar.register(Registries.SOUND_EVENT, SWITCH.getLocation(), () -> SWITCH);*/
         }
 }

@@ -1,6 +1,9 @@
 package io.github.safetimamovic.adjustability;
 
+//? if >=26.1 {
 import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry;
+//?} else
+/*import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;*/
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
@@ -30,22 +33,32 @@ public class AdjustabilityFabric implements ModInitializer
                         public <T> void register(ResourceKey<? extends Registry<T>> registry, Identifier id,
                                 Supplier<T> value)
                         {
+                                //? if >=26.1 {
                                 Registry<T> target = (Registry<T>) BuiltInRegistries.REGISTRY
                                         .getValueOrThrow((ResourceKey) registry);
+                                //?} else
+                                /*Registry<T> target = (Registry<T>) BuiltInRegistries.REGISTRY.getOrThrow((ResourceKey) registry);*/
                                 Registry.register(target, id, value.get());
                         }
                 });
+                //? if >=26.1 {
                 ConfigRegistry.INSTANCE.register(Constants.MOD_ID, ModConfig.Type.SERVER, CreatorConfig.SPEC,
                         CreatorConfig.FILE_NAME);
                 ConfigRegistry.INSTANCE.register(Constants.MOD_ID, ModConfig.Type.CLIENT, PlayerConfig.SPEC,
                         PlayerConfig.FILE_NAME);
+                var payloads = PayloadTypeRegistry.serverboundPlay();
+                //?} else {
+                /*NeoForgeConfigRegistry.INSTANCE.register(Constants.MOD_ID, ModConfig.Type.SERVER, CreatorConfig.SPEC,
+                        CreatorConfig.FILE_NAME);
+                NeoForgeConfigRegistry.INSTANCE.register(Constants.MOD_ID, ModConfig.Type.CLIENT, PlayerConfig.SPEC,
+                        PlayerConfig.FILE_NAME);
+                var payloads = PayloadTypeRegistry.playC2S();
+                *///?}
 
-                PayloadTypeRegistry.serverboundPlay().register(ToggleEnchantmentPayload.TYPE,
-                        ToggleEnchantmentPayload.STREAM_CODEC);
+                payloads.register(ToggleEnchantmentPayload.TYPE, ToggleEnchantmentPayload.STREAM_CODEC);
                 ServerPlayNetworking.registerGlobalReceiver(ToggleEnchantmentPayload.TYPE,
                         (payload, context) -> ToggleNetwork.onToggle(context.player(), payload));
-                PayloadTypeRegistry.serverboundPlay().register(CycleEnchantmentPayload.TYPE,
-                        CycleEnchantmentPayload.STREAM_CODEC);
+                payloads.register(CycleEnchantmentPayload.TYPE, CycleEnchantmentPayload.STREAM_CODEC);
                 ServerPlayNetworking.registerGlobalReceiver(CycleEnchantmentPayload.TYPE,
                         (payload, context) -> ToggleNetwork.onCycle(context.player(), payload));
 

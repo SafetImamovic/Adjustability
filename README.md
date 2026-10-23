@@ -23,7 +23,7 @@
   <a href="https://github.com/SafetImamovic/Adjustability/issues/new/choose"><b>Report a bug</b></a>
 </p>
 
-Minecraft Java **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
+Minecraft Java **1.21.1** and **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
 
 <p align="center">
   <img src="docs/public/screenshots/showcase.gif" alt="A netherite pickaxe gets Silk Touch from a book in an anvil and keeps Fortune; switched to Fortune in the Adjust panel it mines diamonds, switched to Silk Touch it mines the ore blocks" width="640">
@@ -31,7 +31,7 @@ Minecraft Java **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
 
 - **Fabric:** needs [Fabric API](https://modrinth.com/mod/fabric-api) and
   [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port).
-- **NeoForge:** 26.3.0.95 or newer, nothing extra.
+- **NeoForge:** 21.1.1 (1.21.1) or 26.3.0.95 (26.3) or newer, nothing extra.
 - Install on both the client and the server. Works with Easy Anvils, JEI, Mouse Tweaks and more:
   [compatibility](https://safetimamovic.github.io/Adjustability/guide/compatibility).
 
@@ -106,12 +106,12 @@ ones for good, run `/adjustability flatten @a` with everyone online first. Detai
 Requires JDK 25.
 
 ```sh
-./gradlew build                     # jars in fabric/build/libs and neoforge/build/libs
-./gradlew :graph:test               # unit tests
-./gradlew :fabric:runClient         # dev client (Fabric)
-./gradlew :neoforge:runClient       # dev client (NeoForge); :neoforge:runClient2 for a second one
-./gradlew :fabric:runServer         # dedicated server
-./gradlew :fabric:runClient --debug-jvm   # wait for a debugger on port 5005
+./gradlew build                                # jars in {fabric,neoforge}/versions/<minecraft version>/build/libs
+./gradlew :graph:test                          # unit tests
+./gradlew :fabric:26.3:runClient               # dev client (Fabric)
+./gradlew :neoforge:26.3:runClient             # dev client (NeoForge); :neoforge:26.3:runClient2 for a second one
+./gradlew :fabric:26.3:runServer               # dedicated server
+./gradlew :fabric:26.3:runClient --debug-jvm   # wait for a debugger on port 5005
 ```
 
 ## Layout

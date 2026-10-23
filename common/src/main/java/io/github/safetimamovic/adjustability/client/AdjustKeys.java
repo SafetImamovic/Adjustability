@@ -7,7 +7,12 @@ import net.minecraft.client.KeyMapping;
 /** Key mappings, in their own Controls category; each loader registers them. */
 public final class AdjustKeys
 {
+        //? if >=26.1 {
         public static final KeyMapping.Category CATEGORY = new KeyMapping.Category(Constants.id("controls"));
+        //?} else {
+        /*// Before key categories were registered, a category was its translation key.
+        public static final String CATEGORY = "key.category." + Constants.MOD_ID + ".controls";
+        *///?}
 
         /** While hovering an item in an inventory: pins the Adjust panel next to it. */
         public static final KeyMapping ADJUST = new KeyMapping(name("adjust"), InputConstants.KEY_LALT, CATEGORY);

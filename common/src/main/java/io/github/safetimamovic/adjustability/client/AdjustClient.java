@@ -15,8 +15,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.player.LocalPlayer;
+//? if >=26.1 {
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
@@ -72,7 +76,10 @@ public final class AdjustClient
         {
                 while (AdjustKeys.CYCLE.consumeClick())
                 {
+                        //? if >=26.1 {
                         if (minecraft.player == null || minecraft.level == null || minecraft.gui.screen() != null)
+                        //?} else
+                        /*if (minecraft.player == null || minecraft.level == null || minecraft.screen != null)*/
                         {
                                 continue;
                         }
@@ -85,7 +92,10 @@ public final class AdjustClient
                         if (minecraft.player.isShiftKeyDown())
                         {
                                 cycleGroup = (cycleGroup + 1) % groups.size();
+                                //? if >=26.1 {
                                 minecraft.gui.hud.setOverlayMessage(Component.translatable("adjustability.cycle.group",
+                                //?} else
+                                /*minecraft.gui.setOverlayMessage(Component.translatable("adjustability.cycle.group",*/
                                         names(groups.get(cycleGroup))), false);
                                 continue;
                         }
@@ -137,13 +147,21 @@ public final class AdjustClient
          *
          * @return whether the key was used
          */
+        //? if >=26.1 {
         public static boolean onKey(AbstractContainerScreen<?> screen, @Nullable Slot hovered, int leftPos, int topPos,
                 KeyEvent event)
         {
-                AdjustPanel open = panel(screen);
                 boolean adjustKey = AdjustKeys.ADJUST.matches(event);
+                int key = event.key();
+        //?} else {
+        /*public static boolean onKey(AbstractContainerScreen<?> screen, @Nullable Slot hovered, int leftPos, int topPos,
+                int key, int scanCode)
+        {
+                boolean adjustKey = AdjustKeys.ADJUST.matches(key, scanCode);
+        *///?}
+                AdjustPanel open = panel(screen);
                 boolean toggle = activation() == PanelActivation.TOGGLE;
-                if (open != null && (event.key() == InputConstants.KEY_ESCAPE
+                if (open != null && (key == InputConstants.KEY_ESCAPE
                         || adjustKey && toggle && (hovered == null || hovered.index == open.slot())))
                 {
                         panel = null;
@@ -159,8 +177,12 @@ public final class AdjustClient
                         return false;
                 }
                 Minecraft minecraft = Minecraft.getInstance();
-                // The creative inventory shows items through a client-only menu the server knows nothing about.
                 if (minecraft.player == null || screen.getMenu() != minecraft.player.containerMenu)
+                {
+                        return false;
+                }
+                int[] serverSlot = serverSlot(screen, hovered, minecraft.player);
+                if (serverSlot == null)
                 {
                         return false;
                 }
@@ -171,9 +193,33 @@ public final class AdjustClient
                         return false;
                 }
                 AdjustPanel opened = new AdjustPanel(screen, screen.getMenu().containerId, hovered.index,
-                        leftPos + hovered.x + 16, topPos + hovered.y);
+                        serverSlot[0], serverSlot[1], leftPos + hovered.x + 16, topPos + hovered.y);
                 panel = opened.refresh(minecraft.font) ? opened : null;
                 return panel != null;
+        }
+
+        /**
+         * Where the server finds the hovered item: its open menu's id and the slot's index in it, or null if the
+         * server doesn't have the item. The creative inventory is a menu only the client knows (it makes itself the
+         * player's open menu there, while the server keeps the player's inventory menu), so its slots are matched to
+         * the inventory menu's by the item they show: the hotbar, and on the inventory tab every slot, show the
+         * player's own stacks. The creative tabs' items aren't the player's and match nothing.
+         */
+        private static int @Nullable [] serverSlot(AbstractContainerScreen<?> screen, Slot hovered, LocalPlayer player)
+        {
+                if (!(screen instanceof CreativeModeInventoryScreen))
+                {
+                        return new int[]{screen.getMenu().containerId, hovered.index};
+                }
+                ItemStack item = hovered.getItem();
+                for (Slot slot : player.inventoryMenu.slots)
+                {
+                        if (slot.getItem() == item)
+                        {
+                                return new int[]{player.inventoryMenu.containerId, slot.index};
+                        }
+                }
+                return null;
         }
 
         /**
@@ -181,9 +227,16 @@ public final class AdjustClient
          *
          * @return whether the key was used
          */
+        //? if >=26.1 {
         public static boolean onKeyReleased(AbstractContainerScreen<?> screen, KeyEvent event)
         {
-                if (panel(screen) == null || !AdjustKeys.ADJUST.matches(event)
+                boolean adjustKey = AdjustKeys.ADJUST.matches(event);
+        //?} else {
+        /*public static boolean onKeyReleased(AbstractContainerScreen<?> screen, int key, int scanCode)
+        {
+                boolean adjustKey = AdjustKeys.ADJUST.matches(key, scanCode);
+        *///?}
+                if (panel(screen) == null || !adjustKey
                         || activation() != PanelActivation.HOLD)
                 {
                         return false;
@@ -199,20 +252,28 @@ public final class AdjustClient
          *
          * @return whether the click was used
          */
+        //? if >=26.1 {
         public static boolean onMouseClicked(AbstractContainerScreen<?> screen, MouseButtonEvent event)
         {
+                double x = event.x();
+                double y = event.y();
+                int button = event.button();
+        //?} else {
+        /*public static boolean onMouseClicked(AbstractContainerScreen<?> screen, double x, double y, int button)
+        {
+        *///?}
                 AdjustPanel open = panel(screen);
                 if (open == null)
                 {
                         return false;
                 }
-                if (!open.contains(event.x(), event.y()))
+                if (!open.contains(x, y))
                 {
                         panel = null;
                 }
-                else if (event.button() == InputConstants.MOUSE_BUTTON_LEFT)
+                else if (button == InputConstants.MOUSE_BUTTON_LEFT)
                 {
-                        open.click(event.x(), event.y());
+                        open.click(x, y);
                 }
                 swallowRelease = true;
                 return true;

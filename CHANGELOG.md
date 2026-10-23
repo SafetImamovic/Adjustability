@@ -5,6 +5,16 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Added
+
+- Minecraft 1.21.1, on Fabric and NeoForge (21.1.1 or newer), with the same features as 26.3. Its server config is
+  per world, in `serverconfig/`.
+
+### Fixed
+
+- In the creative inventory, clicks on the Adjust panel did nothing (the switch went to the wrong slot) or changed the
+  creative tab under it. The panel now works there on your own items: the hotbar, and the inventory tab.
+
 ## [0.2.0] - 2026-10-23
 
 ### Added

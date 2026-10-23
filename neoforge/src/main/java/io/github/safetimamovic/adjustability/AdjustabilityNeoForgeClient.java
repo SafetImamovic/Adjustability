@@ -13,7 +13,10 @@ import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+//? if >=26.1 {
 import net.neoforged.neoforge.client.network.ClientPacketDistributor;
+//?} else
+/*import net.neoforged.neoforge.network.PacketDistributor;*/
 import net.neoforged.neoforge.common.NeoForge;
 
 /** Client-only setup (key mappings, the Adjust panel, client commands), so dedicated servers never load it. */
@@ -22,13 +25,17 @@ public class AdjustabilityNeoForgeClient
 {
         public AdjustabilityNeoForgeClient(IEventBus modEventBus, ModContainer container)
         {
+                //? if >=26.1 {
                 AdjustClient.init(ClientPacketDistributor::sendToServer);
+                //?} else
+                /*AdjustClient.init(payload -> PacketDistributor.sendToServer(payload));*/
                 container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
                 AdjustabilityClientCommand.init(parent -> new ConfigurationScreen(container, parent));
                 NeoForge.EVENT_BUS.addListener((RegisterClientCommandsEvent event) -> AdjustabilityClientCommand
                         .register(event.getDispatcher()));
                 modEventBus.addListener((RegisterKeyMappingsEvent event) ->
                 {
+                        //? if >=26.1
                         event.registerCategory(AdjustKeys.CATEGORY);
                         event.register(AdjustKeys.ADJUST);
                         event.register(AdjustKeys.CYCLE);

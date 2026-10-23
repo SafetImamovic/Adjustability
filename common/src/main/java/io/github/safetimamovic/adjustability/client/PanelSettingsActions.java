@@ -26,7 +26,12 @@ final class PanelSettingsActions<S> implements PanelCommand.Actions<S>
                         Object value = PlayerConfig.current(setting);
                         MutableComponent line = Component.literal("  " + name + ": ")
                                 .withStyle(style -> style.withColor(ChatFormatting.AQUA)
-                                        .withClickEvent(new ClickEvent.SuggestCommand(command)))
+                                        .withClickEvent(
+                                //? if >=1.21.5 {
+                                new ClickEvent.SuggestCommand(command)
+                                //?} else
+                                /*new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command)*/
+                        ))
                                 .append(Component.literal(String.valueOf(value)).withStyle(this.valueStyle(value)));
                         chat(line);
                 }
@@ -87,6 +92,9 @@ final class PanelSettingsActions<S> implements PanelCommand.Actions<S>
 
         private static void chat(Component message)
         {
+                //? if >=26.1 {
                 Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(message);
+                //?} else
+                /*Minecraft.getInstance().gui.getChat().addMessage(message);*/
         }
 }

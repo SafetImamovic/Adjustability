@@ -998,7 +998,7 @@ Settled 2026-10-22:
   their conflict partner (§6.2 polish, M6).
 - Server config `[anvil]` + `[grindstone]` through Forge Config API Port; commands `inspect`, `add`.
 - 6 GameTests (vanilla framework, mock survival player driving the real menus) pass on both loaders:
-  `./gradlew :fabric:runGametest :neoforge:runGameTestServer`, also in CI. They need no EULA.
+  `./gradlew :fabric:26.3:runGametest :neoforge:26.3:runGameTestServer`, also in CI. They need no EULA.
 
 ### M2 state (switching, 2026-10-22)
 
@@ -1020,7 +1020,7 @@ Settled 2026-10-22:
 - Cycle key: steps the first conflict group of the main-hand item (`ConflictGraph.next`). **Not done:** choosing
   another group (§9.2's modifier), blocking switches mid-block-break (§13).
 - Tests: 13 GameTests (6 new: switch, trident auto fill, refusal, cooldown, payload slot checks, cycle) on both loaders,
-  and one **Fabric client GameTest** (`./gradlew :fabric:runClientGametest`) that opens the inventory in a real client,
+  and one **Fabric client GameTest** (`./gradlew :fabric:26.3:runClientGametest`) that opens the inventory in a real client,
   hovers, presses Left Alt, clicks the Silk Touch row, checks the server (switched, inventory still open, nothing
   picked up), closes the panel with Left Alt, and saves screenshots. NeoForge has no client test
   framework; its client was checked to start, and the screen code is the same common code. The client test isn't in

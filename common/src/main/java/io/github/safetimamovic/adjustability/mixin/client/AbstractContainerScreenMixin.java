@@ -4,8 +4,10 @@ import io.github.safetimamovic.adjustability.client.AdjustClient;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+//? if >=26.1 {
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.inventory.Slot;
 import org.jspecify.annotations.Nullable;
@@ -43,11 +45,20 @@ abstract class AbstractContainerScreenMixin extends Screen
          * The container screen doesn't handle key releases itself, so this adds it: HOLD mode closes the panel when
          * the Adjust key is let go. Everything else goes on to the screen as before.
          */
+        //? if >=26.1 {
         @Override
         public boolean keyReleased(KeyEvent event)
         {
                 return AdjustClient.onKeyReleased(this.adjustability$self(), event) || super.keyReleased(event);
         }
+        //?} else {
+        /*@Override
+        public boolean keyReleased(int key, int scanCode, int modifiers)
+        {
+                return AdjustClient.onKeyReleased(this.adjustability$self(), key, scanCode)
+                        || super.keyReleased(key, scanCode, modifiers);
+        }
+        *///?}
 
         @Unique
         private AbstractContainerScreen<?> adjustability$self()
@@ -55,6 +66,7 @@ abstract class AbstractContainerScreenMixin extends Screen
                 return (AbstractContainerScreen<?>) (Object) this;
         }
 
+        //? if >=26.1 {
         @Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
         private void adjustability$adjustKey(KeyEvent event, CallbackInfoReturnable<Boolean> cir)
         {
@@ -77,12 +89,37 @@ abstract class AbstractContainerScreenMixin extends Screen
         @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
         private void adjustability$panelRelease(MouseButtonEvent event, CallbackInfoReturnable<Boolean> cir)
         {
+        //?} else {
+        /*@Inject(method = "keyPressed", at = @At("HEAD"), cancellable = true)
+        private void adjustability$adjustKey(int key, int scanCode, int modifiers, CallbackInfoReturnable<Boolean> cir)
+        {
+                if (AdjustClient.onKey(this.adjustability$self(), this.hoveredSlot, this.leftPos, this.topPos, key,
+                        scanCode))
+                {
+                        cir.setReturnValue(true);
+                }
+        }
+
+        @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
+        private void adjustability$panelClick(double x, double y, int button, CallbackInfoReturnable<Boolean> cir)
+        {
+                if (AdjustClient.onMouseClicked(this.adjustability$self(), x, y, button))
+                {
+                        cir.setReturnValue(true);
+                }
+        }
+
+        @Inject(method = "mouseReleased", at = @At("HEAD"), cancellable = true)
+        private void adjustability$panelRelease(double x, double y, int button, CallbackInfoReturnable<Boolean> cir)
+        {
+        *///?}
                 if (AdjustClient.onMouseReleased())
                 {
                         cir.setReturnValue(true);
                 }
         }
 
+        //? if >=26.1 {
         @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
         private void adjustability$noScrollUnderPanel(double x, double y, double scrollX, double scrollY,
                 CallbackInfoReturnable<Boolean> cir)
@@ -92,12 +129,23 @@ abstract class AbstractContainerScreenMixin extends Screen
                         cir.setReturnValue(true);
                 }
         }
+        //?} else {
+        /*// The container screen doesn't override mouseScrolled here, so this adds it, like keyReleased.
+        @Override
+        public boolean mouseScrolled(double x, double y, double scrollX, double scrollY)
+        {
+                return AdjustClient.isPanelOpen(this.adjustability$self()) || super.mouseScrolled(x, y, scrollX, scrollY);
+        }
+        *///?}
 
         /**
          * Every container screen draws its item tooltip last, including the recipe book screens that skip this class's
          * extractRenderState. So the panel is drawn there, in place of the tooltip.
          */
+        //? if >=26.1 {
         @Inject(method = "extractTooltip", at = @At("HEAD"), cancellable = true)
+        //?} else
+        /*@Inject(method = "renderTooltip", at = @At("HEAD"), cancellable = true)*/
         private void adjustability$panelInsteadOfTooltip(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
                 CallbackInfo ci)
         {

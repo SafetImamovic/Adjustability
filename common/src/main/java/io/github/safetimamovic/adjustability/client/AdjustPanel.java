@@ -52,6 +52,9 @@ public final class AdjustPanel
         private final AbstractContainerScreen<?> screen;
         private final int containerId;
         private final int slot;
+        /** The same item in the menu the server has open; only differs from the above in the creative inventory. */
+        private final int serverContainerId;
+        private final int serverSlot;
         /** Top-right corner of the slot, in screen coordinates. */
         private final int slotRight;
         private final int slotTop;
@@ -65,11 +68,14 @@ public final class AdjustPanel
         private final List<Component> groupCosts = new ArrayList<>();
         private Component footer = Component.empty();
 
-        AdjustPanel(AbstractContainerScreen<?> screen, int containerId, int slot, int slotRight, int slotTop)
+        AdjustPanel(AbstractContainerScreen<?> screen, int containerId, int slot, int serverContainerId, int serverSlot,
+                int slotRight, int slotTop)
         {
                 this.screen = screen;
                 this.containerId = containerId;
                 this.slot = slot;
+                this.serverContainerId = serverContainerId;
+                this.serverSlot = serverSlot;
                 this.slotRight = slotRight;
                 this.slotTop = slotTop;
         }
@@ -198,7 +204,13 @@ public final class AdjustPanel
         void render(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY)
         {
                 PanelStyle style = AdjustabilityConfig.player().panel();
+                //? if >=26.1 {
                 graphics.nextStratum();
+                //?} else {
+                /*// Above the items and their counts, where tooltips draw.
+                graphics.pose().pushPose();
+                graphics.pose().translate(0, 0, 400);
+                *///?}
                 int right = this.x + this.width;
                 int bottom = this.y + this.height;
                 graphics.fill(this.x, this.y, right, bottom, style.background());
@@ -248,6 +260,8 @@ public final class AdjustPanel
                         graphics.text(font, this.footer, this.x + PADDING, bottom - PADDING - font.lineHeight + 1,
                                 FOOTER_TEXT, false);
                 }
+                //? if <26.1
+                /*graphics.pose().popPose();*/
         }
 
         /** The line between conflict groups: the top border's color, a quarter as opaque. */
@@ -286,7 +300,7 @@ public final class AdjustPanel
         {
                 this.rowAt(mouseX, mouseY).filter(row -> !row.active()).ifPresent(row -> row.enchantment().unwrapKey()
                         .ifPresent(key -> AdjustClient.send(
-                                new ToggleEnchantmentPayload(this.containerId, this.slot, key, row.none()))));
+                                new ToggleEnchantmentPayload(this.serverContainerId, this.serverSlot, key, row.none()))));
         }
 
         /** Centre of an enchantment's row, in screen coordinates; for the client GameTest. */

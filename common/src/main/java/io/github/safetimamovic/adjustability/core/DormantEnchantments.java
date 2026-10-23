@@ -36,7 +36,10 @@ public final class DormantEnchantments
         public static boolean has(DataComponentGetter components)
         {
                 CustomData data = components.get(DataComponents.CUSTOM_DATA);
+                //? if >=1.21.5 {
                 return data != null && !data.isEmpty() && data.copyTag().getCompoundOrEmpty(KEY).size() > 0;
+                //?} else
+                /*return data != null && !data.isEmpty() && data.copyTag().getCompound(KEY).size() > 0;*/
         }
 
         /** The item's dormant enchantments. Ids that aren't (or are no longer) enchantments are left out. */
@@ -47,16 +50,25 @@ public final class DormantEnchantments
                 {
                         return ItemEnchantments.EMPTY;
                 }
+                //? if >=1.21.5 {
                 CompoundTag dormant = data.copyTag().getCompoundOrEmpty(KEY);
+                //?} else
+                /*CompoundTag dormant = data.copyTag().getCompound(KEY);*/
                 if (dormant.isEmpty())
                 {
                         return ItemEnchantments.EMPTY;
                 }
                 HolderLookup.RegistryLookup<Enchantment> enchantments = registries.lookupOrThrow(Registries.ENCHANTMENT);
                 ItemEnchantments.Mutable result = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+                //? if >=1.21.5 {
                 for (String id : dormant.keySet())
+                //?} else
+                /*for (String id : dormant.getAllKeys())*/
                 {
+                        //? if >=1.21.5 {
                         int level = dormant.getIntOr(id, 0);
+                        //?} else
+                        /*int level = dormant.getInt(id);*/
                         Optional<Holder.Reference<Enchantment>> enchantment = Optional.ofNullable(Identifier.tryParse(id))
                                 .flatMap(parsed -> enchantments.get(ResourceKey.create(Registries.ENCHANTMENT, parsed)));
                         if (enchantment.isPresent() && level > 0)
