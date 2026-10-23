@@ -48,15 +48,22 @@ cd Adjustability
 Useful tasks:
 
 ```sh
-./gradlew :graph:test               # unit tests
-./gradlew :fabric:runClient         # dev client (Fabric)
-./gradlew :neoforge:runClient       # dev client (NeoForge)
-./gradlew :fabric:runServer         # dedicated server — test multiplayer features here
-./gradlew :fabric:runClient --debug-jvm   # waits for a debugger on port 5005
+./gradlew :graph:test                          # unit tests
+./gradlew :fabric:26.3:runClient               # dev client (Fabric)
+./gradlew :neoforge:26.3:runClient             # dev client (NeoForge)
+./gradlew :fabric:26.3:runServer               # dedicated server — test multiplayer features here
+./gradlew :fabric:26.3:runClient --debug-jvm   # waits for a debugger on port 5005
 ```
 
+**Minecraft versions:** the build uses [Stonecutter](https://stonecutter.kikugie.dev). `common`, `fabric` and
+`neoforge` each have one project per Minecraft version (`:fabric:26.3`), all built from that folder's `src/`. What
+changes with the version (dependency versions, Java) is in `versions/<minecraft version>/gradle.properties`, and jars
+land in `<folder>/versions/<minecraft version>/build/libs`. `src/` is written for the active version set in
+`stonecutter.gradle`; code that differs between versions goes in `//? if` comments
+([Stonecutter's syntax](https://stonecutter.kikugie.dev/wiki/start/comments)).
+
 **Docs site:** the guide in `docs/guide` is also a [VitePress](https://vitepress.dev) site, deployed to GitHub Pages
-from `master`. Previewing it needs Node 24:
+with each release tag (or by hand: Actions → Docs → Run workflow). Previewing it needs Node 24:
 
 ```sh
 npm ci
@@ -202,15 +209,15 @@ If you add something players will notice, add a line under `## [Unreleased]` in 
 - **Unit tests** (JUnit 5, `graph/src/test`) for pure logic — conflict graphs, toggling. The `graph` module has no Minecraft imports so it stays testable; keep it that way.
 - **GameTests** for in-game behavior (e.g. "a Silk Touch book on a Fortune pickaxe makes Silk Touch dormant").
 - **Generated docs:** `docs/reference/` is written from the code (config specs, the enchantment registry). The
-  `generated_docs` GameTest fails when it's out of date; regenerate with `./gradlew :fabric:runGametest -PwriteDocs`.
+  `generated_docs` GameTest fails when it's out of date; regenerate with `./gradlew :fabric:26.3:runGametest -PwriteDocs`.
   `hand_written_docs` checks that `guide/server-config.md` lists every setting with its real default and that every
   setting has a name in `en_us.json`.
-- **Client GameTests** (`./gradlew :fabric:runClientGametest`, not in CI) drive a real client and save screenshots to
-  `fabric/runs/clientgametest/screenshots`. `SwitchGifClientGameTest` records the frames of
+- **Client GameTests** (`./gradlew :fabric:26.3:runClientGametest`, not in CI) drive a real client and save screenshots to
+  `fabric/versions/26.3/runs/clientgametest/screenshots`. `SwitchGifClientGameTest` records the frames of
   `docs/public/screenshots/switch.gif`; rebuild it from that folder with:
 
   ```sh
-  set -- *gif_*.png && ffmpeg -y -loop 1 -t 1.8 -i $1 -loop 1 -t 1.0 -i $2 -loop 1 -t 0.9 -i $3     -loop 1 -t 1.2 -i $4 -loop 1 -t 2.4 -i $5 -filter_complex "[0][1][2][3][4]concat=n=5:v=1:a=0,fps=10,  crop=448:414:236:66,split[a][b];[a]palettegen=max_colors=128:stats_mode=full[p];[b][p]paletteuse=dither=none"     -loop 0 ../../../../docs/public/screenshots/switch.gif
+  set -- *gif_*.png && ffmpeg -y -loop 1 -t 1.8 -i $1 -loop 1 -t 1.0 -i $2 -loop 1 -t 0.9 -i $3     -loop 1 -t 1.2 -i $4 -loop 1 -t 2.4 -i $5 -filter_complex "[0][1][2][3][4]concat=n=5:v=1:a=0,fps=10,  crop=448:414:236:66,split[a][b];[a]palettegen=max_colors=128:stats_mode=full[p];[b][p]paletteuse=dither=none"     -loop 0 ../../../../../../docs/public/screenshots/switch.gif
   ```
 
   `showcase.gif` (README, docs home, Modrinth) is filmed by hand; from a screen recording:
