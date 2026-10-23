@@ -36,7 +36,7 @@ features:
     linkText: How it works
 ---
 
-![The Adjust panel next to a pickaxe: Fortune III active, Silk Touch dormant](/screenshots/adjust-panel.png)
+![Switching a netherite pickaxe from Fortune III to Silk Touch: hover it, Left Alt, click Silk Touch](/screenshots/switch.gif)
 
 ::: info Beta
 0.1.0 is the first beta: everything here works and is tested, and settings may still change before 1.0.
