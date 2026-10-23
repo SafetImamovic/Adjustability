@@ -26,7 +26,7 @@
 Minecraft Java **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
 
 <p align="center">
-  <img src="docs/public/screenshots/adjust-panel.png" alt="The Adjust panel next to a pickaxe: Fortune III active, Silk Touch dormant" width="640">
+  <img src="docs/public/screenshots/switch.gif" alt="Switching a netherite pickaxe from Fortune III to Silk Touch: hover it, Left Alt, click Silk Touch" width="448">
 </p>
 
 - **Fabric:** needs [Fabric API](https://modrinth.com/mod/fabric-api) and

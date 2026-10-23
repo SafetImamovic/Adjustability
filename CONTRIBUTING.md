@@ -204,6 +204,13 @@ If you add something players will notice, add a line under `## [Unreleased]` in 
   `generated_docs` GameTest fails when it's out of date; regenerate with `./gradlew :fabric:runGametest -PwriteDocs`.
   `hand_written_docs` checks that `guide/server-config.md` lists every setting with its real default and that every
   setting has a name in `en_us.json`.
+- **Client GameTests** (`./gradlew :fabric:runClientGametest`, not in CI) drive a real client and save screenshots to
+  `fabric/runs/clientgametest/screenshots`. `SwitchGifClientGameTest` records the frames of
+  `docs/public/screenshots/switch.gif`; rebuild it from that folder with:
+
+  ```sh
+  set -- *gif_*.png && ffmpeg -y -loop 1 -t 1.8 -i $1 -loop 1 -t 1.0 -i $2 -loop 1 -t 0.9 -i $3     -loop 1 -t 1.2 -i $4 -loop 1 -t 2.4 -i $5 -filter_complex "[0][1][2][3][4]concat=n=5:v=1:a=0,fps=10,  crop=448:414:236:66,split[a][b];[a]palettegen=max_colors=128:stats_mode=full[p];[b][p]paletteuse=dither=none"     -loop 0 ../../../../docs/public/screenshots/switch.gif
+  ```
 - **Manual testing:** for multiplayer features, run a dedicated server and connect two clients.
 - Bug fixes should come with a test that fails without the fix whenever practical.
 
