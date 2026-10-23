@@ -5,6 +5,8 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-10-23
+
 ### Added
 
 - A sound on each switch (`adjustability:item.switch`, replaceable by resource packs; `[toggle] play_sound`).
