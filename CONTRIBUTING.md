@@ -270,8 +270,9 @@ Maintainers only.
    release go live with it. Versions with a `-` (like `0.2.0-beta.1`) and every `0.x` version are marked as
    pre-releases (Beta on Modrinth).
 4. The same workflow then publishes one Modrinth version per Minecraft version and loader: the mod jar with its sources
-   jar, the changelog section, and on Fabric the required Fabric API and Forge Config API Port. Adding a Minecraft
-   version means adding it to that job's matrix in `.github/workflows/release.yml`.
+   jar, the changelog section, and on Fabric the required Fabric API and Forge Config API Port
+   (`.github/workflows/modrinth.yml`; adding a Minecraft version means adding it to its matrix). To publish a release
+   that's already on GitHub: Actions → Modrinth → Run workflow, with its tag.
 
    One-time setup, without which this step is skipped: the repository variable `MODRINTH_ID` (the project's ID, from
    the three-dot menu on its Modrinth page) and the secret `MODRINTH_TOKEN` (a Modrinth personal access token with the
