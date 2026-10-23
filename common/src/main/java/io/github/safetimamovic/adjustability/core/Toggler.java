@@ -244,7 +244,10 @@ public final class Toggler
                                         player.level().registryAccess())));
                         default -> Component.translatable("adjustability.toggle." + outcome.key());
                 };
+                //? if >=26.1 {
                 player.sendOverlayMessage(message);
+                //?} else
+                /*player.displayClientMessage(message, true);*/
         }
 
         /** "1 level", "3 Lapis Lazuli", ...; for the Adjust panel and messages. */
@@ -258,7 +261,10 @@ public final class Toggler
                         case XP_POINTS -> Component.translatable("adjustability.cost.points", amount);
                         case DURABILITY -> Component.translatable("adjustability.cost.durability", amount);
                         case ITEM -> Component.translatable("adjustability.cost.item", amount,
+                                //? if >=26.1 {
                                 BuiltInRegistries.ITEM.getValue(cost.item()).getDefaultInstance().getHoverName());
+                                //?} else
+                                /*BuiltInRegistries.ITEM.get(cost.item()).getDefaultInstance().getHoverName());*/
                 };
         }
 
@@ -314,9 +320,10 @@ public final class Toggler
                         }
                         case ITEM ->
                         {
-                                Item item = BuiltInRegistries.ITEM.getValue(cost.item());
                                 var inventory = player.getInventory();
                                 var crafting = player.inventoryMenu.getCraftSlots();
+                                //? if >=26.1 {
+                                Item item = BuiltInRegistries.ITEM.getValue(cost.item());
                                 if (inventory.clearOrCountMatchingItems(candidate -> candidate.is(item), true, amount,
                                         crafting) < amount)
                                 {
@@ -324,6 +331,16 @@ public final class Toggler
                                 }
                                 inventory.clearOrCountMatchingItems(candidate -> candidate.is(item), false, amount,
                                         crafting);
+                                //?} else {
+                                /*Item item = BuiltInRegistries.ITEM.get(cost.item());
+                                // A count of 0 only counts.
+                                if (inventory.clearOrCountMatchingItems(candidate -> candidate.is(item), 0, crafting)
+                                        < amount)
+                                {
+                                        return false;
+                                }
+                                inventory.clearOrCountMatchingItems(candidate -> candidate.is(item), amount, crafting);
+                                *///?}
                                 return true;
                         }
                 }

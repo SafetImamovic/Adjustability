@@ -2,12 +2,13 @@
   "required": true,
   "minVersion": "0.8",
   "package": "io.github.safetimamovic.adjustability.mixin",
-  "compatibilityLevel": "JAVA_25",
+  "compatibilityLevel": "JAVA_${java_version}",
   "mixins": [
     "AnvilMenuMixin",
     "GrindstoneMenuMixin",
     "GrindstoneResultSlotMixin",
-    "ItemEnchantmentsMixin"
+    "ItemEnchantmentsMixin",
+    "ItemStackTooltipMixin"
   ],
   "client": [
     "client.AbstractContainerScreenMixin"

@@ -15,8 +15,10 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+//? if >=26.1 {
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
+//?}
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
@@ -72,7 +74,10 @@ public final class AdjustClient
         {
                 while (AdjustKeys.CYCLE.consumeClick())
                 {
+                        //? if >=26.1 {
                         if (minecraft.player == null || minecraft.level == null || minecraft.gui.screen() != null)
+                        //?} else
+                        /*if (minecraft.player == null || minecraft.level == null || minecraft.screen != null)*/
                         {
                                 continue;
                         }
@@ -85,7 +90,10 @@ public final class AdjustClient
                         if (minecraft.player.isShiftKeyDown())
                         {
                                 cycleGroup = (cycleGroup + 1) % groups.size();
+                                //? if >=26.1 {
                                 minecraft.gui.hud.setOverlayMessage(Component.translatable("adjustability.cycle.group",
+                                //?} else
+                                /*minecraft.gui.setOverlayMessage(Component.translatable("adjustability.cycle.group",*/
                                         names(groups.get(cycleGroup))), false);
                                 continue;
                         }
@@ -137,13 +145,21 @@ public final class AdjustClient
          *
          * @return whether the key was used
          */
+        //? if >=26.1 {
         public static boolean onKey(AbstractContainerScreen<?> screen, @Nullable Slot hovered, int leftPos, int topPos,
                 KeyEvent event)
         {
-                AdjustPanel open = panel(screen);
                 boolean adjustKey = AdjustKeys.ADJUST.matches(event);
+                int key = event.key();
+        //?} else {
+        /*public static boolean onKey(AbstractContainerScreen<?> screen, @Nullable Slot hovered, int leftPos, int topPos,
+                int key, int scanCode)
+        {
+                boolean adjustKey = AdjustKeys.ADJUST.matches(key, scanCode);
+        *///?}
+                AdjustPanel open = panel(screen);
                 boolean toggle = activation() == PanelActivation.TOGGLE;
-                if (open != null && (event.key() == InputConstants.KEY_ESCAPE
+                if (open != null && (key == InputConstants.KEY_ESCAPE
                         || adjustKey && toggle && (hovered == null || hovered.index == open.slot())))
                 {
                         panel = null;
@@ -181,9 +197,16 @@ public final class AdjustClient
          *
          * @return whether the key was used
          */
+        //? if >=26.1 {
         public static boolean onKeyReleased(AbstractContainerScreen<?> screen, KeyEvent event)
         {
-                if (panel(screen) == null || !AdjustKeys.ADJUST.matches(event)
+                boolean adjustKey = AdjustKeys.ADJUST.matches(event);
+        //?} else {
+        /*public static boolean onKeyReleased(AbstractContainerScreen<?> screen, int key, int scanCode)
+        {
+                boolean adjustKey = AdjustKeys.ADJUST.matches(key, scanCode);
+        *///?}
+                if (panel(screen) == null || !adjustKey
                         || activation() != PanelActivation.HOLD)
                 {
                         return false;
@@ -199,20 +222,28 @@ public final class AdjustClient
          *
          * @return whether the click was used
          */
+        //? if >=26.1 {
         public static boolean onMouseClicked(AbstractContainerScreen<?> screen, MouseButtonEvent event)
         {
+                double x = event.x();
+                double y = event.y();
+                int button = event.button();
+        //?} else {
+        /*public static boolean onMouseClicked(AbstractContainerScreen<?> screen, double x, double y, int button)
+        {
+        *///?}
                 AdjustPanel open = panel(screen);
                 if (open == null)
                 {
                         return false;
                 }
-                if (!open.contains(event.x(), event.y()))
+                if (!open.contains(x, y))
                 {
                         panel = null;
                 }
-                else if (event.button() == InputConstants.MOUSE_BUTTON_LEFT)
+                else if (button == InputConstants.MOUSE_BUTTON_LEFT)
                 {
-                        open.click(event.x(), event.y());
+                        open.click(x, y);
                 }
                 swallowRelease = true;
                 return true;

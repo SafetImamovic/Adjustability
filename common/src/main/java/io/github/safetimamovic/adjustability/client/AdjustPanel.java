@@ -198,7 +198,13 @@ public final class AdjustPanel
         void render(GuiGraphicsExtractor graphics, Font font, int mouseX, int mouseY)
         {
                 PanelStyle style = AdjustabilityConfig.player().panel();
+                //? if >=26.1 {
                 graphics.nextStratum();
+                //?} else {
+                /*// Above the items and their counts, where tooltips draw.
+                graphics.pose().pushPose();
+                graphics.pose().translate(0, 0, 400);
+                *///?}
                 int right = this.x + this.width;
                 int bottom = this.y + this.height;
                 graphics.fill(this.x, this.y, right, bottom, style.background());
@@ -248,6 +254,8 @@ public final class AdjustPanel
                         graphics.text(font, this.footer, this.x + PADDING, bottom - PADDING - font.lineHeight + 1,
                                 FOOTER_TEXT, false);
                 }
+                //? if <26.1
+                /*graphics.pose().popPose();*/
         }
 
         /** The line between conflict groups: the top border's color, a quarter as opaque. */

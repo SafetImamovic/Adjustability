@@ -3,8 +3,10 @@ package io.github.safetimamovic.adjustability;
 import io.github.safetimamovic.adjustability.advancement.ModStats;
 import io.github.safetimamovic.adjustability.advancement.ModTriggers;
 import io.github.safetimamovic.adjustability.effect.ModSounds;
+//? if >=26.1 {
 import io.github.safetimamovic.adjustability.gametest.AdjustabilityGameTests;
 import io.github.safetimamovic.adjustability.gametest.TestAdjustableItem;
+//?}
 import io.github.safetimamovic.adjustability.platform.Services;
 import java.util.function.Supplier;
 import net.minecraft.core.Registry;
@@ -35,11 +37,13 @@ public final class ModRegistries
                 ModSounds.register(registrar);
                 ModStats.register(registrar);
                 ModTriggers.register(registrar);
+                //? if >=26.1 {
                 AdjustabilityGameTests.register(registrar);
                 // Only for the GameTests: never in a released game.
                 if (Services.PLATFORM.isDevelopmentEnvironment())
                 {
                         TestAdjustableItem.register(registrar);
                 }
+                //?}
         }
 }

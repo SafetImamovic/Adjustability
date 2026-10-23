@@ -32,6 +32,11 @@ dependencies {
     compileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
 }
 
+// The GameTests use the test framework of 26.1 and later; older versions are tested by hand.
+if (stonecutter.eval(stonecutter.current.version, '<26.1')) {
+    sourceSets.main.java.exclude('io/github/safetimamovic/adjustability/gametest/**')
+}
+
 configurations {
     commonJava {
         canBeResolved = false
@@ -46,11 +51,11 @@ configurations {
 // Stonecutter gives each version's project more than one source directory (the branch's src/ and the version's own),
 // so the loaders get one copy of everything.
 def collectCommonJava = tasks.register('collectCommonJava', Sync) {
-    from(sourceSets.main.java.sourceDirectories)
+    from(sourceSets.main.java)
     into(layout.buildDirectory.dir('collected/java'))
 }
 def collectCommonResources = tasks.register('collectCommonResources', Sync) {
-    from(sourceSets.main.resources.sourceDirectories)
+    from(sourceSets.main.resources)
     into(layout.buildDirectory.dir('collected/resources'))
 }
 

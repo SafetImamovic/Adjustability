@@ -21,11 +21,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 /**
  * Dormant enchantments are listed where vanilla writes enchantments, each right under the first active enchantment it
  * conflicts with; any without one (possible with {@code allow_none}) after the last. Same on both loaders, no tooltip
- * event needed.
+ * event needed. Before 1.21.5 the start and end are in {@link ItemStackTooltipMixin}, since this method didn't get the
+ * item's components yet.
  */
 @Mixin(ItemEnchantments.class)
 abstract class ItemEnchantmentsMixin
 {
+        //? if >=1.21.5 {
         @Inject(method = "addToTooltip", at = @At("HEAD"))
         private void adjustability$planDormant(Item.TooltipContext context, Consumer<Component> consumer,
                 TooltipFlag flag, DataComponentGetter components, CallbackInfo ci)
@@ -33,6 +35,7 @@ abstract class ItemEnchantmentsMixin
                 // Only for the active enchantments; stored ones on a book use this method too.
                 TooltipLines.begin(context, components, components.get(DataComponents.ENCHANTMENTS) == (Object) this);
         }
+        //?}
 
         @WrapOperation(method = "addToTooltip",
                 at = @At(value = "INVOKE", target = "Ljava/util/function/Consumer;accept(Ljava/lang/Object;)V"))
@@ -43,6 +46,7 @@ abstract class ItemEnchantmentsMixin
                 TooltipLines.addDormantUnder(consumer, enchantment);
         }
 
+        //? if >=1.21.5 {
         @Inject(method = "addToTooltip", at = @At("TAIL"))
         private void adjustability$addDormant(Item.TooltipContext context, Consumer<Component> consumer, TooltipFlag flag,
                 DataComponentGetter components, CallbackInfo ci)
@@ -52,4 +56,5 @@ abstract class ItemEnchantmentsMixin
                         TooltipLines.addDormant(context, consumer, components);
                 }
         }
+        //?}
 }

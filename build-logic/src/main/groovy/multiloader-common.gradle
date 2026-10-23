@@ -25,6 +25,7 @@ java {
 }
 
 repositories {
+    mavenCentral()
     exclusiveContent {
         forRepository {
             maven {
@@ -60,6 +61,11 @@ repositories {
     }
 }
 
+dependencies {
+    // @Nullable; Minecraft brings it from 26.1 on, older versions don't.
+    compileOnly('org.jspecify:jspecify:1.0.0')
+}
+
 tasks.withType(Jar).configureEach {
     from(rootProject.file('LICENSE')) {
         rename { "${it}_${mod_name}" }
@@ -87,6 +93,7 @@ processResources {
             'group'                        : project.group, //Else we target the task's group.
             'minecraft_version'            : minecraft_version,
             'minecraft_version_range'      : minecraft_version_range,
+            'minecraft_version_range_fabric': minecraft_version_range_fabric,
             'fabric_version'               : fabric_version,
             'fabric_loader_version'        : fabric_loader_version,
             'forgeconfigapiport_version'   : forgeconfigapiport_version,

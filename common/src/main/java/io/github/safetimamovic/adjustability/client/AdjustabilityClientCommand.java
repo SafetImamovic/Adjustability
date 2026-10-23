@@ -59,7 +59,12 @@ public final class AdjustabilityClientCommand
         {
                 String command = "/" + Constants.MOD_ID + " " + subcommand;
                 return Component.literal(command).withStyle(style -> style.withColor(ChatFormatting.AQUA)
-                        .withClickEvent(new ClickEvent.SuggestCommand(command)));
+                        .withClickEvent(
+                                //? if >=1.21.5 {
+                                new ClickEvent.SuggestCommand(command)
+                                //?} else
+                                /*new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, command)*/
+                        ));
         }
 
         private static int help()
@@ -78,12 +83,18 @@ public final class AdjustabilityClientCommand
         private static int open(Supplier<@Nullable Screen> screen)
         {
                 Minecraft minecraft = Minecraft.getInstance();
+                //? if >=26.1 {
                 minecraft.schedule(() -> minecraft.gui.setScreen(screen.get()));
+                //?} else
+                /*minecraft.tell(() -> minecraft.setScreen(screen.get()));*/
                 return 1;
         }
 
         private static void chat(Component message)
         {
+                //? if >=26.1 {
                 Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(message);
+                //?} else
+                /*Minecraft.getInstance().gui.getChat().addMessage(message);*/
         }
 }
