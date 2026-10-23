@@ -264,11 +264,22 @@ Maintainers only.
    git tag v<version>
    git push origin v<version>
    ```
-3. The release workflow checks that the tag matches `gradle.properties`, builds both loaders and creates a GitHub
-   Release with both jars and the changelog section. The docs workflow deploys the docs site from the same tag, so
-   docs changes merged since the last release go live with it. Versions with a `-` (like `0.2.0-beta.1`) and every `0.x`
-   version are marked as pre-releases.
-4. Upload the same jars to Modrinth by hand, with the same changelog.
+3. The release workflow checks that the tag matches `gradle.properties`, builds every Minecraft version on both
+   loaders, runs the GameTests and creates a GitHub Release with the mod jars, their sources, the API jars and the
+   changelog section. The docs workflow deploys the docs site from the same tag, so docs changes merged since the last
+   release go live with it. Versions with a `-` (like `0.2.0-beta.1`) and every `0.x` version are marked as
+   pre-releases (Beta on Modrinth).
+4. The same workflow then publishes one Modrinth version per Minecraft version and loader: the mod jar with its sources
+   jar, the changelog section, and on Fabric the required Fabric API and Forge Config API Port. Adding a Minecraft
+   version means adding it to that job's matrix in `.github/workflows/release.yml`.
+
+   One-time setup, without which this step is skipped: the repository variable `MODRINTH_ID` (the project's ID, from
+   the three-dot menu on its Modrinth page) and the secret `MODRINTH_TOKEN` (a Modrinth personal access token with the
+   *Create versions* scope):
+   ```sh
+   gh variable set MODRINTH_ID --body <project id>
+   gh secret set MODRINTH_TOKEN    # paste the token when asked
+   ```
 
 ## License
 
