@@ -119,6 +119,7 @@ abstract class AbstractContainerScreenMixin extends Screen
                 }
         }
 
+        //? if >=26.1 {
         @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
         private void adjustability$noScrollUnderPanel(double x, double y, double scrollX, double scrollY,
                 CallbackInfoReturnable<Boolean> cir)
@@ -128,6 +129,14 @@ abstract class AbstractContainerScreenMixin extends Screen
                         cir.setReturnValue(true);
                 }
         }
+        //?} else {
+        /*// The container screen doesn't override mouseScrolled here, so this adds it, like keyReleased.
+        @Override
+        public boolean mouseScrolled(double x, double y, double scrollX, double scrollY)
+        {
+                return AdjustClient.isPanelOpen(this.adjustability$self()) || super.mouseScrolled(x, y, scrollX, scrollY);
+        }
+        *///?}
 
         /**
          * Every container screen draws its item tooltip last, including the recipe book screens that skip this class's
