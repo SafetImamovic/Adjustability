@@ -51,12 +51,12 @@ enchantments. [Uninstalling](/guide/uninstalling) explains `/adjustability flatt
 
 ## Install
 
-Minecraft Java **26.3**, on the client **and** the server.
+Minecraft Java **1.21.1** or **26.3**, on the client **and** the server. Download the jar for your version.
 
 | Loader | Also install |
 |---|---|
 | Fabric | [Fabric API](https://modrinth.com/mod/fabric-api), [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) |
-| NeoForge (26.3.0.95 or newer) | Nothing |
+| NeoForge (21.1.264 or newer for 1.21.1, 26.3.0.95 or newer for 26.3) | Nothing |
 
 ## Controls
 

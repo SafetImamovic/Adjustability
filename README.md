@@ -23,7 +23,7 @@
   <a href="https://github.com/SafetImamovic/Adjustability/issues/new/choose"><b>Report a bug</b></a>
 </p>
 
-Minecraft Java **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
+Minecraft Java **1.21.1** and **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
 
 <p align="center">
   <img src="docs/public/screenshots/showcase.gif" alt="A netherite pickaxe gets Silk Touch from a book in an anvil and keeps Fortune; switched to Fortune in the Adjust panel it mines diamonds, switched to Silk Touch it mines the ore blocks" width="640">
@@ -31,7 +31,7 @@ Minecraft Java **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
 
 - **Fabric:** needs [Fabric API](https://modrinth.com/mod/fabric-api) and
   [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port).
-- **NeoForge:** 26.3.0.95 or newer, nothing extra.
+- **NeoForge:** 21.1.264 (1.21.1) or 26.3.0.95 (26.3) or newer, nothing extra.
 - Install on both the client and the server. Works with Easy Anvils, JEI, Mouse Tweaks and more:
   [compatibility](https://safetimamovic.github.io/Adjustability/guide/compatibility).
 

@@ -4,6 +4,9 @@ Gameplay rules live in `config/adjustability-server.toml`. The server sends them
 by the same rules. To use different rules for one world, put a copy in that world's `serverconfig/` folder (Fabric) or
 `syncedconfig/` folder (NeoForge); it wins over the global file.
 
+On **Minecraft 1.21.1** the file is per world on both loaders: `<world>/serverconfig/adjustability-server.toml`,
+made when the world first loads. To start new worlds with your rules, put a copy in `defaultconfigs/`.
+
 Each player's own settings are in `config/adjustability-client.toml` and can be changed in game with
 `/adjustability config` (or the mod list on NeoForge, Mod Menu on Fabric): see [Player settings](#player-settings).
 
