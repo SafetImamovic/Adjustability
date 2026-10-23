@@ -28,8 +28,8 @@ On NeoForge, only the server-side tests ran with these mods; NeoForge has no cli
 - **Mods that replace the anvil entirely** can stop dormant enchantments from being made in it; switching still works
   on items that already have them, and `/adjustability add` adds them by command.
 - **Enchanting tables and `/enchant`** follow vanilla's conflicts, not the server's `[exclusivity]` rules.
-- **The creative inventory** has no Adjust panel (it uses a menu only the client knows); switch in survival, or use the
-  Cycle key or `/adjustability toggle`.
+- **The creative inventory:** the Adjust panel works on your own items (the hotbar, and every slot on the inventory
+  tab), not on the creative tabs' items.
 - **Keys:** Left Alt is the Adjust key by default. If another mod uses Left Alt in inventories, rebind one of them
   under Controls.
 

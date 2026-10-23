@@ -15,6 +15,8 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.client.player.LocalPlayer;
 //? if >=26.1 {
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -175,8 +177,12 @@ public final class AdjustClient
                         return false;
                 }
                 Minecraft minecraft = Minecraft.getInstance();
-                // The creative inventory shows items through a client-only menu the server knows nothing about.
                 if (minecraft.player == null || screen.getMenu() != minecraft.player.containerMenu)
+                {
+                        return false;
+                }
+                int[] serverSlot = serverSlot(screen, hovered, minecraft.player);
+                if (serverSlot == null)
                 {
                         return false;
                 }
@@ -187,9 +193,33 @@ public final class AdjustClient
                         return false;
                 }
                 AdjustPanel opened = new AdjustPanel(screen, screen.getMenu().containerId, hovered.index,
-                        leftPos + hovered.x + 16, topPos + hovered.y);
+                        serverSlot[0], serverSlot[1], leftPos + hovered.x + 16, topPos + hovered.y);
                 panel = opened.refresh(minecraft.font) ? opened : null;
                 return panel != null;
+        }
+
+        /**
+         * Where the server finds the hovered item: its open menu's id and the slot's index in it, or null if the
+         * server doesn't have the item. The creative inventory is a menu only the client knows (it makes itself the
+         * player's open menu there, while the server keeps the player's inventory menu), so its slots are matched to
+         * the inventory menu's by the item they show: the hotbar, and on the inventory tab every slot, show the
+         * player's own stacks. The creative tabs' items aren't the player's and match nothing.
+         */
+        private static int @Nullable [] serverSlot(AbstractContainerScreen<?> screen, Slot hovered, LocalPlayer player)
+        {
+                if (!(screen instanceof CreativeModeInventoryScreen))
+                {
+                        return new int[]{screen.getMenu().containerId, hovered.index};
+                }
+                ItemStack item = hovered.getItem();
+                for (Slot slot : player.inventoryMenu.slots)
+                {
+                        if (slot.getItem() == item)
+                        {
+                                return new int[]{player.inventoryMenu.containerId, slot.index};
+                        }
+                }
+                return null;
         }
 
         /**

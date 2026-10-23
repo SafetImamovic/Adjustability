@@ -11,7 +11,9 @@
     "ItemStackTooltipMixin"
   ],
   "client": [
-    "client.AbstractContainerScreenMixin"
+    "client.AbstractContainerScreenAccessor",
+    "client.AbstractContainerScreenMixin",
+    "client.CreativeModeInventoryScreenMixin"
   ],
   "server": [],
   "injectors": {
