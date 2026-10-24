@@ -10,6 +10,8 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 - With [YACL](https://modrinth.com/mod/yacl) installed (optional), the settings screen is a YACL one, with every
   player and server setting. Server settings can only be changed in your own world. Without YACL, the screen stays as
   before.
+- In the YACL screen, the Adjust panel's colors have a color picker (with opacity), and every panel setting shows a
+  live preview: the panel next to a pickaxe in a slot, with the values you're changing, before you save.
 
 ## [0.3.0] - 2026-10-23
 

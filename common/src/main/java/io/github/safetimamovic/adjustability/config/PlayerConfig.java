@@ -7,11 +7,14 @@ import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PlayerSe
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 import net.neoforged.neoforge.common.ModConfigSpec.EnumValue;
 import net.neoforged.neoforge.common.ModConfigSpec.IntValue;
+import org.jspecify.annotations.Nullable;
 
 /**
  * The player file, {@code config/adjustability-client.toml}: personal preferences, editable in game (mod list on
@@ -41,6 +44,9 @@ public final class PlayerConfig
 
         /** The Adjust panel's settings, in file order, for {@code /adjustability panel}. */
         public static final List<ConfigValue<?>> PANEL_SETTINGS;
+
+        /** The settings that are colors ({@code #AARRGGBB} strings), for the YACL screen's color pickers. */
+        private static final Set<ConfigValue<?>> COLORS;
 
         static
         {
@@ -82,6 +88,8 @@ public final class PlayerConfig
                 SPEC = builder.build();
                 PANEL_SETTINGS = List.of(PANEL_ACTIVATION, PANEL_SIDE, BACKGROUND_COLOR, BORDER_TOP_COLOR, BORDER_BOTTOM_COLOR,
                         SHOW_BRACKETS, BRACKET_COLOR, BRACKET_LENGTH, HIGHLIGHT_COLOR, ACTIVE_COLOR, SHOW_COST);
+                COLORS = Set.of(BACKGROUND_COLOR, BORDER_TOP_COLOR, BORDER_BOTTOM_COLOR, BRACKET_COLOR, HIGHLIGHT_COLOR,
+                        ACTIVE_COLOR);
         }
 
         private PlayerConfig()
@@ -90,18 +98,33 @@ public final class PlayerConfig
 
         static PlayerSettings read()
         {
-                return new PlayerSettings(get(SHOW_DORMANT), get(SHOW_HINT), new PanelStyle(
-                        get(PANEL_ACTIVATION),
-                        get(PANEL_SIDE),
-                        argb(BACKGROUND_COLOR),
-                        argb(BORDER_TOP_COLOR),
-                        argb(BORDER_BOTTOM_COLOR),
-                        get(SHOW_BRACKETS),
-                        argb(BRACKET_COLOR),
-                        get(BRACKET_LENGTH),
-                        argb(HIGHLIGHT_COLOR),
-                        argb(ACTIVE_COLOR),
-                        get(SHOW_COST)));
+                return new PlayerSettings(get(SHOW_DORMANT), get(SHOW_HINT), panel(value -> null));
+        }
+
+        /**
+         * The Adjust panel's look, each setting from {@code pending} if it has a value of the setting's type for it,
+         * else from the file. The YACL screen's preview passes the values being edited, not yet saved.
+         */
+        public static PanelStyle panel(Function<ConfigValue<?>, @Nullable Object> pending)
+        {
+                return new PanelStyle(
+                        get(PANEL_ACTIVATION, pending),
+                        get(PANEL_SIDE, pending),
+                        argb(BACKGROUND_COLOR, pending),
+                        argb(BORDER_TOP_COLOR, pending),
+                        argb(BORDER_BOTTOM_COLOR, pending),
+                        get(SHOW_BRACKETS, pending),
+                        argb(BRACKET_COLOR, pending),
+                        get(BRACKET_LENGTH, pending),
+                        argb(HIGHLIGHT_COLOR, pending),
+                        argb(ACTIVE_COLOR, pending),
+                        get(SHOW_COST, pending));
+        }
+
+        /** Whether a setting is a color, an {@code #AARRGGBB} string. */
+        public static boolean isColor(ConfigValue<?> value)
+        {
+                return COLORS.contains(value);
         }
 
         /** A setting's key in the file, like {@code bracket_color}. */
@@ -185,9 +208,16 @@ public final class PlayerConfig
                         value -> value instanceof String text && parseColor(text).isPresent());
         }
 
-        private static int argb(ConfigValue<String> value)
+        private static int argb(ConfigValue<String> value, Function<ConfigValue<?>, @Nullable Object> pending)
         {
-                return parseColor(get(value)).orElseGet(() -> parseColor(value.getDefault()).orElseThrow());
+                return parseColor(get(value, pending)).orElseGet(() -> parseColor(value.getDefault()).orElseThrow());
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <T> T get(ConfigValue<T> value, Function<ConfigValue<?>, @Nullable Object> pending)
+        {
+                Object override = pending.apply(value);
+                return value.getDefault().getClass().isInstance(override) ? (T) override : get(value);
         }
 
         /** Not loaded on a dedicated server, which has no client config; the defaults apply there. */
