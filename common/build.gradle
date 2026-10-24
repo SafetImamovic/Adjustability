@@ -30,6 +30,9 @@ dependencies {
     compileOnly("fuzs.forgeconfigapiport:forgeconfigapiport-common-neoforgeapi:${forgeconfigapiport_version}")
     // JEI info pages (compat/jei). Never loaded without JEI: it finds the plugin itself.
     compileOnly("mezz.jei:jei-${minecraft_version}-common-api:${jei_version}")
+    // Optional config screen (client/YaclConfigScreen); its API is the same on both loaders, and the NeoForge jar uses
+    // Mojang's names like :common does.
+    compileOnly("maven.modrinth:yacl:${yacl_version}-neoforge") { transitive = false }
 }
 
 // The GameTests use the test framework of 26.1 and later; older versions are tested by hand.

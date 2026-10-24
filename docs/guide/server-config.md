@@ -9,6 +9,8 @@ made when the world first loads. To start new worlds with your rules, put a copy
 
 Each player's own settings are in `config/adjustability-client.toml` and can be changed in game with
 `/adjustability config` (or the mod list on NeoForge, Mod Menu on Fabric): see [Player settings](#player-settings).
+With [YACL](https://modrinth.com/mod/yacl) installed, that screen also shows this file's settings; they can be changed
+there in your own world (singleplayer or LAN host), and on 26.3 from the title screen too.
 
 Which enchantments and items take part isn't set here: use [tags](tags.md).
 
