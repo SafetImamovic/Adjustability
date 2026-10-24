@@ -29,11 +29,32 @@ Minecraft Java **1.21.1** and **26.3** · **Fabric** + **NeoForge** · MIT · **
   <img src="docs/public/screenshots/showcase.gif" alt="A netherite pickaxe gets Silk Touch from a book in an anvil and keeps Fortune; switched to Fortune in the Adjust panel it mines diamonds, switched to Silk Touch it mines the ore blocks" width="640">
 </p>
 
-- **Fabric:** needs [Fabric API](https://modrinth.com/mod/fabric-api) and
-  [Forge Config API Port](https://modrinth.com/mod/forge-config-api-port).
-- **NeoForge:** 21.1.1 (1.21.1) or 26.3.0.95 (26.3) or newer, nothing extra.
-- Install on both the client and the server. Works with Easy Anvils, JEI, Mouse Tweaks and more:
-  [compatibility](https://safetimamovic.github.io/Adjustability/guide/compatibility).
+## Requirements
+
+Install on both the client and the server.
+
+| | Minecraft 1.21.1 | Minecraft 26.3 |
+|---|---|---|
+| **Fabric, required** | [Fabric Loader](https://fabricmc.net/use/) 0.16.0+<br>[Fabric API](https://modrinth.com/mod/fabric-api) 0.102.0+<br>[Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) 21.1.0+ | [Fabric Loader](https://fabricmc.net/use/) 0.19.5+<br>[Fabric API](https://modrinth.com/mod/fabric-api)<br>[Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) 26.3.1+ |
+| **NeoForge, required** | [NeoForge](https://neoforged.net/) 21.1.1+ | [NeoForge](https://neoforged.net/) 26.3.0.95+ |
+| **Optional** (both loaders) | [JEI](https://modrinth.com/mod/jei): info pages on the anvils and the grindstone | [JEI](https://modrinth.com/mod/jei): info pages on the anvils and the grindstone |
+
+### Tested with
+
+On Minecraft 26.3, with the full automated test suite (details:
+[compatibility](https://safetimamovic.github.io/Adjustability/guide/compatibility)):
+
+| Mod | Version | Loader | Result |
+|---|---|---|---|
+| [Easy Anvils](https://modrinth.com/mod/easy-anvils) | 26.3.1 | Fabric, NeoForge | Works |
+| [JEI](https://modrinth.com/mod/jei) | 31.16.0.89 | Fabric, NeoForge | Works: the Adjust panel draws above JEI's item list |
+| [Mouse Tweaks](https://modrinth.com/mod/mouse-tweaks) | 26.3-2.31 | Fabric | Works |
+| [Enchantment Descriptions](https://modrinth.com/mod/enchantment-descriptions) | 26.3.0.2 | Fabric | Works |
+| [AppleSkin](https://modrinth.com/mod/appleskin) | 3.0.10 | Fabric | Works |
+| [Enchantment Switch](https://modrinth.com/mod/enchantment-switch) | 26.3.0 | Fabric | Works; its key is unbound by default, so Left Alt stays with Adjustability |
+
+Not tested with other mods on 1.21.1 yet. Found a mod that doesn't work with it? Use the
+[compat issue form](https://github.com/SafetImamovic/Adjustability/issues/new/choose).
 
 The 2024 prototype for Forge 1.20.6 is kept under the
 [`legacy-1.20.6-forge`](https://github.com/SafetImamovic/Adjustability/tree/legacy-1.20.6-forge) tag.
