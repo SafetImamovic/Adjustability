@@ -647,7 +647,7 @@ sound = true
 Naming rules from Throwable Mobs §11 apply: `snake_case`, one term per concept ("dormant" everywhere, never "inactive"
 in one key and "disabled" in another), pick names before 1.0.
 
-**Config screen: YACL, optional (planned, 2026-10-24).** With [YACL](https://modrinth.com/mod/yacl) (YetAnotherConfigLib) installed, the config screen is a YACL one; without it, the stock NeoForge `ConfigurationScreen` as now. Same approach as Throwable Mobs §11. YACL only draws the screen: each option is bound to its `ModConfigSpec` value, so storage stays as above. YACL's description pane takes a custom renderer in place of its image: the `panel` category previews the real `AdjustPanel` next to a mock slot, live while you change colours and brackets. Creator options are greyed out on multiplayer servers. Replaces the planned Configurator library (dropped 2026-10-24: YACL already does all of it, on both versions and loaders). 26.3 first, then 1.21.1.
+**Config screen: YACL, optional (shipped in 0.4.0, 2026-10-24).** With [YACL](https://modrinth.com/mod/yacl) (YetAnotherConfigLib) installed, the config screen is a YACL one; without it, the stock NeoForge `ConfigurationScreen` as now. Same approach as Throwable Mobs §11. YACL only draws the screen: each option is bound to its `ModConfigSpec` value, so storage stays as above. YACL's description pane takes a custom renderer in place of its image: the `panel` category previews the real `AdjustPanel` next to a mock slot, live while you change colours and brackets. Creator options are greyed out on multiplayer servers. Replaces the planned Configurator library (dropped 2026-10-24: YACL already does all of it, on both versions and loaders). 26.3 first, then 1.21.1.
 
 ---
 
