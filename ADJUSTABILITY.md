@@ -647,7 +647,7 @@ sound = true
 Naming rules from Throwable Mobs §11 apply: `snake_case`, one term per concept ("dormant" everywhere, never "inactive"
 in one key and "disabled" in another), pick names before 1.0.
 
-**Config screen: Configurator (planned, 2026-10-24).** The stock NeoForge `ConfigurationScreen` will be replaced by [Configurator](https://github.com/SafetImamovic/Configurator), my in-game config library, shared with Throwable Mobs: a three-pane screen (categories, options, live preview), bundled in the jar via jar-in-jar, so players install nothing extra. Storage stays as above. The `panel` category previews the real `AdjustPanel` next to a mock slot, live while you change colours and brackets. Creator options are read-only on multiplayer servers. Design and roadmap: `CONFIGURATOR.md` in that repo (§16 covers this mod). 26.3 first, then 1.21.1.
+**Config screen: YACL, optional (planned, 2026-10-24).** With [YACL](https://modrinth.com/mod/yacl) (YetAnotherConfigLib) installed, the config screen is a YACL one; without it, the stock NeoForge `ConfigurationScreen` as now. Same approach as Throwable Mobs §11. YACL only draws the screen: each option is bound to its `ModConfigSpec` value, so storage stays as above. YACL's description pane takes a custom renderer in place of its image: the `panel` category previews the real `AdjustPanel` next to a mock slot, live while you change colours and brackets. Creator options are greyed out on multiplayer servers. Replaces the planned Configurator library (dropped 2026-10-24: YACL already does all of it, on both versions and loaders). 26.3 first, then 1.21.1.
 
 ---
 
@@ -937,7 +937,7 @@ trivial). `group` and the Java package stay `io.github.safetimamovic.adjustabili
 | **M5 — Release 0.1.0 (beta)** | Docs pages written (§17.1), GIFs, CHANGELOG, Modrinth page, GitHub release via tag. Compat pass with popular anvil/tooltip/inventory mods (§14). | Tagged `v0.1.0`, jars on GitHub + Modrinth. |
 | **M6 — Polish** | Sounds, advancements ("Indecisive": toggle 100 times; "Best of Both": hold every Protection on one chestplate), EMI/JEI info page, translations, generated docs references (§17.4). | — |
 | **M7 — Backport 1.21.1** | Same as Throwable Mobs M5: Stonecutter. 1.21.1 already has data-driven enchantments and `exclusive_set`, so the port is mostly `ResourceLocation`/mapping differences. Share the Stonecutter setup with Throwable Mobs. | 1.21.1 jars for both loaders. |
-| **M7b — Configurator** | New config screen from the Configurator library, bundled via jar-in-jar (§10): panel live preview, colour pickers, search. 26.3 first, then 1.21.1. | Stock screen replaced on both versions and loaders; "Raw config" fallback still works. |
+| **M7b — YACL screen** | Optional YACL config screen (§10): panel live preview, colour pickers. 26.3 first, then 1.21.1. | YACL screen works on both versions and loaders; without YACL the stock screen and "Raw config" still work. |
 | **M8 — Server-only mode** (optional) | Works without the client mod: `/adjustability toggle` and a chest-GUI menu (vanilla `ChestMenu` with item icons) for vanilla clients; or a Paper plugin sharing `graph/` (like Throwable Mobs M10). | Decide after 0.1.0 based on demand. |
 | **M9 — 1.0** | API frozen, storage decision final, docs versioned, CurseForge page, `mc-publish`. | `v1.0.0`. |
 
