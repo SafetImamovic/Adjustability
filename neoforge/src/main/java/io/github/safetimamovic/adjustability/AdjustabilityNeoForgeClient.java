@@ -3,7 +3,10 @@ package io.github.safetimamovic.adjustability;
 import io.github.safetimamovic.adjustability.client.AdjustClient;
 import io.github.safetimamovic.adjustability.client.AdjustKeys;
 import io.github.safetimamovic.adjustability.client.AdjustabilityClientCommand;
+import io.github.safetimamovic.adjustability.client.ConfigScreens;
+import java.util.function.UnaryOperator;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -18,6 +21,7 @@ import net.neoforged.neoforge.client.network.ClientPacketDistributor;
 //?} else
 /*import net.neoforged.neoforge.network.PacketDistributor;*/
 import net.neoforged.neoforge.common.NeoForge;
+import org.jspecify.annotations.Nullable;
 
 /** Client-only setup (key mappings, the Adjust panel, client commands), so dedicated servers never load it. */
 @Mod(value = Constants.MOD_ID, dist = Dist.CLIENT)
@@ -29,8 +33,11 @@ public class AdjustabilityNeoForgeClient
                 AdjustClient.init(ClientPacketDistributor::sendToServer);
                 //?} else
                 /*AdjustClient.init(payload -> PacketDistributor.sendToServer(payload));*/
-                container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
-                AdjustabilityClientCommand.init(parent -> new ConfigurationScreen(container, parent));
+                UnaryOperator<@Nullable Screen> configScreen = ConfigScreens
+                        .withYacl(parent -> new ConfigurationScreen(container, parent));
+                container.registerExtensionPoint(IConfigScreenFactory.class,
+                        (IConfigScreenFactory) (mod, parent) -> configScreen.apply(parent));
+                AdjustabilityClientCommand.init(configScreen);
                 NeoForge.EVENT_BUS.addListener((RegisterClientCommandsEvent event) -> AdjustabilityClientCommand
                         .register(event.getDispatcher()));
                 modEventBus.addListener((RegisterKeyMappingsEvent event) ->
