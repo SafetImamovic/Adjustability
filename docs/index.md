@@ -11,7 +11,7 @@ hero:
   actions:
     - theme: brand
       text: Download
-      link: https://github.com/SafetImamovic/Adjustability/releases
+      link: https://www.curseforge.com/minecraft/mc-mods/adjustability
     - theme: alt
       text: Read the guide
       link: /guide/
