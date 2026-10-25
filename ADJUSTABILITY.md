@@ -763,8 +763,10 @@ Copy from Throwable Mobs, then change only what's listed:
 
 Jar naming (from `multiloader-common.gradle`): `adjustability-fabric-26.3-0.1.0.jar`, `adjustability-neoforge-26.3-0.1.0.jar`.
 
-Publishing: same as Throwable Mobs (GitHub Release by tag, Modrinth by hand, `mc-publish` later). Mod page lives or dies
-on one GIF: Fortune pickaxe mining diamonds, one key press, Silk Touch mining glass.
+Publishing: same as Throwable Mobs. A `v*` tag builds a GitHub Release, and `mc-publish` uploads every jar to Modrinth
+and CurseForge (since 0.4.1; [CurseForge page](https://www.curseforge.com/minecraft/mc-mods/adjustability) approved
+2026-10-25, Modrinth page still in review). Mod page lives or dies on
+one GIF: Fortune pickaxe mining diamonds, one key press, Silk Touch mining glass.
 
 Repo hygiene: the GitHub repo already exists (`SafetImamovic/Adjustability`); its Pages site currently serves the
 Writerside build. The docs workflow replaces it at the same URL (`safetimamovic.github.io/Adjustability/`).
@@ -939,7 +941,7 @@ trivial). `group` and the Java package stay `io.github.safetimamovic.adjustabili
 | **M7 — Backport 1.21.1** | Same as Throwable Mobs M5: Stonecutter. 1.21.1 already has data-driven enchantments and `exclusive_set`, so the port is mostly `ResourceLocation`/mapping differences. Share the Stonecutter setup with Throwable Mobs. | 1.21.1 jars for both loaders. |
 | **M7b — YACL screen** | Optional YACL config screen (§10): panel live preview, colour pickers. 26.3 first, then 1.21.1. | YACL screen works on both versions and loaders; without YACL the stock screen and "Raw config" still work. |
 | **M8 — Server-only mode** (optional) | Works without the client mod: `/adjustability toggle` and a chest-GUI menu (vanilla `ChestMenu` with item icons) for vanilla clients; or a Paper plugin sharing `graph/` (like Throwable Mobs M10). | Decide after 0.1.0 based on demand. |
-| **M9 — 1.0** | API frozen, storage decision final, docs versioned, CurseForge page, `mc-publish`. | `v1.0.0`. |
+| **M9 — 1.0** | API frozen, storage decision final, docs versioned. (CurseForge page and `mc-publish` done early, in 0.4.1.) | `v1.0.0`. |
 
 Effort guess, for planning only: M0 one evening (it's copying), M1 and M2 are the real work (a couple of weekends
 each), M3–M5 another couple of weekends. The mod is much smaller than Throwable Mobs: no physics, no entity state, one
