@@ -5,6 +5,12 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Fixed
+
+- In creative, the Adjust key did nothing over items on the Survival Inventory tab.
+- The Cycle key's name no longer runs over its key button in Controls. It's "Cycle held enchantments" now; Sneak +
+  Cycle still picks the next group.
+
 ## [0.4.1] - 2026-10-24
 
 ### Changed

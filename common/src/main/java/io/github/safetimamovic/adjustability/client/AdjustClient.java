@@ -162,12 +162,12 @@ public final class AdjustClient
                 AdjustPanel open = panel(screen);
                 boolean toggle = activation() == PanelActivation.TOGGLE;
                 if (open != null && (key == InputConstants.KEY_ESCAPE
-                        || adjustKey && toggle && (hovered == null || hovered.index == open.slot())))
+                        || adjustKey && toggle && (hovered == null || menuIndex(screen, hovered) == open.slot())))
                 {
                         panel = null;
                         return true;
                 }
-                if (open != null && adjustKey && (hovered == null || hovered.index == open.slot()))
+                if (open != null && adjustKey && (hovered == null || menuIndex(screen, hovered) == open.slot()))
                 {
                         // HOLD: already open over this item.
                         return true;
@@ -192,10 +192,21 @@ public final class AdjustClient
                 {
                         return false;
                 }
-                AdjustPanel opened = new AdjustPanel(screen, screen.getMenu().containerId, hovered.index,
-                        serverSlot[0], serverSlot[1], leftPos + hovered.x + 16, topPos + hovered.y);
+                AdjustPanel opened = new AdjustPanel(screen, screen.getMenu().containerId,
+                        menuIndex(screen, hovered), serverSlot[0], serverSlot[1], leftPos + hovered.x + 16,
+                        topPos + hovered.y);
                 panel = opened.refresh(minecraft.font) ? opened : null;
                 return panel != null;
+        }
+
+        /**
+         * The slot's position in the screen's menu. Usually its {@code index}, but the creative inventory's Survival
+         * Inventory tab adds wrapper slots without {@code addSlot}, which leaves every wrapper's index at 0.
+         */
+        private static int menuIndex(AbstractContainerScreen<?> screen, Slot slot)
+        {
+                int index = screen.getMenu().slots.indexOf(slot);
+                return index >= 0 ? index : slot.index;
         }
 
         /**
