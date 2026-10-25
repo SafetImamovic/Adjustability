@@ -5,6 +5,10 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Fixed
+
+- In creative, the Adjust key did nothing over items on the Survival Inventory tab.
+
 ## [0.4.1] - 2026-10-24
 
 ### Changed

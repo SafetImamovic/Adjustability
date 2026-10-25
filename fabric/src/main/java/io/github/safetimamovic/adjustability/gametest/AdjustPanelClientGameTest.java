@@ -10,6 +10,7 @@ import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.List;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
@@ -25,6 +26,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.CreativeModeTab;
+import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -197,6 +200,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
                         player.setGameMode(GameType.CREATIVE);
                         player.getInventory().setItem(0, pickaxe(player));
+                        player.getInventory().setItem(9, pickaxe(player));
                 });
                 world.getConnection().waitForClientboundPackets();
                 // The Cycle key's switches started the 1 second cooldown.
@@ -234,6 +238,52 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 world.getConnection().waitForClientboundPackets();
                 context.waitTicks(2);
                 assertActive(world, Enchantments.SILK_TOUCH, "creative: after clicking Silk Touch in the panel");
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                world.getConnection().waitForClientboundPackets();
+                context.waitTick();
+
+                // The Survival Inventory tab swaps in wrappers of the inventory menu's slots.
+                int inventorySlot = context.computeOnClient(minecraft ->
+                {
+                        CreativeModeInventoryScreen screen = (CreativeModeInventoryScreen) minecraft.gui.screen();
+                        CreativeModeTab inventoryTab = CreativeModeTabs.allTabs().stream()
+                                .filter(tab -> tab.getType() == CreativeModeTab.Type.INVENTORY).findFirst().orElseThrow();
+                        try
+                        {
+                                Method selectTab = CreativeModeInventoryScreen.class.getDeclaredMethod("selectTab",
+                                        CreativeModeTab.class);
+                                selectTab.setAccessible(true);
+                                selectTab.invoke(screen, inventoryTab);
+                        }
+                        catch (ReflectiveOperationException exception)
+                        {
+                                throw new AssertionError(exception);
+                        }
+                        // The pickaxe in main inventory slot 9. The wrappers' own index is 0, so by position.
+                        ItemStack pickaxe = minecraft.player.getInventory().getItem(9);
+                        List<Slot> slots = screen.getMenu().slots;
+                        for (int i = 0; i < slots.size(); i++)
+                        {
+                                if (!pickaxe.isEmpty() && slots.get(i).getItem() == pickaxe)
+                                {
+                                        return i;
+                                }
+                        }
+                        throw new AssertionError("The inventory tab doesn't show the pickaxe");
+                });
+                hoverSlot(context, inventorySlot);
+                context.waitTick();
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.waitTick();
+                context.takeScreenshot("adjustability_6_creative_inventory_tab");
+                context.runOnClient(minecraft ->
+                {
+                        if (AdjustClient.panel((AbstractContainerScreen<?>) minecraft.gui.screen()) == null)
+                        {
+                                throw new AssertionError("Creative: Left Alt over an item on the Survival Inventory tab"
+                                        + " should open the panel");
+                        }
+                });
                 context.getInput().pressKey(AdjustKeys.ADJUST);
                 context.getInput().pressKey(options -> options.keyInventory);
                 context.waitForScreen(null);
