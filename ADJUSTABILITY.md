@@ -945,6 +945,7 @@ trivial). `group` and the Java package stay `io.github.safetimamovic.adjustabili
 | **M11 — Compat pass 2** | Synthetic exclusivity GameTests (one-sided, tag-based, cliques, paths), then real mods on **1.21.1** first: enchantment content with exclusive sets, tooltip overhauls, HUD indicators. Gradle `-Pcompat` sets. See "M11 plan". | Results per mod in `compatibility.md` and the README; bugs found fixed. Release 0.5.1. |
 | **M12a — Removed enchantments** | Dormant entries whose enchantment is no longer registered are kept on the stack untouched, ignored at runtime, shown in `inspect` and advanced tooltips. Before M12, which builds on the same storage change. See "Removed enchantments plan". | Every write keeps them; GameTests for switch, anvil, grindstone, flatten, config and a vanished active partner; §14 item ticked. |
 | **M12 — Switch off** | Any enchantment that conflicts with nothing can be switched off and on in the Adjust panel; an `off` set on the stack keeps every repair path from turning it back on. See "M12 plan". | Off survives anvil, repair and `/reload`; flatten turns it back on; GameTests and the client test cover it. |
+| **M13 — Discoverability** | Tutorial toasts, a clearer hint line, the root advancement naming the key, a slot marker on items with something to switch; all client settings. See "M13 plan". | A new player meets the panel without reading docs: client GameTest walks anvil → toast → panel → Cycle toast. |
 | **M9 — 1.0** | API frozen, storage decision final, docs versioned. (CurseForge page and `mc-publish` done early, in 0.4.1.) | `v1.0.0`. |
 
 Effort guess, for planning only: M0 one evening (it's copying), M1 and M2 are the real work (a couple of weekends
@@ -1264,6 +1265,34 @@ stored state.
 
 Commits: `singles()` → storage, Adjuster, Toggler, config and tests → anvil limit and flatten → API → panel, tooltip
 and client test → docs.
+
+### M13 plan (discoverability, 2026-10-26)
+
+Players testing the mod missed both steps: the anvil result looks like a normal item (one dark gray dormant line), and
+the hint "Left Alt: adjust" is dark gray italic, the dormant lines' color, at the bottom of the tooltip. The root
+advancement's toast only says "Adjustability".
+
+1. **Hint line:** gray, not italic, key name in magenta, "Left Alt: switch enchantments", right after the enchantment
+   lines instead of last. Still `show_hint`.
+2. **Advancement text:** the root description uses a `keybind` component ("hover it in your inventory and press
+   Left Alt"), so it names the real binding.
+3. **Tutorial toasts**, like vanilla's movement tutorial, once per install: step 1 when an item with dormant
+   enchantments first lands in the inventory, staying until the Adjust panel is opened; step 2 after the first switch,
+   "Switch while mining: bind Cycle in Controls", on a timer. Own toast class (vanilla's tutorial background, an
+   enchanted book icon): `TutorialToast.Icons` is a fixed set with nothing fitting (checked on 26.3).
+4. **Slot marker:** a small magenta corner on slots whose item has dormant or off enchantments, drawn from the existing
+   `AbstractContainerScreen` mixin; on by default. `DormantEnchantments.has` copies the tag, so the per-slot check is
+   cached by the (immutable) `CustomData`.
+5. **Settings:** player section `[hints]`: `tutorial` (the step; the client writes it back; `/adjustability tutorial`
+   starts it again), `slot_marker`, `slot_marker_color`. `show_hint` stays where it is so files keep their values.
+   Client only; modpacks ship the client config.
+6. **Left out:** a default Cycle binding (single letters are crowded in packs; step 2 asks the player to bind it),
+   right-click to open (vanilla uses right-click on slots), a chat message on join.
+7. **Tests and docs:** the client GameTest starts from a fresh config: anvil → step 1 toast (screenshot) → panel
+   opened, step 2 → switch → Cycle toast; screenshots of the marker and hint line. Tests reading the hint text are
+   updated; `ReferenceDocs` covers the new keys. Getting-started gets a "first time" section with the toast.
+
+Commits: hint line and advancement text → toasts, `[hints]`, tutorial command → slot marker → client test and docs.
 
 ---
 
