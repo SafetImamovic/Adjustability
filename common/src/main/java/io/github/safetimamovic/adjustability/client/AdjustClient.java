@@ -190,8 +190,10 @@ public final class AdjustClient
                         return false;
                 }
                 ItemStack stack = hovered.getItem();
+                // With switching off allowed, any enchanted item has something to adjust.
                 if (!ItemRules.canAdjust(stack)
-                        || !DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack)))
+                        || !DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack))
+                        && !(AdjustabilityConfig.toggle().allowSwitchOff() && !Adjuster.activeOf(stack).isEmpty()))
                 {
                         return false;
                 }

@@ -2,6 +2,7 @@ package io.github.safetimamovic.adjustability.core;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -28,7 +29,7 @@ public final class TooltipLines
         /** Dormant enchantments not listed yet, while vanilla writes an item's active ones (the client thread). */
         private static final ThreadLocal<@Nullable Pending> PENDING = new ThreadLocal<>();
 
-        private record Pending(ItemEnchantments dormant, List<Holder<Enchantment>> left)
+        private record Pending(ItemEnchantments dormant, Set<Holder<Enchantment>> off, List<Holder<Enchantment>> left)
         {
         }
 
@@ -59,7 +60,7 @@ public final class TooltipLines
                 ItemEnchantments dormant = DormantEnchantments.get(components, registries);
                 List<Holder<Enchantment>> sorted = new ArrayList<>(dormant.keySet());
                 sorted.sort((a, b) -> Adjuster.id(a).compareTo(Adjuster.id(b)));
-                PENDING.set(new Pending(dormant, sorted));
+                PENDING.set(new Pending(dormant, DormantEnchantments.off(components, registries), sorted));
         }
 
         /** Vanilla wrote the line for {@code active}: the dormant enchantments it's the first conflict of go under it. */
@@ -82,7 +83,8 @@ public final class TooltipLines
         }
 
         /**
-         * Vanilla is done: the dormant enchantments nothing active conflicts with, with advanced tooltips (F3+H) the
+         * Vanilla is done: the dormant enchantments nothing active conflicts with (switched-off ones say so), with
+         * advanced tooltips (F3+H) the
          * dormant entries for enchantments that aren't registered, then the key hint.
          */
         public static void addDormant(Item.TooltipContext context, Consumer<Component> consumer, TooltipFlag flag,
@@ -98,7 +100,11 @@ public final class TooltipLines
                 {
                         for (Holder<Enchantment> enchantment : pending.left())
                         {
-                                consumer.accept(line(enchantment, pending.dormant().getLevel(enchantment)));
+                                int level = pending.dormant().getLevel(enchantment);
+                                consumer.accept(pending.off().contains(enchantment)
+                                        ? Component.translatable("adjustability.tooltip.off", name(enchantment, level))
+                                                .withStyle(ChatFormatting.DARK_GRAY)
+                                        : line(enchantment, level));
                         }
                 }
                 if (flag.isAdvanced() && showDormant.getAsBoolean())

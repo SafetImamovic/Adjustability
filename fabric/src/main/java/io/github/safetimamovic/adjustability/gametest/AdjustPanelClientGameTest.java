@@ -183,6 +183,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         context.waitForScreen(null);
 
                         noneAndServerActivation(context, world);
+                        switchOffSingle(context, world);
                         cycleKey(context, world);
                         groupCosts(world, List.of());
                         creativeInventory(context, world);
@@ -345,6 +346,83 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 }
                 serverSetting(world, "toggle.panel_activation", ServerPanelActivation.PLAYER);
                 serverSetting(world, "toggle.allow_none", false);
+                context.getInput().pressKey(options -> options.keyInventory);
+                context.waitForScreen(null);
+        }
+
+        /**
+         * The section of single enchantments: a click on Efficiency's row switches it off on the server; a click on
+         * the section's heading folds it and another unfolds it.
+         */
+        private static void switchOffSingle(ClientGameTestContext context, TestSingleplayerContext world)
+        {
+                world.getServer().runOnServer(server -> server.getPlayerList().getPlayers().getFirst().getInventory()
+                        .setItem(0, pickaxe(server.getPlayerList().getPlayers().getFirst())));
+                world.getConnection().waitForClientboundPackets();
+                context.waitTicks(25);
+                context.getInput().pressKey(options -> options.keyInventory);
+                context.waitForScreen(InventoryScreen.class);
+                hoverSlot(context, HOTBAR_0);
+                context.waitTick();
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.waitTick();
+                cleanScreen(context);
+                context.takeScreenshot("adjustability_8_singles");
+
+                int[] row = context.computeOnClient(minecraft ->
+                {
+                        AdjustPanel panel = AdjustClient.panel((AbstractContainerScreen<?>) minecraft.gui.screen());
+                        Holder<Enchantment> efficiency = minecraft.level.registryAccess()
+                                .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.EFFICIENCY);
+                        return panel.rowCentre(efficiency).orElseThrow(() -> new AssertionError("No Efficiency row"));
+                });
+                moveTo(context, row[0], row[1]);
+                context.waitTick();
+                context.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
+                world.getConnection().waitForServerboundPackets();
+                world.getConnection().waitForClientboundPackets();
+                context.waitTicks(2);
+                cleanScreen(context);
+                context.takeScreenshot("adjustability_8b_switched_off");
+                world.getServer().runOnServer(server ->
+                {
+                        ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                        ItemStack pickaxe = player.getInventory().getItem(0);
+                        Holder<Enchantment> efficiency = enchantment(player, Enchantments.EFFICIENCY);
+                        if (Adjuster.activeOf(pickaxe).getLevel(efficiency) > 0
+                                || !DormantEnchantments.off(pickaxe, player.level().registryAccess())
+                                        .contains(efficiency))
+                        {
+                                throw new AssertionError("Efficiency should be switched off: "
+                                        + Adjuster.activeOf(pickaxe));
+                        }
+                });
+
+                for (boolean folded : new boolean[]{true, false})
+                {
+                        int[] heading = context.computeOnClient(minecraft -> AdjustClient
+                                .panel((AbstractContainerScreen<?>) minecraft.gui.screen()).singlesHeadingCentre()
+                                .orElseThrow(() -> new AssertionError("No heading for the single enchantments")));
+                        moveTo(context, heading[0], heading[1]);
+                        context.waitTick();
+                        context.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
+                        context.waitTicks(2);
+                        if (folded)
+                        {
+                                context.takeScreenshot("adjustability_8c_folded");
+                        }
+                        boolean rowShown = context.computeOnClient(minecraft -> AdjustClient
+                                .panel((AbstractContainerScreen<?>) minecraft.gui.screen())
+                                .rowCentre(minecraft.level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                                        .getOrThrow(Enchantments.EFFICIENCY)).isPresent());
+                        if (rowShown == folded)
+                        {
+                                throw new AssertionError(folded ? "Folded: no Efficiency row expected"
+                                        : "Unfolded: the Efficiency row should be back");
+                        }
+                }
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.waitTick();
                 context.getInput().pressKey(options -> options.keyInventory);
                 context.waitForScreen(null);
         }

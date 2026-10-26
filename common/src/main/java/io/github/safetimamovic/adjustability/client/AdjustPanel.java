@@ -3,10 +3,12 @@ package io.github.safetimamovic.adjustability.client;
 import io.github.safetimamovic.adjustability.client.PanelLayout.Content;
 import io.github.safetimamovic.adjustability.client.PanelLayout.Entry;
 import io.github.safetimamovic.adjustability.client.PanelLayout.Group;
+import io.github.safetimamovic.adjustability.client.PanelLayout.Header;
 import io.github.safetimamovic.adjustability.client.PanelLayout.Row;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Cost;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelStyle;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.SinglesSection;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.Exclusivity;
@@ -14,6 +16,7 @@ import io.github.safetimamovic.adjustability.core.Toggler;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
 import io.github.safetimamovic.adjustability.graph.ConflictGraph;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
+import io.github.safetimamovic.adjustability.tags.ModTags;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -21,6 +24,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -42,10 +46,11 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The Adjust panel: a tooltip-like menu pinned next to an item in a container screen, one row per enchantment in each
- * group of conflicting enchantments. Clicking a dormant row asks the server to make it active. It is drawn by the
- * container screen itself (see {@code AbstractContainerScreenMixin}), so the container stays open and nothing about the
- * menu changes on the client. Rows are rebuilt from the slot's item every frame, so the panel shows what the server
- * says, never a switch it refused.
+ * group of conflicting enchantments. Clicking a dormant row asks the server to make it active. When the server allows
+ * it, a last section lists the enchantments that conflict with nothing, each switched on or off by a click. It is
+ * drawn by the container screen itself (see {@code AbstractContainerScreenMixin}), so the container stays open and
+ * nothing about the menu changes on the client. Rows are rebuilt from the slot's item every frame, so the panel shows
+ * what the server says, never a switch it refused.
  *
  * <p>The look is Adjustability's own by default: a dark panel with a magenta gradient border and bracket decorations
  * at the corners. Every part of it is a player setting ({@code [panel]} in {@code adjustability-client.toml}, or
@@ -74,6 +79,12 @@ public final class AdjustPanel
         /** How active each row's mark is drawn (0 to 1), by {@link #key}; moves toward the row's state. */
         private final Map<String, Float> marks = new HashMap<>();
         private long lastFrame = Util.getMillis();
+        /** The index of the singles' group, -1 if there is none. */
+        private int singlesGroup = -1;
+
+        /** The player's last fold or unfold of the singles' section this session, and the setting it applies to. */
+        private static @Nullable Boolean collapsedOverride;
+        private static @Nullable SinglesSection collapsedFor;
 
         AdjustPanel(AbstractContainerScreen<?> screen, int containerId, int slot, int serverContainerId, int serverSlot,
                 int slotRight, int slotTop)
@@ -120,21 +131,40 @@ public final class AdjustPanel
                 ConflictGraph<Holder<Enchantment>> graph = Adjuster.graph(levels);
                 // What the server will treat as active: the stored split, repaired if it conflicts (see Toggler).
                 ItemEnchantments shownActive = Adjuster.normalize(stack, minecraft.level.registryAccess()).active();
-                boolean allowNone = AdjustabilityConfig.toggle().allowNone();
+                ToggleConfig toggle = AdjustabilityConfig.toggle();
+                boolean allowNone = toggle.allowNone();
                 List<Set<Holder<Enchantment>>> components = graph.components();
-                if (components.isEmpty())
+                // Enchantments that conflict with nothing, if the server lets them be switched off; curses can't be.
+                SinglesSection section = style.layout().singles();
+                List<Holder<Enchantment>> singles = toggle.allowSwitchOff() && section != SinglesSection.HIDDEN
+                        ? graph.singles().stream().filter(enchantment -> !enchantment.is(ModTags.NEVER_DORMANT))
+                                .toList()
+                        : List.of();
+                if (components.isEmpty() && singles.isEmpty())
                 {
                         return false;
                 }
 
                 // One cost for every group goes in the footer; otherwise each group shows its own.
-                ToggleConfig toggle = AdjustabilityConfig.toggle();
                 List<Cost> costs = components.stream()
                         .map(group -> Exclusivity.groupCost(group).orElseGet(toggle::defaultCost)).toList();
-                boolean oneCost = costs.stream().distinct().count() == 1;
-                Component footer = footer(oneCost ? costs.getFirst() : null, toggle.cooldownTicks());
-                List<Component> groupCosts = !oneCost && style.text().showCost()
-                        ? costs.stream().map(Toggler::costText).toList() : List.of();
+                List<Cost> singleCosts = singles.stream()
+                        .map(enchantment -> Exclusivity.groupCost(Set.of(enchantment)).orElseGet(toggle::defaultCost))
+                        .distinct().toList();
+                List<Cost> allCosts = Stream.concat(costs.stream(), singleCosts.stream()).distinct().toList();
+                boolean oneCost = allCosts.size() == 1;
+                Component footer = footer(oneCost ? allCosts.getFirst() : null, toggle.cooldownTicks());
+                List<Component> groupCosts = new ArrayList<>();
+                if (!oneCost && style.text().showCost())
+                {
+                        costs.stream().map(Toggler::costText).forEach(groupCosts::add);
+                        if (!singles.isEmpty())
+                        {
+                                // The singles' heading shows their cost only when they share one.
+                                groupCosts.add(singleCosts.size() == 1 ? Toggler.costText(singleCosts.getFirst())
+                                        : Component.empty());
+                        }
+                }
 
                 List<Group> groups = new ArrayList<>();
                 for (Set<Holder<Enchantment>> component : components)
@@ -150,7 +180,21 @@ public final class AdjustPanel
                         Entry none = allowNone ? new Entry(members.getFirst(),
                                 Component.translatable("adjustability.panel.none"),
                                 entries.stream().noneMatch(Entry::active), true) : null;
-                        groups.add(new Group(groupName(component, members.getFirst()), entries, none));
+                        groups.add(new Group(groupName(component, members.getFirst()), entries, none, false));
+                }
+                this.singlesGroup = -1;
+                if (!singles.isEmpty())
+                {
+                        boolean collapsed = collapsed(section);
+                        long off = singles.stream().filter(enchantment -> shownActive.getLevel(enchantment) == 0)
+                                .count();
+                        List<Entry> entries = collapsed ? List.of() : singles.stream()
+                                .map(enchantment -> new Entry(enchantment,
+                                        TooltipLines.name(enchantment, levels.getLevel(enchantment)),
+                                        shownActive.getLevel(enchantment) > 0, false))
+                                .toList();
+                        this.singlesGroup = groups.size();
+                        groups.add(new Group(singlesHeading(collapsed, off), entries, null, true));
                 }
                 this.content = PanelLayout.layout(font, style, stack.getHoverName(), stack, groups, groupCosts,
                         footer);
@@ -182,8 +226,9 @@ public final class AdjustPanel
                 graphics.pose().pushPose();
                 graphics.pose().translate(0, 0, 400);
                 *///?}
-                Row hovered = this.rowAt(mouseX, mouseY).filter(row -> !row.active()).orElse(null);
-                PanelRenderer.draw(graphics, font, style, this.x, this.y, this.content, hovered,
+                Row hovered = this.rowAt(mouseX, mouseY).filter(this::clickable).orElse(null);
+                Header hoveredHeader = this.sectionHeaderAt(mouseX, mouseY).orElse(null);
+                PanelRenderer.draw(graphics, font, style, this.x, this.y, this.content, hovered, hoveredHeader,
                         row -> this.marks.getOrDefault(key(row), row.active() ? 1F : 0F));
                 //? if <26.1
                 /*graphics.pose().popPose();*/
@@ -227,6 +272,25 @@ public final class AdjustPanel
                         "adjustability.group." + id.getNamespace() + "." + id.getPath().replace('/', '.'), fallback);
         }
 
+        /** The singles' heading: a fold arrow, and how many are switched off. */
+        static Component singlesHeading(boolean collapsed, long off)
+        {
+                return Component.literal(collapsed ? "▶ " : "▼ ").append(off > 0
+                        ? Component.translatable("adjustability.panel.singles.off", off)
+                        : Component.translatable("adjustability.panel.singles"));
+        }
+
+        /** Whether the singles' section is folded: the player's last click this session, else the setting. */
+        private static boolean collapsed(SinglesSection setting)
+        {
+                if (collapsedFor != setting)
+                {
+                        collapsedFor = setting;
+                        collapsedOverride = null;
+                }
+                return collapsedOverride != null ? collapsedOverride : setting == SinglesSection.COLLAPSED;
+        }
+
         /** The line at the bottom: the cooldown, and the cost of a switch if one cost covers every group. */
         static Component footer(@Nullable Cost oneCost, int cooldownTicks)
         {
@@ -243,14 +307,52 @@ public final class AdjustPanel
                         && mouseY >= this.y - offset && mouseY < this.y + this.content.height() + offset;
         }
 
-        /** A left click inside the panel: on a dormant row, asks the server to make it active. */
+        /**
+         * A left click inside the panel: on a dormant row, asks the server to make it active; on a single enchantment,
+         * to switch it on or off; on the singles' heading, folds or unfolds the section.
+         */
         void click(double mouseX, double mouseY)
         {
-                this.rowAt(mouseX, mouseY).filter(row -> !row.active())
+                if (this.sectionHeaderAt(mouseX, mouseY).isPresent())
+                {
+                        collapsedOverride = !collapsed(AdjustabilityConfig.player().panel().layout().singles());
+                        return;
+                }
+                this.rowAt(mouseX, mouseY).filter(this::clickable)
                         .flatMap(row -> Optional.ofNullable(row.enchantment()).flatMap(Holder::unwrapKey)
                                 .map(key -> new ToggleEnchantmentPayload(this.serverContainerId, this.serverSlot, key,
-                                        row.none())))
+                                        row.none() || this.single(row) && row.active())))
                         .ifPresent(AdjustClient::send);
+        }
+
+        private boolean single(Row row)
+        {
+                return row.group() == this.singlesGroup;
+        }
+
+        /** Dormant rows switch on; single enchantments switch either way. */
+        private boolean clickable(Row row)
+        {
+                return !row.active() || this.single(row);
+        }
+
+        private Optional<Header> sectionHeaderAt(double mouseX, double mouseY)
+        {
+                if (mouseX < this.x || mouseX >= this.x + this.content.width())
+                {
+                        return Optional.empty();
+                }
+                int height = PanelLayout.headerHeight(Minecraft.getInstance().font);
+                return this.content.headers().stream().filter(Header::section).filter(header ->
+                        mouseY >= this.y + header.y() - 1 && mouseY < this.y + header.y() + height - 1).findFirst();
+        }
+
+        /** Centre of the singles' heading, in screen coordinates; for the client GameTest. */
+        public Optional<int[]> singlesHeadingCentre()
+        {
+                int height = PanelLayout.headerHeight(Minecraft.getInstance().font);
+                return this.content.headers().stream().filter(Header::section).findFirst()
+                        .map(header -> new int[]{this.x + this.content.width() / 2, this.y + header.y() + height / 2});
         }
 
         /** The panel's left, top, width and height, in screen coordinates (brackets not included); for client tests. */

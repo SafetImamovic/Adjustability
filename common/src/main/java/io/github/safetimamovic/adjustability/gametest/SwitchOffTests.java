@@ -7,6 +7,7 @@ import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import io.github.safetimamovic.adjustability.core.Toggler;
+import java.util.List;
 import java.util.Set;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -17,7 +18,10 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
@@ -191,6 +195,31 @@ final class SwitchOffTests
                         SwitchResult.DONE, "switched on through the API");
                 helper.assertTrue(AdjustabilityApi.switchedOffEnchantments(pickaxe, registries).isEmpty(), "none off");
                 helper.succeed();
+        }
+
+        /** A switched-off enchantment stays in the tooltip, marked off; also when nothing else is enchanted. */
+        static void offTooltip(GameTestHelper helper)
+        {
+                ItemStack pickaxe = pickaxe(helper);
+                Toggler.deactivate(player(helper), pickaxe, enchantment(helper, Enchantments.UNBREAKING),
+                        SwitchSource.COMMAND);
+                List<String> lines = tooltip(helper, pickaxe);
+                helper.assertTrue(lines.contains("Unbreaking III (off)"), "marked off: " + lines);
+                helper.assertFalse(lines.contains("Unbreaking III"), "not listed as active: " + lines);
+
+                ItemStack sword = new ItemStack(Items.DIAMOND_SWORD);
+                sword.enchant(enchantment(helper, Enchantments.KNOCKBACK), 2);
+                Toggler.deactivate(player(helper), sword, enchantment(helper, Enchantments.KNOCKBACK),
+                        SwitchSource.COMMAND);
+                lines = tooltip(helper, sword);
+                helper.assertTrue(lines.contains("Knockback II (off)"), "the only enchantment, off: " + lines);
+                helper.succeed();
+        }
+
+        private static List<String> tooltip(GameTestHelper helper, ItemStack stack)
+        {
+                return stack.getTooltipLines(Item.TooltipContext.of(helper.getLevel()), null, TooltipFlag.NORMAL).stream()
+                        .map(Component::getString).toList();
         }
 
         private static void assertOff(GameTestHelper helper, ItemStack stack, Holder<Enchantment> enchantment,

@@ -174,7 +174,8 @@ public final class AdjustabilityConfig
                 GroupStyle groups,
                 int separator,
                 RowOrder order,
-                NonePosition none)
+                NonePosition none,
+                SinglesSection singles)
         {
         }
 
@@ -209,6 +210,17 @@ public final class AdjustabilityConfig
                 REGISTRY,
                 ALPHABETICAL,
                 ACTIVE_FIRST
+        }
+
+        /**
+         * The section of enchantments that conflict with nothing, each switched on or off on its own (when the server
+         * allows it). EXPANDED or COLLAPSED: how it starts; a click on its heading folds it. HIDDEN: not shown.
+         */
+        public enum SinglesSection
+        {
+                EXPANDED,
+                COLLAPSED,
+                HIDDEN
         }
 
         /** Where a group's None row goes, when the server allows switching a group off. */

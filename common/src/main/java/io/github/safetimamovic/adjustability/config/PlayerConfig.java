@@ -9,6 +9,7 @@ import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.NonePosi
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelActivation;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelSide;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelStyle;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.SinglesSection;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PlayerSettings;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.RowOrder;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Text;
@@ -76,6 +77,7 @@ public final class PlayerConfig
         private static final ConfigValue<String> SEPARATOR_COLOR;
         private static final EnumValue<RowOrder> ROW_ORDER;
         private static final EnumValue<NonePosition> NONE_ROW;
+        private static final EnumValue<SinglesSection> SINGLES;
 
         /** The row mark drawn when {@code mark_style} names none (say the mod that added it was removed). */
         public static final String DEFAULT_MARK_STYLE = "adjustability:circle";
@@ -185,6 +187,10 @@ public final class PlayerConfig
                 NONE_ROW = builder.comment("Where the None row goes when the server allows switching a group off:",
                                 "LAST or FIRST.")
                         .defineEnum("none_row", NonePosition.LAST);
+                SINGLES = builder.comment("The section for enchantments that conflict with nothing, which the server",
+                                "may let you switch off one by one: EXPANDED or COLLAPSED (how it starts; click its",
+                                "heading to fold it) or HIDDEN.")
+                        .defineEnum("singles", SinglesSection.EXPANDED);
                 builder.pop();
                 builder.pop();
 
@@ -193,7 +199,7 @@ public final class PlayerConfig
                         SHOW_BRACKETS, BRACKET_COLOR, BRACKET_LENGTH, HIGHLIGHT_COLOR, ACTIVE_COLOR, SHOW_COST,
                         BORDER_STYLE, MARK_STYLE, DORMANT_MARK_COLOR, ANIMATE_MARKS, TITLE_COLOR, ACTIVE_TEXT_COLOR,
                         DORMANT_TEXT_COLOR, FOOTER_TEXT_COLOR, TEXT_SHADOW, SHOW_TITLE, SHOW_ITEM_ICON, PADDING,
-                        ROW_HEIGHT, GROUP_STYLE, SEPARATOR_COLOR, ROW_ORDER, NONE_ROW);
+                        ROW_HEIGHT, GROUP_STYLE, SEPARATOR_COLOR, ROW_ORDER, NONE_ROW, SINGLES);
                 COLORS = Set.of(BACKGROUND_COLOR, BORDER_TOP_COLOR, BORDER_BOTTOM_COLOR, BRACKET_COLOR, HIGHLIGHT_COLOR,
                         ACTIVE_COLOR, DORMANT_MARK_COLOR, TITLE_COLOR, ACTIVE_TEXT_COLOR, DORMANT_TEXT_COLOR,
                         FOOTER_TEXT_COLOR, SEPARATOR_COLOR);
@@ -248,7 +254,8 @@ public final class PlayerConfig
                                 get(GROUP_STYLE, pending),
                                 argb(SEPARATOR_COLOR, pending),
                                 get(ROW_ORDER, pending),
-                                get(NONE_ROW, pending)));
+                                get(NONE_ROW, pending),
+                                get(SINGLES, pending)));
         }
 
         /** Whether a setting is the row mark's id. */

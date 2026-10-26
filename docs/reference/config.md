@@ -138,3 +138,4 @@ Spacing, and how the groups of conflicting enchantments are told apart.
 | `separator_color` | `#30FF00FF` |  | The line between groups. |
 | `row_order` | `REGISTRY` | `REGISTRY`, `ALPHABETICAL`, `ACTIVE_FIRST` | Order of the rows in a group: REGISTRY (the game's), ALPHABETICAL or ACTIVE_FIRST. |
 | `none_row` | `LAST` | `LAST`, `FIRST` | Where the None row goes when the server allows switching a group off: LAST or FIRST. |
+| `singles` | `EXPANDED` | `EXPANDED`, `COLLAPSED`, `HIDDEN` | The section for enchantments that conflict with nothing, which the server may let you switch off one by one: EXPANDED or COLLAPSED (how it starts; click its heading to fold it) or HIDDEN. |

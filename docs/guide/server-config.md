@@ -185,6 +185,7 @@ group_style = "LINE"
 separator_color = "#30FF00FF"
 row_order = "REGISTRY"
 none_row = "LAST"
+singles = "EXPANDED"
 ```
 
 The settings directly under `[panel]` are where 0.1.0 put them, so older files keep their values. The ones added
@@ -223,6 +224,7 @@ later are in the `[panel.*]` sections. [Panel styles](panel-styles.md) shows wha
 | `separator_color` | `#30FF00FF` | The line between groups. |
 | `row_order` | `REGISTRY` | Order of the rows in a group: `REGISTRY` (the game's), `ALPHABETICAL` or `ACTIVE_FIRST`. |
 | `none_row` | `LAST` | Where the None row goes when the server allows switching a group off: `LAST` or `FIRST`. |
+| `singles` | `EXPANDED` | The section for enchantments that conflict with nothing, which the server may let you switch off one by one: `EXPANDED` or `COLLAPSED` (how it starts; click its heading to fold it) or `HIDDEN`. |
 
 Colors are `#RRGGBB` or `#AARRGGBB`, where `AA` is the opacity (`FF` solid, `00` invisible).
 

@@ -32,11 +32,12 @@ final class PanelRenderer
         }
 
         /**
-         * The panel with its top-left corner at {@code x, y}. {@code hovered}, a dormant row, gets the highlight;
-         * {@code active} gives each row's mark how active it is (0 to 1), for animated switches.
+         * The panel with its top-left corner at {@code x, y}. {@code hovered}, a row that can be clicked, or
+         * {@code hoveredHeader}, the singles' heading, gets the highlight; {@code active} gives each row's mark how
+         * active it is (0 to 1), for animated switches.
          */
         static void draw(GuiGraphicsExtractor graphics, Font font, PanelStyle style, int x, int y, Content content,
-                @Nullable Row hovered, ToDoubleFunction<Row> active)
+                @Nullable Row hovered, @Nullable Header hoveredHeader, ToDoubleFunction<Row> active)
         {
                 int right = x + content.width();
                 int bottom = y + content.height();
@@ -60,11 +61,21 @@ final class PanelRenderer
                                 y + padding + (titleHeight - font.lineHeight + 1) / 2, text.title(), text.shadow());
                 }
 
-                boolean costOnHeader = style.layout().groups() == GroupStyle.HEADER;
                 for (Header header : content.headers())
                 {
                         int top = y + header.y() + 1;
-                        graphics.text(font, header.name(), x + padding, top, text.footer(), false);
+                        if (header.section() && header.group() > 0 && style.layout().groups() == GroupStyle.LINE)
+                        {
+                                int line = y + header.y() - PanelLayout.GROUP_GAP / 2 - 1;
+                                graphics.fill(x + padding, line, right - padding, line + 1, style.layout().separator());
+                        }
+                        if (header == hoveredHeader)
+                        {
+                                graphics.fill(x + 2, top - 2, right - 2, top + PanelLayout.headerHeight(font) - 2,
+                                        style.frame().highlight());
+                        }
+                        graphics.text(font, header.name(), x + padding, top,
+                                header == hoveredHeader ? text.active() : text.footer(), false);
                         if (!content.groupCosts().isEmpty())
                         {
                                 cost(graphics, font, content.groupCosts().get(header.group()), right - padding, top,
@@ -80,7 +91,8 @@ final class PanelRenderer
                 {
                         int top = y + row.y();
                         boolean firstOfGroup = row.group() != lastGroup;
-                        if (firstOfGroup && lastGroup >= 0 && style.layout().groups() == GroupStyle.LINE)
+                        if (firstOfGroup && lastGroup >= 0 && style.layout().groups() == GroupStyle.LINE
+                                && !content.headed(row.group()))
                         {
                                 int line = top - PanelLayout.GROUP_GAP / 2 - 1;
                                 graphics.fill(x + padding, line, right - padding, line + 1, style.layout().separator());
@@ -98,7 +110,7 @@ final class PanelRenderer
                         int textY = PanelLayout.textY(font, style, top);
                         graphics.text(font, row.label(), labelX, textY,
                                 row.active() || highlighted ? text.active() : text.dormant(), text.shadow());
-                        if (firstOfGroup && !costOnHeader && !content.groupCosts().isEmpty())
+                        if (firstOfGroup && !content.headed(row.group()) && !content.groupCosts().isEmpty())
                         {
                                 cost(graphics, font, content.groupCosts().get(row.group()), right - padding, textY,
                                         text);

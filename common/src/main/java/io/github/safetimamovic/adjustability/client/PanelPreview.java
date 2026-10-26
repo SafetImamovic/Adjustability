@@ -8,8 +8,10 @@ import io.github.safetimamovic.adjustability.client.PanelLayout.Row;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelSide;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelStyle;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.SinglesSection;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
 import net.minecraft.client.Minecraft;
@@ -58,7 +60,8 @@ final class PanelPreview implements ImageRenderer
                 ToggleConfig toggle = AdjustabilityConfig.toggle();
                 Component footer = AdjustPanel.footer(toggle.defaultCost(), toggle.cooldownTicks());
                 Content content = PanelLayout.layout(font, style, this.item.getHoverName(), this.item,
-                        groups(toggle.allowNone()), List.of(), footer);
+                        groups(toggle.allowNone(), toggle.allowSwitchOff() ? style.layout().singles()
+                                : SinglesSection.HIDDEN), List.of(), footer);
 
                 // Just room for the slot and the panel, the slot on the side the panel doesn't open to.
                 int sceneWidth = 2 * MARGIN + 16 + PanelLayout.GAP_FROM_SLOT + content.width()
@@ -91,7 +94,7 @@ final class PanelPreview implements ImageRenderer
                 /*graphics.renderFakeItem(this.item, slotLeft, slotTop);*/
                 Row hovered = content.rows().stream().filter(row -> !row.active() && !row.none()).findFirst()
                         .orElse(null);
-                PanelRenderer.draw(graphics, font, style, panelX, panelY, content, hovered,
+                PanelRenderer.draw(graphics, font, style, panelX, panelY, content, hovered, null,
                         row -> row.active() ? 1 : 0);
                 //? if >=26.1 {
                 graphics.pose().popMatrix();
@@ -100,12 +103,22 @@ final class PanelPreview implements ImageRenderer
                 return height;
         }
 
-        /** The Protections and the boots group, each with a None row if the server allows it. */
-        private static List<Group> groups(boolean allowNone)
+        /**
+         * The Protections and the boots group, each with a None row if the server allows it, then the single
+         * enchantments as {@code singles} says.
+         */
+        private static List<Group> groups(boolean allowNone, SinglesSection singles)
         {
-                return List.of(
+                List<Group> groups = new ArrayList<>(List.of(
                         group("armor", allowNone, entry("protection", 4, true), entry("fire_protection", 4, false)),
-                        group("boots", allowNone, entry("depth_strider", 3, true), entry("frost_walker", 2, false)));
+                        group("boots", allowNone, entry("depth_strider", 3, true), entry("frost_walker", 2, false))));
+                if (singles != SinglesSection.HIDDEN)
+                {
+                        boolean collapsed = singles == SinglesSection.COLLAPSED;
+                        groups.add(new Group(AdjustPanel.singlesHeading(collapsed, 1), collapsed ? List.of()
+                                : List.of(entry("unbreaking", 3, true), entry("mending", 1, false)), null, true));
+                }
+                return groups;
         }
 
         private static Group group(String tag, boolean allowNone, Entry... entries)
@@ -113,7 +126,7 @@ final class PanelPreview implements ImageRenderer
                 Entry none = allowNone
                         ? new Entry(null, Component.translatable("adjustability.panel.none"), false, true) : null;
                 return new Group(Component.translatable("adjustability.group.minecraft.exclusive_set." + tag),
-                        List.of(entries), none);
+                        List.of(entries), none, false);
         }
 
         private static Entry entry(String enchantment, int level, boolean active)

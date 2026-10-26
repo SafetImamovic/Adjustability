@@ -50,13 +50,14 @@ final class PanelLayout
                 for (int index = 0; index < groups.size(); index++)
                 {
                         Group group = groups.get(index);
-                        if (index > 0 && layout.groups() != GroupStyle.NONE)
+                        if (index > 0 && (layout.groups() != GroupStyle.NONE || group.section()))
                         {
                                 y += GROUP_GAP;
                         }
-                        if (layout.groups() == GroupStyle.HEADER)
+                        // The section of single enchantments always has its heading: it's what folds it.
+                        if (layout.groups() == GroupStyle.HEADER || group.section())
                         {
-                                headers.add(new Header(group.name(), y, index));
+                                headers.add(new Header(group.name(), y, index, group.section()));
                                 y += headerHeight(font);
                         }
                         for (Entry entry : ordered(group, style))
@@ -129,7 +130,6 @@ final class PanelLayout
         {
                 Layout layout = style.layout();
                 Text text = style.text();
-                boolean costOnHeader = layout.groups() == GroupStyle.HEADER;
                 int textWidth = 0;
                 if (text.showTitle())
                 {
@@ -140,7 +140,7 @@ final class PanelLayout
                 for (Row row : content.rows())
                 {
                         int width = labelX + font.width(row.label());
-                        if (row.group() != lastGroup && !costOnHeader && !content.groupCosts().isEmpty())
+                        if (row.group() != lastGroup && !content.headed(row.group()) && !content.groupCosts().isEmpty())
                         {
                                 width += COST_GAP + font.width(content.groupCosts().get(row.group()));
                         }
@@ -158,6 +158,11 @@ final class PanelLayout
                 }
                 int bottom = content.rows().isEmpty() ? rowsTop(font, style)
                         : content.rows().getLast().y() + layout.rowHeight();
+                if (!content.headers().isEmpty())
+                {
+                        // A folded section ends with its heading.
+                        bottom = Math.max(bottom, content.headers().getLast().y() + headerHeight(font));
+                }
                 if (text.showCost())
                 {
                         textWidth = Math.max(textWidth, font.width(content.footer()));
@@ -193,10 +198,12 @@ final class PanelLayout
         /**
          * A group of conflicting enchantments before layout.
          *
-         * @param name its heading, for {@code group_style = HEADER}
-         * @param none its None row, if the server allows switching the group off
+         * @param name    its heading, for {@code group_style = HEADER}
+         * @param none    its None row, if the server allows switching the group off
+         * @param section true for the section of enchantments that conflict with nothing, whose heading is always
+         *                shown (and folds it; folded, it has no entries)
          */
-        record Group(Component name, List<Entry> entries, @Nullable Entry none)
+        record Group(Component name, List<Entry> entries, @Nullable Entry none, boolean section)
         {
         }
 
@@ -214,8 +221,8 @@ final class PanelLayout
         {
         }
 
-        /** A placed group heading; {@code y} is from the panel's top. */
-        record Header(Component name, int y, int group)
+        /** A placed group heading; {@code y} is from the panel's top. {@code section}: the singles' heading. */
+        record Header(Component name, int y, int group, boolean section)
         {
         }
 
@@ -232,6 +239,12 @@ final class PanelLayout
                 {
                         return new Content(this.title, this.icon, this.rows, this.headers, this.groupCosts,
                                 this.footer, size.width(), size.height());
+                }
+
+                /** Whether the group has a heading, which then carries its cost. */
+                boolean headed(int group)
+                {
+                        return this.headers.stream().anyMatch(header -> header.group() == group);
                 }
         }
 

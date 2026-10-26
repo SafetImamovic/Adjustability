@@ -1,5 +1,6 @@
 {
     "adjustability.tooltip.dormant": "  ⇄ %s",
+    "adjustability.tooltip.off": "%s (off)",
     "adjustability.tooltip.unknown": "  ⇄ Unknown: %s %s",
     "adjustability.command.no_item": "Hold an item in your main hand.",
     "adjustability.command.not_adjustable": "This item can't hold dormant enchantments (#adjustability:not_adjustable, or not in #adjustability:adjustable in allowlist mode).",
@@ -20,6 +21,8 @@
     "adjustability.panel.cost": "Each switch: %s · cooldown %ss",
     "adjustability.panel.cooldown": "Cooldown %ss",
     "adjustability.panel.none": "None",
+    "adjustability.panel.singles": "Other enchantments",
+    "adjustability.panel.singles.off": "Other enchantments (%s off)",
     "adjustability.group.minecraft.exclusive_set.armor": "Protection",
     "adjustability.group.minecraft.exclusive_set.boots": "Boots",
     "adjustability.group.minecraft.exclusive_set.bow": "Bow",
@@ -172,6 +175,7 @@
     "adjustability.configuration.separator_color": "Separator Color",
     "adjustability.configuration.row_order": "Row Order",
     "adjustability.configuration.none_row": "None Row",
+    "adjustability.configuration.singles": "Single Enchantments",
     "adjustability.jei.anvil": "Adjustability: conflicting enchantments can be combined here, from a book or another item. What was active stays active; the new conflicting enchantment is kept dormant (listed with ⇄, doing nothing). Hover the item in any inventory and press the Adjust key (Left Alt) to choose which one is active. Two books with conflicting enchantments combine into one.",
     "adjustability.jei.grindstone": "Adjustability: a grindstone removes dormant enchantments too, and gives experience for them like for active ones. Curses stay."
 }

@@ -121,6 +121,7 @@ public final class AdjustabilityGameTests
                 test(registrar, "off_not_counted_in_max_dormant", SwitchOffTests::offNotCountedInMaxDormant);
                 test(registrar, "flatten_restores_off", SwitchOffTests::flattenRestoresOff);
                 test(registrar, "api_switched_off", SwitchOffTests::apiSwitchedOff);
+                test(registrar, "off_tooltip", SwitchOffTests::offTooltip);
                 test(registrar, "generated_docs", ReferenceDocs::generatedDocs);
                 test(registrar, "hand_written_docs", ReferenceDocs::handWrittenDocs);
         }
