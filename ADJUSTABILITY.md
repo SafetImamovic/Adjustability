@@ -1142,9 +1142,14 @@ so every new key gets a YACL option and the live preview for free.
    its first enchantment); `border = GRADIENT | SOLID | NONE | SPRITE` (SPRITE: a nine-slice GUI sprite under
    `textures/gui/sprites/`, so resource packs restyle the panel without config); corners `BRACKETS | NONE`; title on
    or off, item icon in the title, row order `REGISTRY | ALPHABETICAL | ACTIVE_FIRST`, None row first or last.
-4. **Presets:** `MAGENTA` (default), `VANILLA`, `MINIMAL`, `HIGH_CONTRAST`. Applying one writes its values (not the
-   key mode or side); nothing stores which preset was applied, so there's no `CUSTOM` to keep in sync.
-   `/adjustability panel preset <name>` and a YACL button per preset.
+4. **Profiles (decided 2026-10-26, "simple but well designed"):** a profile is a whole look (every panel setting but
+   the key mode and side). Built in: `magenta` (default), `vanilla`, `minimal`, `high_contrast`; more as JSON files in
+   `config/adjustability/panel_profiles` (modpacks ship them, `/adjustability panel save` writes them). Applying one
+   copies its values into the player file; no live link, so the file stays the one source of the look.
+   `default_profile` in `[panel]` is what `reset` returns to, for modpacks. Share codes: `ADJ1:` + URL-safe Base64 of
+   the deflated JSON of the non-default settings, via `panel export` / `panel import` and YACL's Copy / Paste Code.
+   Profiles and codes go through one parser: each value checked like the config file, unknown keys and bad values
+   skipped and reported, the inflated JSON capped at 16 KB. Resource-pack profiles left out for now.
 5. **YACL:** nested spec sections (`panel.marks`, `panel.colors`, `panel.layout`, `panel.frame`) become collapsible
    groups; enum and mark options get names and descriptions; the preview shows pending values. Without YACL the stock
    screen and `/adjustability panel` still reach every key.

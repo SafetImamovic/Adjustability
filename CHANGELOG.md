@@ -13,8 +13,12 @@ Changes per version that players, pack devs and mod devs will notice. Format:
   heading with each group's name (like Mining), row order, where the None row goes, and the item's icon next to its
   name. New `[panel.marks]`, `[panel.text]` and `[panel.layout]` sections; older files keep their values.
 - Border styles: `GRADIENT` (as before), `SOLID`, `NONE`, or `SPRITE`, a GUI sprite resource packs can replace.
-- Presets: `magenta` (the defaults), `vanilla`, `minimal` and `high_contrast`, with `/adjustability panel preset
-  <name>` or the YACL screen's Apply Preset buttons.
+- Panel profiles: `magenta` (the defaults), `vanilla`, `minimal` and `high_contrast` built in, plus JSON files in
+  `config/adjustability/panel_profiles` that modpacks ship or `/adjustability panel save <name>` writes. Apply one with
+  `/adjustability panel profile <name>` or the YACL screen's buttons. `default_profile` makes `/adjustability panel
+  reset` go back to a modpack's look.
+- Share codes: `/adjustability panel export` copies a short code for your look, `/adjustability panel import` (from the
+  clipboard, or with the code) or YACL's Paste Code applies one. Every value is checked; what doesn't fit is skipped.
 - The YACL screen shows the panel's sections as their own groups, picks the row mark from a list, and its preview shows
   two groups.
 - Java API: `AdjustabilityClientApi.registerRowMark` lets other mods add row marks (client side, experimental).
