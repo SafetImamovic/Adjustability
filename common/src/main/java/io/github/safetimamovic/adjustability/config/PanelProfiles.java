@@ -43,10 +43,11 @@ import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
  * }
  * }</pre>
  *
- * <p>A share code is {@code ADJ1:} and the settings that differ from the defaults, as compact JSON, deflated and in
- * URL-safe Base64. Profiles and codes are read the same way: every value is checked as the config file checks it,
- * and keys this version doesn't know or values it can't use are skipped and reported, never fatal. A code can't hold
- * more than the panel's look.
+ * <p>A share code is {@code ADJ-}, the version of Adjustability that made it, {@code :}, and the settings that differ
+ * from the defaults, as compact JSON, deflated and in URL-safe Base64: {@code ADJ-0.4.2:q1bK...}. The version lets a
+ * later release change the format and still read older codes. Profiles and codes are read the same way: every value
+ * is checked as the config file checks it, and keys this version doesn't know or values it can't use are skipped and
+ * reported, never fatal. A code can't hold more than the panel's look.
  */
 public final class PanelProfiles
 {
@@ -56,7 +57,7 @@ public final class PanelProfiles
         /** What a profile file's name (without {@code .json}) may be. */
         public static final String ID_PATTERN = "[a-z0-9_.-]+";
 
-        private static final String CODE_PREFIX = "ADJ1:";
+        private static final String CODE_PREFIX = "ADJ-";
         /** A code's JSON may not inflate past this; real ones are a few hundred bytes. */
         private static final int MAX_CODE_JSON = 16 * 1024;
 
@@ -228,21 +229,43 @@ public final class PanelProfiles
                         out.write(buffer, 0, deflater.deflate(buffer));
                 }
                 deflater.end();
-                return CODE_PREFIX + Base64.getUrlEncoder().withoutPadding().encodeToString(out.toByteArray());
+                return CODE_PREFIX + Services.PLATFORM.modVersion() + ":"
+                        + Base64.getUrlEncoder().withoutPadding().encodeToString(out.toByteArray());
         }
 
         /** The look a share code carries. */
         public static Look decode(String code) throws ProfileException
         {
                 String trimmed = code.trim();
-                if (!trimmed.startsWith(CODE_PREFIX))
+                int colon = trimmed.indexOf(':');
+                if (!trimmed.startsWith(CODE_PREFIX) || colon <= CODE_PREFIX.length())
                 {
                         throw badCode();
                 }
+                String version = trimmed.substring(CODE_PREFIX.length(), colon);
+                try
+                {
+                        // Every version so far writes deflated JSON. A later format picks its reader by version here.
+                        return parse(object(inflate(trimmed.substring(colon + 1))));
+                }
+                catch (ProfileException | JsonParseException | IllegalStateException exception)
+                {
+                        String ours = Services.PLATFORM.modVersion();
+                        if (compareVersions(version, ours) > 0)
+                        {
+                                throw new ProfileException(Component.translatable("adjustability.profile.newer_code",
+                                        version, ours));
+                        }
+                        throw badCode();
+                }
+        }
+
+        private static String inflate(String base64) throws ProfileException
+        {
                 Inflater inflater = new Inflater(true);
                 try
                 {
-                        inflater.setInput(Base64.getUrlDecoder().decode(trimmed.substring(CODE_PREFIX.length())));
+                        inflater.setInput(Base64.getUrlDecoder().decode(base64));
                         ByteArrayOutputStream out = new ByteArrayOutputStream();
                         byte[] buffer = new byte[512];
                         while (!inflater.finished())
@@ -258,10 +281,9 @@ public final class PanelProfiles
                                         throw badCode();
                                 }
                         }
-                        return parse(object(out.toString(StandardCharsets.UTF_8)));
+                        return out.toString(StandardCharsets.UTF_8);
                 }
-                catch (IllegalArgumentException | DataFormatException | JsonParseException
-                       | IllegalStateException exception)
+                catch (IllegalArgumentException | DataFormatException exception)
                 {
                         throw badCode();
                 }
@@ -269,11 +291,6 @@ public final class PanelProfiles
                 {
                         inflater.end();
                 }
-        }
-
-        private static ProfileException badCode()
-        {
-                return new ProfileException(Component.translatable("adjustability.profile.bad_code"));
         }
 
         private static JsonObject object(String json)
@@ -284,6 +301,42 @@ public final class PanelProfiles
                         throw new JsonParseException("not a JSON object");
                 }
                 return element.getAsJsonObject();
+        }
+
+        /**
+         * Compares versions like {@code 0.4.2} by their numbers; a suffix after {@code -} or {@code +} is ignored and a
+         * part that isn't a number counts as 0.
+         */
+        public static int compareVersions(String a, String b)
+        {
+                String[] left = a.split("[-+]", 2)[0].split("\\.");
+                String[] right = b.split("[-+]", 2)[0].split("\\.");
+                for (int i = 0; i < Math.max(left.length, right.length); i++)
+                {
+                        int difference = Integer.compare(number(left, i), number(right, i));
+                        if (difference != 0)
+                        {
+                                return difference;
+                        }
+                }
+                return 0;
+        }
+
+        private static int number(String[] parts, int index)
+        {
+                try
+                {
+                        return index < parts.length ? Integer.parseInt(parts[index]) : 0;
+                }
+                catch (NumberFormatException exception)
+                {
+                        return 0;
+                }
+        }
+
+        private static ProfileException badCode()
+        {
+                return new ProfileException(Component.translatable("adjustability.profile.bad_code"));
         }
 
         /** Checks every entry against its setting; what doesn't fit is skipped. */

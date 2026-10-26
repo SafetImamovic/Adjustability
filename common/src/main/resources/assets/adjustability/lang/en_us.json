@@ -35,6 +35,7 @@
     "adjustability.profile.not_found": "No panel profile %s.",
     "adjustability.profile.unreadable": "Couldn't read %s: %s",
     "adjustability.profile.bad_code": "That isn't an Adjustability panel code.",
+    "adjustability.profile.newer_code": "That code is from Adjustability %s, newer than yours (%s). Update to use it.",
     "adjustability.profile.bad_name": "%s can't be a profile name: use a-z, 0-9, _, - and . only.",
     "adjustability.profile.built_in_name": "%s is a built-in profile; pick another name.",
     "adjustability.profile.cant_save": "Couldn't save %s: %s",

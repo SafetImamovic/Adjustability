@@ -5,6 +5,7 @@ import io.github.safetimamovic.adjustability.config.PanelProfiles;
 import io.github.safetimamovic.adjustability.config.PanelProfiles.Look;
 import io.github.safetimamovic.adjustability.config.PanelProfiles.ProfileException;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
+import io.github.safetimamovic.adjustability.platform.Services;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.zip.Deflater;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.contents.TranslatableContents;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 
 /**
@@ -44,7 +46,8 @@ final class PanelProfileTests
                         Map<ConfigValue<?>, Object> look = new LinkedHashMap<>(PlayerConfig.currentLook());
                         look.putAll(PanelProfiles.load("high_contrast").values());
                         String code = PanelProfiles.encode(look);
-                        helper.assertTrue(code.startsWith("ADJ1:"), "a code: " + code);
+                        helper.assertTrue(code.startsWith("ADJ-" + Services.PLATFORM.modVersion() + ":"),
+                                "a code with this version: " + code);
                         helper.assertValueEqual(PanelProfiles.decode(code).values(),
                                 PanelProfiles.load("high_contrast").values(), "the code's look");
                         helper.assertValueEqual(PanelProfiles.decode(PanelProfiles.encode(PlayerConfig.currentLook()))
@@ -59,6 +62,10 @@ final class PanelProfileTests
                         json.addProperty("activation", "HOLD");
                         json.addProperty("made_up", true);
                         Look parsed = PanelProfiles.decode(code(json.toString()));
+                        helper.assertValueEqual(PanelProfiles.decode(code("0.1.0", json.toString())).values(),
+                                parsed.values(), "an older version's code");
+                        helper.assertValueEqual(PanelProfiles.decode(code("999.0.0", json.toString())).values(),
+                                parsed.values(), "a newer version's code in a format this one reads");
                         helper.assertValueEqual(parsed.skipped(),
                                 List.of("padding", "bracket_color", "activation", "made_up"),
                                 "out of range, not a color, not a look setting, unknown");
@@ -69,8 +76,9 @@ final class PanelProfileTests
                         throw new AssertionError(exception.getMessage(), exception);
                 }
 
-                for (String bad : List.of("", "hello", "ADJ1:", "ADJ1:!!!", "ADJ1:AAAA", "ADJ2:" + "x".repeat(8),
-                        code("[1, 2]"), code("{\"padding\": "), code(" ".repeat(20_000) + "{}")))
+                for (String bad : List.of("", "hello", "ADJ-", "ADJ-:" + code("{}").split(":", 2)[1], "ADJ-1.0:",
+                        "ADJ-1.0:!!!", "ADJ-1.0:AAAA", "ADJ1:" + code("{}").split(":", 2)[1], code("[1, 2]"),
+                        code("{\"padding\": "), code(" ".repeat(20_000) + "{}")))
                 {
                         try
                         {
@@ -82,11 +90,30 @@ final class PanelProfileTests
                                 // Refused, as it should be.
                         }
                 }
+                try
+                {
+                        PanelProfiles.decode("ADJ-999.0.0:AAAA");
+                        throw new AssertionError("should refuse a newer code it can't read");
+                }
+                catch (ProfileException expected)
+                {
+                        helper.assertTrue(expected.message().getContents() instanceof TranslatableContents contents
+                                && contents.getKey().equals("adjustability.profile.newer_code"),
+                                "names the newer version: " + expected.getMessage());
+                }
+                helper.assertTrue(PanelProfiles.compareVersions("0.10.0", "0.9.1") > 0, "0.10.0 after 0.9.1");
+                helper.assertTrue(PanelProfiles.compareVersions("1.0.0-beta.1", "1.0") == 0, "suffixes ignored");
                 helper.succeed();
         }
 
         /** A code for any text, the way {@link PanelProfiles#encode} makes them. */
         private static String code(String json)
+        {
+                return code(Services.PLATFORM.modVersion(), json);
+        }
+
+        /** A code for any text, as {@code version} would make it. */
+        private static String code(String version, String json)
         {
                 Deflater deflater = new Deflater(Deflater.BEST_COMPRESSION, true);
                 deflater.setInput(json.getBytes(StandardCharsets.UTF_8));
@@ -98,6 +125,6 @@ final class PanelProfileTests
                         out.write(buffer, 0, deflater.deflate(buffer));
                 }
                 deflater.end();
-                return "ADJ1:" + Base64.getUrlEncoder().withoutPadding().encodeToString(out.toByteArray());
+                return "ADJ-" + version + ":" + Base64.getUrlEncoder().withoutPadding().encodeToString(out.toByteArray());
         }
 }

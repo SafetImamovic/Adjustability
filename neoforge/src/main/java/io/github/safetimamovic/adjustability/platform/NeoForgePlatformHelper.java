@@ -1,5 +1,6 @@
 package io.github.safetimamovic.adjustability.platform;
 
+import io.github.safetimamovic.adjustability.Constants;
 import io.github.safetimamovic.adjustability.platform.services.IPlatformHelper;
 import java.nio.file.Path;
 import net.neoforged.fml.ModList;
@@ -37,5 +38,12 @@ public class NeoForgePlatformHelper implements IPlatformHelper
         public Path configDirectory()
         {
                 return FMLPaths.CONFIGDIR.get();
+        }
+
+        @Override
+        public String modVersion()
+        {
+                return ModList.get().getModContainerById(Constants.MOD_ID).orElseThrow().getModInfo().getVersion()
+                        .toString();
         }
 }

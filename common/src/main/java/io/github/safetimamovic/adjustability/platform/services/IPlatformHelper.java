@@ -35,6 +35,13 @@ public interface IPlatformHelper
         Path configDirectory();
 
         /**
+         * Adjustability's version, as the loader read it from the mod's metadata.
+         *
+         * @return The mod's version, such as {@code 0.4.2}.
+         */
+        String modVersion();
+
+        /**
          * Gets the name of the environment type as a string.
          *
          * @return The name of the environment type.
