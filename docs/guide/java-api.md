@@ -76,6 +76,10 @@ is any enchantment of the group), what asked for it (`SwitchSource`: `PANEL`,
 both inputs, vanilla's result and the proposed active and dormant split. A listener that throws is logged and counts
 as allowing.
 
+For an individual row switched off, `deactivatesOnlyTarget()` is true. `none()` is true only if that switch leaves
+the whole group inactive; compatible group members can remain active. The original `SwitchEvent` constructor is
+still available for activation and whole-group None events.
+
 ```java
 /** No switching while on fire. */
 static final AdjustabilityListener NO_SWITCHING_WHILE_BURNING = new AdjustabilityListener()

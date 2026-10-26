@@ -7,6 +7,7 @@ import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry;
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
+import io.github.safetimamovic.adjustability.network.DeactivateEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleNetwork;
 import net.fabricmc.api.ModInitializer;
@@ -58,6 +59,9 @@ public class AdjustabilityFabric implements ModInitializer
                 payloads.register(ToggleEnchantmentPayload.TYPE, ToggleEnchantmentPayload.STREAM_CODEC);
                 ServerPlayNetworking.registerGlobalReceiver(ToggleEnchantmentPayload.TYPE,
                         (payload, context) -> ToggleNetwork.onToggle(context.player(), payload));
+                payloads.register(DeactivateEnchantmentPayload.TYPE, DeactivateEnchantmentPayload.STREAM_CODEC);
+                ServerPlayNetworking.registerGlobalReceiver(DeactivateEnchantmentPayload.TYPE,
+                        (payload, context) -> ToggleNetwork.onDeactivate(context.player(), payload));
                 payloads.register(CycleEnchantmentPayload.TYPE, CycleEnchantmentPayload.STREAM_CODEC);
                 ServerPlayNetworking.registerGlobalReceiver(CycleEnchantmentPayload.TYPE,
                         (payload, context) -> ToggleNetwork.onCycle(context.player(), payload));

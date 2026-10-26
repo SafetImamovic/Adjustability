@@ -104,6 +104,12 @@ public final class AdjustabilityGameTests
                 test(registrar, "api_listener_that_throws", AdjustabilityGameTests::apiListenerThatThrows);
                 test(registrar, "api_adjustable_item", AdjustabilityGameTests::apiAdjustableItem);
                 test(registrar, "none_switch", AdjustabilityGameTests::noneSwitch);
+                test(registrar, "individual_toggle", IndividualToggleTests::toggle);
+                test(registrar, "individual_compatible", IndividualToggleTests::compatible);
+                test(registrar, "individual_rules", IndividualToggleTests::rules);
+                test(registrar, "individual_network", IndividualToggleTests::network);
+                test(registrar, "individual_costs", IndividualToggleTests::costs);
+                test(registrar, "individual_events", IndividualToggleTests::events);
                 test(registrar, "none_not_allowed", AdjustabilityGameTests::noneNotAllowed);
                 test(registrar, "none_survives_anvil", AdjustabilityGameTests::noneSurvivesAnvil);
                 test(registrar, "anvil_none_boots", NoneAnvilTests::boots);

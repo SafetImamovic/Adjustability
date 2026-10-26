@@ -3,6 +3,7 @@ package io.github.safetimamovic.adjustability;
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
+import io.github.safetimamovic.adjustability.network.DeactivateEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleNetwork;
 import java.util.function.Supplier;
@@ -45,6 +46,8 @@ public class AdjustabilityNeoForge
                 modEventBus.addListener((RegisterPayloadHandlersEvent event) -> event.registrar("1")
                         .playToServer(ToggleEnchantmentPayload.TYPE, ToggleEnchantmentPayload.STREAM_CODEC,
                                 (payload, context) -> ToggleNetwork.onToggle((ServerPlayer) context.player(), payload))
+                        .playToServer(DeactivateEnchantmentPayload.TYPE, DeactivateEnchantmentPayload.STREAM_CODEC,
+                                (payload, context) -> ToggleNetwork.onDeactivate((ServerPlayer) context.player(), payload))
                         .playToServer(CycleEnchantmentPayload.TYPE, CycleEnchantmentPayload.STREAM_CODEC,
                                 (payload, context) -> ToggleNetwork.onCycle((ServerPlayer) context.player(), payload)));
                 NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent event) -> AdjustabilityCommand.register(
