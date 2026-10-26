@@ -65,6 +65,17 @@ class ConflictGraphTest
 
                 assertEquals(List.of(Set.of("fortune", "silk_touch"), Set.of("protection", "fire_protection")),
                         graph.components());
+                assertEquals(List.of("unbreaking"), graph.singles());
+        }
+
+        @Test
+        void singlesAreWhatComponentsLeaveOut()
+        {
+                ConflictGraph<String> graph = ConflictGraph.of(List.of("mending", "fortune", "unbreaking", "silk_touch"),
+                        CONFLICTS);
+
+                assertEquals(List.of("mending", "unbreaking"), graph.singles(), "vertex order");
+                assertTrue(ConflictGraph.of(List.of("fortune", "silk_touch"), CONFLICTS).singles().isEmpty());
         }
 
         @Test
