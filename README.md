@@ -77,6 +77,20 @@ Design, math, API and roadmap: [ADJUSTABILITY.md](ADJUSTABILITY.md).
 - **Modded enchantments just work:** conflicts come from the game's own enchantment data, so modded enchantments and
   datapack changes need no setup.
 
+## Screenshots
+
+Click an image to view the full screenshot.
+
+| Switch conflicting enchantments | Switch an enchantment off |
+|---|---|
+| [![The Adjust panel shows Fortune III active, Silk Touch dormant, and Efficiency V under Other enchantments](docs/public/screenshots/adjust-panel.png)](docs/public/screenshots/adjust-panel.png) | [![Efficiency V switched off in the Adjust panel, with one off enchantment listed in the section heading](docs/public/screenshots/enchantment-switched-off.png)](docs/public/screenshots/enchantment-switched-off.png) |
+| Hover an item and press **Left Alt**, then click the enchantment to activate. | Click a single enchantment to switch it off or back on. |
+
+| First-time guidance | Make the panel your own |
+|---|---|
+| [![A tutorial toast explains how to open the Adjust panel after taking an anvil result, beside the updated tooltip hint](docs/public/screenshots/tutorial-adjust.png)](docs/public/screenshots/tutorial-adjust.png) | [![The high-contrast panel profile shows two groups of enchantments on diamond boots, with checkboxes and yellow text](docs/public/screenshots/panel-high-contrast.png)](docs/public/screenshots/panel-high-contrast.png) |
+| A reminder explains how to open the panel; the next introduces the Cycle key. | Choose a [panel profile](https://safetimamovic.github.io/Adjustability/guide/panel-styles#profiles), or change its marks, colors, and spacing. |
+
 ## Controls
 
 All rebindable under Controls → Adjustability, or with `/adjustability keybinds`.
