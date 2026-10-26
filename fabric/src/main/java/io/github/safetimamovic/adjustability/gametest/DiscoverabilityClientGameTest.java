@@ -209,16 +209,56 @@ public class DiscoverabilityClientGameTest implements FabricClientGameTest
                         context.getInput().pressKey(AdjustKeys.ADJUST);
                         context.getInput().pressKey(options -> options.keyInventory);
                         context.waitForScreen(null);
-                        context.runOnClient(minecraft -> minecraft.player.connection
-                                .sendCommand("adjustability tutorial"));
-                        context.waitTick();
-                        step(context, TutorialStep.OPEN_PANEL);
                 }
                 finally
                 {
                         context.runOnClient(minecraft -> PlayerConfig.tutorial(TutorialStep.DONE));
                         hintSetting(context, "slot_marker", true);
                         hintSetting(context, "slot_marker_color", "#FFFF55FF");
+                }
+                crossWorld(context);
+        }
+
+        private static void crossWorld(ClientGameTestContext context)
+        {
+                try (TestSingleplayerContext world = context.worldBuilder().create())
+                {
+                        world.getConnection().waitForChunksRender();
+                        step(context, TutorialStep.DONE);
+                        world.getServer().runOnServer(server ->
+                        {
+                                ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                                Holder<Enchantment> fortune = player.level().registryAccess()
+                                        .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.FORTUNE);
+                                Holder<Enchantment> silk = player.level().registryAccess()
+                                        .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.SILK_TOUCH);
+                                ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+                                pickaxe.enchant(fortune, 3);
+                                ItemEnchantments.Mutable dormant = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+                                dormant.set(silk, 1);
+                                DormantEnchantments.set(pickaxe, dormant.toImmutable(),
+                                        player.level().registryAccess());
+                                player.getInventory().setItem(0, pickaxe);
+                                player.containerMenu.broadcastChanges();
+                        });
+                        world.getConnection().waitForClientboundPackets();
+                        context.waitTicks(25);
+                        context.runOnClient(minecraft ->
+                        {
+                                if (minecraft.gui.toastManager().getToast(AdjustToast.class, Toast.NO_TOKEN) != null)
+                                {
+                                        throw new AssertionError("A new world must not repeat a completed tutorial");
+                                }
+                                minecraft.player.connection.sendCommand("adjustability tutorial");
+                        });
+                        context.waitTick();
+                        step(context, TutorialStep.OPEN_PANEL);
+                        context.waitFor(minecraft -> minecraft.gui.toastManager()
+                                .getToast(AdjustToast.class, Toast.NO_TOKEN) != null);
+                }
+                finally
+                {
+                        context.runOnClient(minecraft -> PlayerConfig.tutorial(TutorialStep.DONE));
                 }
         }
 
