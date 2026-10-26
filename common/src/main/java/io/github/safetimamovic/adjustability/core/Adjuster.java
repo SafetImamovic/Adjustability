@@ -184,6 +184,30 @@ public final class Adjuster
         }
 
         /**
+         * Removes everything Adjustability keeps on the item, for uninstalling: switched-off enchantments become
+         * active again (they conflict with nothing, so vanilla can hold them; one that conflicts with what's active by
+         * now is dropped), the other dormant ones are removed.
+         */
+        public static void flatten(ItemStack stack, HolderLookup.Provider registries)
+        {
+                Set<Holder<Enchantment>> off = DormantEnchantments.off(stack, registries);
+                if (!off.isEmpty())
+                {
+                        ItemEnchantments dormant = dormantOf(stack, registries);
+                        ItemEnchantments.Mutable active = new ItemEnchantments.Mutable(activeOf(stack));
+                        for (Holder<Enchantment> enchantment : off.stream().sorted(BY_ID).toList())
+                        {
+                                if (active.keySet().stream().noneMatch(other -> conflict(enchantment, other)))
+                                {
+                                        active.set(enchantment, dormant.getLevel(enchantment));
+                                }
+                        }
+                        EnchantmentHelper.setEnchantments(stack, active.toImmutable());
+                }
+                DormantEnchantments.clear(stack);
+        }
+
+        /**
          * Adds levels like the anvil: the same level twice goes up one (up to the enchantment's max level), different
          * levels keep the higher.
          */

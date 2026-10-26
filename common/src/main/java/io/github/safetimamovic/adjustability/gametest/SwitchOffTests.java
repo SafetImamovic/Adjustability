@@ -134,6 +134,46 @@ final class SwitchOffTests
                 helper.succeed();
         }
 
+        /** {@code max_dormant_per_item} counts only enchantments waiting behind a conflict. */
+        @SuppressWarnings("unchecked")
+        static void offNotCountedInMaxDormant(GameTestHelper helper)
+        {
+                ConfigValue<Integer> maxDormant = (ConfigValue<Integer>) CreatorConfig.SPEC.getValues()
+                        .get("anvil.max_dormant_per_item");
+                int before = maxDormant.get();
+                maxDormant.set(1);
+                try
+                {
+                        ItemStack pickaxe = pickaxe(helper);
+                        Toggler.deactivate(player(helper), pickaxe, enchantment(helper, Enchantments.UNBREAKING),
+                                SwitchSource.COMMAND);
+                        Toggler.deactivate(player(helper), pickaxe, enchantment(helper, Enchantments.EFFICIENCY),
+                                SwitchSource.COMMAND);
+                        helper.assertFalse(anvil(helper, pickaxe, ItemStack.EMPTY).isEmpty(),
+                                "renaming works with Silk Touch dormant and two switched off");
+                }
+                finally
+                {
+                        maxDormant.set(before);
+                }
+                helper.succeed();
+        }
+
+        /** Flatten turns switched-off enchantments back on and removes the rest. */
+        static void flattenRestoresOff(GameTestHelper helper)
+        {
+                HolderLookup.Provider registries = helper.getLevel().registryAccess();
+                Holder<Enchantment> unbreaking = enchantment(helper, Enchantments.UNBREAKING);
+                ItemStack pickaxe = pickaxe(helper);
+                Toggler.deactivate(player(helper), pickaxe, unbreaking, SwitchSource.COMMAND);
+                AdjustabilityApi.flatten(pickaxe, registries);
+                helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(unbreaking), 3, "Unbreaking back on");
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(silkTouch), 0, "Silk Touch gone");
+                helper.assertFalse(pickaxe.has(DataComponents.CUSTOM_DATA), "a plain vanilla item");
+                helper.succeed();
+        }
+
         private static void assertOff(GameTestHelper helper, ItemStack stack, Holder<Enchantment> enchantment,
                 String when)
         {

@@ -109,7 +109,21 @@ public final class AdjustabilityApi
                 return Toggler.deactivate(player, stack, anyInGroup, SwitchSource.API);
         }
 
-        /** Removes all dormant enchantments from the item; its active ones stay. */
+        /**
+         * Makes the item a plain vanilla one, as {@code /adjustability flatten} does: enchantments the player switched
+         * off become active again, the other dormant ones are removed, active ones stay.
+         */
+        public static void flatten(ItemStack stack, HolderLookup.Provider registries)
+        {
+                Adjuster.flatten(stack, registries);
+        }
+
+        /**
+         * Removes all dormant enchantments from the item, switched-off ones included; its active ones stay.
+         *
+         * @deprecated loses switched-off enchantments; use {@link #flatten(ItemStack, HolderLookup.Provider)}
+         */
+        @Deprecated
         public static void flatten(ItemStack stack)
         {
                 DormantEnchantments.clear(stack);

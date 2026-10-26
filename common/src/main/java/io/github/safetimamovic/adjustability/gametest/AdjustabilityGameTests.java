@@ -118,6 +118,8 @@ public final class AdjustabilityGameTests
                 test(registrar, "off_survives_repair", SwitchOffTests::offSurvivesRepair);
                 test(registrar, "off_refuses_curse", SwitchOffTests::offRefusesCurse);
                 test(registrar, "switch_off_disabled", SwitchOffTests::switchOffDisabled);
+                test(registrar, "off_not_counted_in_max_dormant", SwitchOffTests::offNotCountedInMaxDormant);
+                test(registrar, "flatten_restores_off", SwitchOffTests::flattenRestoresOff);
                 test(registrar, "generated_docs", ReferenceDocs::generatedDocs);
                 test(registrar, "hand_written_docs", ReferenceDocs::handWrittenDocs);
         }
@@ -600,7 +602,7 @@ public final class AdjustabilityGameTests
                 helper.assertValueEqual(AdjustabilityApi.activeEnchantments(reward).getLevel(silkTouch), 1,
                         "Silk Touch active");
 
-                AdjustabilityApi.flatten(pickaxe);
+                AdjustabilityApi.flatten(pickaxe, helper.getLevel().registryAccess());
                 helper.assertFalse(AdjustabilityApi.hasDormant(pickaxe), "flattened");
                 helper.succeed();
         }

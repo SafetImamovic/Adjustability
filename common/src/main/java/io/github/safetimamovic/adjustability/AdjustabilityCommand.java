@@ -25,6 +25,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -173,8 +174,8 @@ public final class AdjustabilityCommand
                 int items = 0;
                 for (ServerPlayer player : players)
                 {
-                        items += flatten(player.getInventory());
-                        items += flatten(player.getEnderChestInventory());
+                        items += flatten(player.getInventory(), player.level().registryAccess());
+                        items += flatten(player.getEnderChestInventory(), player.level().registryAccess());
                         player.inventoryMenu.broadcastChanges();
                 }
                 int flattened = items;
@@ -183,7 +184,7 @@ public final class AdjustabilityCommand
                 return flattened;
         }
 
-        private static int flatten(Container container)
+        private static int flatten(Container container, HolderLookup.Provider registries)
         {
                 int items = 0;
                 for (int i = 0; i < container.getContainerSize(); i++)
@@ -191,7 +192,7 @@ public final class AdjustabilityCommand
                         ItemStack stack = container.getItem(i);
                         if (DormantEnchantments.has(stack))
                         {
-                                DormantEnchantments.clear(stack);
+                                Adjuster.flatten(stack, registries);
                                 container.setChanged();
                                 items++;
                         }

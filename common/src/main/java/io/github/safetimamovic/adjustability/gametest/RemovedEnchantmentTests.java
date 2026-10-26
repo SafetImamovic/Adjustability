@@ -233,7 +233,7 @@ final class RemovedEnchantmentTests
                 CompoundTag dormant = new CompoundTag();
                 dormant.putInt(GONE, 3);
                 withDormant(pickaxe, dormant);
-                AdjustabilityApi.flatten(pickaxe);
+                AdjustabilityApi.flatten(pickaxe, helper.getLevel().registryAccess());
                 helper.assertFalse(DormantEnchantments.has(pickaxe), "flattened");
                 helper.assertValueEqual(Adjuster.activeOf(pickaxe).size(), 1, "Fortune stays");
                 helper.succeed();

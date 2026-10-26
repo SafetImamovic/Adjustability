@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "adjustability:off_not_counted_in_max_dormant",
+  "max_ticks": 20,
+  "structure": "minecraft:empty"
+}
