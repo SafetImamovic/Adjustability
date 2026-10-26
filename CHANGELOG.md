@@ -5,6 +5,20 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Added
+
+- Player setting **Exclusive None** (`panel.layout.exclusive_none`): off by default, so active enchantments can be
+  switched off individually. Compatible members stay active, while conflicting enchantments still exclude each
+  other. Turn it on to use a separate **None** row that switches the whole group off. Both modes follow server costs,
+  cooldowns and `allow_none`.
+
+### Changed
+
+- New defaults: Toggle marks, item icon shown, group headers, and server `allow_none = true`. Existing saved settings
+  keep their values.
+- Switch events expose `deactivatesOnlyTarget()` for individual off actions; `none()` is true only when a
+  deactivation leaves the whole target group inactive. The original event constructor remains available.
+
 ### Fixed
 
 - An anvil could reject compatible enchantments, such as Unbreaking on boots, after a conflict group was set to None.

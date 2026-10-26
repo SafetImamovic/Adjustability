@@ -67,25 +67,29 @@ Players can still apply any other profile or code; nothing locks the look.
 `mark_style` in `[panel.marks]` picks the mark in front of each row. Active ones use `active_color`, dormant ones
 `dormant_mark_color`. With `animate_marks` on, a mark fades (or a toggle's knob slides) when its enchantment switches.
 
-| `adjustability:circle` (default) | `adjustability:square` | `adjustability:checkbox` |
+| `adjustability:circle` | `adjustability:square` | `adjustability:checkbox` |
 |---|---|---|
 | ![Circle](/screenshots/panel-mark-circle.png) | ![Square](/screenshots/panel-mark-square.png) | ![Checkbox](/screenshots/panel-mark-checkbox.png) |
-| **`adjustability:toggle`** | **`adjustability:radio`** | **`adjustability:text_only`** |
+| **`adjustability:toggle` (default)** | **`adjustability:radio`** | **`adjustability:text_only`** |
 | ![Toggle](/screenshots/panel-mark-toggle.png) | ![Radio](/screenshots/panel-mark-radio.png) | ![Text only](/screenshots/panel-mark-text_only.png) |
 
 Other mods can add marks; they show up in the same list. See the [Java API](java-api.md#row-marks-client).
 
 ## Groups
 
-`group_style` in `[panel.layout]` sets what goes between groups: `LINE` (the default, a thin line in
-`separator_color`), `GAP`, `NONE`, or `HEADER`, a heading with the group's name. Vanilla's groups are named (Mining,
+`group_style` in `[panel.layout]` sets what goes between groups: `HEADER` (the default, a heading with the group's
+name), `LINE` (a thin line in `separator_color`), `GAP`, or `NONE`. Vanilla's groups are named (Mining,
 Protection, Boots, Damage, Bow, Crossbow, Trident); a modded group gets the last word of its exclusive-set tag, or its
 first enchantment's name. With different costs per group, the cost goes on the heading.
 
 ![Group headings](/screenshots/panel-group-header.png)
 
-`row_order` sorts the rows in a group (`REGISTRY`, `ALPHABETICAL` or `ACTIVE_FIRST`), and `none_row` puts the None row
-`FIRST` or `LAST` when the server allows switching a group off.
+`row_order` sorts the rows in a group (`REGISTRY`, `ALPHABETICAL` or `ACTIVE_FIRST`). With **Exclusive None** off
+(`exclusive_none = false`, the default), click an active enchantment to switch it off. Its compatible partners stay
+active; conflicting partners still exclude each other. Fortune and Silk Touch can both be off, with at most one on.
+
+Turn **Exclusive None** on for a separate **None** row that switches the whole group off. `none_row` puts that row
+`FIRST` or `LAST`. Both modes require the server's `allow_none`, which defaults to on.
 
 Enchantments that conflict with nothing get their own section after the groups, **Other enchantments**, with a heading
 that's always shown (it folds the section). `singles` sets how it starts: `EXPANDED` (the default), `COLLAPSED`, or

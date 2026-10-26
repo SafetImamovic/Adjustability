@@ -176,4 +176,4 @@ On 1.21.1, `GuiGraphicsExtractor` is `GuiGraphics` and `Identifier` is `Resource
 ![The Adjust panel with the diamond mark](/screenshots/panel-mark-api-diamond.png)
 
 If a player's `mark_style` names a mark no installed mod registers (say yours was removed), the panel uses
-`adjustability:circle` and logs it once.
+`adjustability:toggle` and logs it once.

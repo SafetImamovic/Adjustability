@@ -57,14 +57,14 @@ Frost Walker can still receive a compatible Unbreaking book with either or both 
 ![Switching a netherite pickaxe from Fortune III to Silk Touch: hover it, Left Alt, click Silk Touch](/screenshots/switch.gif)
 
 - **In your inventory** (or any chest, shulker box...): hover the item and press **Left Alt**. The Adjust panel
-  opens next to it, like a tooltip that stays: each group of conflicting enchantments, the active one marked ●, the
-  dormant ones ○. Click a dormant one to make it active. **Left Alt** again, **Escape** or a click outside closes it;
+  opens next to it, like a tooltip that stays: each group of conflicting enchantments has on/off marks. Click a
+  dormant one to make it active. **Left Alt** again, **Escape** or a click outside closes it;
   that click never picks up an item. Prefer holding the key? `/adjustability panel activation hold`: the panel is
   open while you hold Left Alt (click while holding), and closes when you let go. The item's tooltip shows the key as a
   reminder (`Left Alt: switch enchantments`). Its colors,
   side and decorations are yours to change: `/adjustability panel`, or the [player settings](server-config.md#player-settings).
 - **While playing:** bind **Cycle held item's enchantments** under Controls → Adjustability (unbound by default). One
-  press steps the held item to its next choice, e.g. Fortune → Silk Touch → Fortune, and says which one is active above
+  press steps the held item to its next choice, e.g. Fortune → Silk Touch → none → Fortune, and says which is active above
   the hotbar. Items with more than one group of conflicts (boots: the Protections, and Depth Strider / Frost Walker):
   **Sneak + Cycle** picks which group the key steps.
 - **By command:** `/adjustability toggle minecraft:silk_touch` on the held item.
@@ -87,9 +87,17 @@ switch and never counts toward `max_dormant_per_item`. Curses can't be switched 
 
 ### None
 
-Some servers also allow **none** (`allow_none`): the panel then has a **None** row for each group, and choosing it
-leaves every enchantment of that group dormant, e.g. a pickaxe mining with neither Fortune nor Silk Touch. The Cycle
-key goes Fortune → Silk Touch → none → Fortune.
+By default, servers allow **none** (`allow_none`): a group can have every enchantment dormant, e.g. a pickaxe mining
+with neither Fortune nor Silk Touch. Click an active enchantment to switch it off; click a dormant one to turn it on.
+Conflicting enchantments still exclude each other. Switching off Loyalty leaves compatible Channeling active.
+
+For a separate **None** row per group, enable **Exclusive None** in Player → Panel → Layout, or run
+`/adjustability panel exclusive_none true`. That row switches the whole group off. The Cycle key goes
+Fortune → Silk Touch → none → Fortune in either panel mode. Servers can disable both modes with `allow_none = false`.
+
+| Individual toggles (default) | Exclusive None |
+|---|---|
+| [![Fortune and Silk Touch both switched off, while Efficiency stays active](/screenshots/panel-inline-none.png)](/screenshots/panel-inline-none.png) | [![A separate None row leaves the mining group inactive](/screenshots/panel-exclusive-none.png)](/screenshots/panel-exclusive-none.png) |
 
 Switching while breaking a block is fine: the drops come from what's active when the block breaks, so it never
 counts both. An item that somehow has two conflicting enchantments active (from `/give` or another mod) is fixed the

@@ -84,7 +84,7 @@ Click an image to view the full screenshot.
 | Switch conflicting enchantments | Switch an enchantment off |
 |---|---|
 | [![The Adjust panel shows Fortune III active, Silk Touch dormant, and Efficiency V under Other enchantments](docs/public/screenshots/adjust-panel.png)](docs/public/screenshots/adjust-panel.png) | [![Efficiency V switched off in the Adjust panel, with one off enchantment listed in the section heading](docs/public/screenshots/enchantment-switched-off.png)](docs/public/screenshots/enchantment-switched-off.png) |
-| Hover an item and press **Left Alt**, then click the enchantment to activate. | Click a single enchantment to switch it off or back on. |
+| Hover an item and press **Left Alt**, then click the enchantment to activate. | Click an active enchantment to switch it off. Conflicting enchantments still exclude each other; **Exclusive None** adds a separate None row. |
 
 | First-time guidance | Make the panel your own |
 |---|---|
