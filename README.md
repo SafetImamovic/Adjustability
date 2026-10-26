@@ -1,8 +1,6 @@
 <p align="center">
-  <img src="common/src/main/resources/adjustability.png" alt="Adjustability icon: a netherite pickaxe" width="160">
+  <img src="docs/public/banner.png" alt="Adjustability: every enchantment, one at a time" width="100%">
 </p>
-
-<h1 align="center">Adjustability</h1>
 
 <p align="center">
   Put Fortune and Silk Touch on the same pickaxe, and switch between them. Items hold mutually exclusive enchantments;
