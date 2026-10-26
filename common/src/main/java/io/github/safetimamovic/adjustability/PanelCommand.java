@@ -6,6 +6,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelPreset;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import java.util.Arrays;
 import java.util.Locale;
@@ -17,7 +18,8 @@ import net.neoforged.neoforge.common.ModConfigSpec.IntValue;
 
 /**
  * The {@code /adjustability panel} tree: {@code panel} lists the Adjust panel's settings, {@code panel <setting>
- * <value>} changes one, {@code panel reset} restores the defaults. The settings are the player file's {@code [panel]}
+ * <value>} changes one, {@code panel preset <name>} applies a ready-made look, {@code panel reset} restores the
+ * defaults. The settings are the player file's {@code [panel]}
  * section ({@link PlayerConfig#PANEL_SETTINGS}), so the command and the config screen always offer the same ones.
  *
  * <p>Built once for the client, which runs it, and once for the server, whose copy only exists so the arguments are
@@ -39,6 +41,8 @@ public final class PanelCommand
 
                 int reset(CommandContext<S> context);
 
+                int preset(CommandContext<S> context, PanelPreset preset);
+
                 <T> int set(CommandContext<S> context, ConfigValue<T> setting, T value);
 
                 /** {@code input} isn't a value {@code setting} can take. */
@@ -49,6 +53,13 @@ public final class PanelCommand
         {
                 LiteralArgumentBuilder<S> panel = LiteralArgumentBuilder.<S>literal("panel").executes(actions::list)
                         .then(LiteralArgumentBuilder.<S>literal("reset").executes(actions::reset));
+                LiteralArgumentBuilder<S> presets = LiteralArgumentBuilder.literal("preset");
+                for (PanelPreset preset : PanelPreset.values())
+                {
+                        presets.then(LiteralArgumentBuilder.<S>literal(preset.name().toLowerCase(Locale.ROOT))
+                                .executes(context -> actions.preset(context, preset)));
+                }
+                panel.then(presets);
                 for (ConfigValue<?> setting : PlayerConfig.PANEL_SETTINGS)
                 {
                         panel.then(setting(setting, actions));

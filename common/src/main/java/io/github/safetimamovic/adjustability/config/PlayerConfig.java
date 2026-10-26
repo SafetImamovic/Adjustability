@@ -7,14 +7,17 @@ import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Layout;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Marks;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.NonePosition;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelActivation;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelPreset;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelSide;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelStyle;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PlayerSettings;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.RowOrder;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Text;
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -89,6 +92,9 @@ public final class PlayerConfig
 
         /** The settings that are colors ({@code #AARRGGBB} strings), for the YACL screen's color pickers. */
         private static final Set<ConfigValue<?>> COLORS;
+
+        /** What each preset changes from the defaults. */
+        private static final Map<PanelPreset, Map<ConfigValue<?>, Object>> PRESETS;
 
         static
         {
@@ -184,6 +190,47 @@ public final class PlayerConfig
                 COLORS = Set.of(BACKGROUND_COLOR, BORDER_TOP_COLOR, BORDER_BOTTOM_COLOR, BRACKET_COLOR, HIGHLIGHT_COLOR,
                         ACTIVE_COLOR, DORMANT_MARK_COLOR, TITLE_COLOR, ACTIVE_TEXT_COLOR, DORMANT_TEXT_COLOR,
                         FOOTER_TEXT_COLOR, SEPARATOR_COLOR);
+                PRESETS = Map.of(
+                        PanelPreset.MAGENTA, Map.of(),
+                        // Vanilla's tooltip colors.
+                        PanelPreset.VANILLA, Map.ofEntries(
+                                Map.entry(BACKGROUND_COLOR, "#F0100010"),
+                                Map.entry(BORDER_TOP_COLOR, "#505000FF"),
+                                Map.entry(BORDER_BOTTOM_COLOR, "#5028007F"),
+                                Map.entry(SHOW_BRACKETS, false),
+                                Map.entry(HIGHLIGHT_COLOR, "#30FFFFFF"),
+                                Map.entry(ACTIVE_COLOR, "#FFFFFFFF"),
+                                Map.entry(SEPARATOR_COLOR, "#305000FF"),
+                                Map.entry(MARK_STYLE, "adjustability:radio")),
+                        PanelPreset.MINIMAL, Map.ofEntries(
+                                Map.entry(BACKGROUND_COLOR, "#D0000000"),
+                                Map.entry(BORDER_STYLE, BorderStyle.NONE),
+                                Map.entry(SHOW_BRACKETS, false),
+                                Map.entry(HIGHLIGHT_COLOR, "#30FFFFFF"),
+                                Map.entry(ACTIVE_COLOR, "#FFFFFFFF"),
+                                Map.entry(DORMANT_MARK_COLOR, "#FF777777"),
+                                Map.entry(DORMANT_TEXT_COLOR, "#FF999999"),
+                                Map.entry(MARK_STYLE, "adjustability:square"),
+                                Map.entry(GROUP_STYLE, GroupStyle.GAP),
+                                Map.entry(SHOW_COST, false),
+                                Map.entry(TEXT_SHADOW, false),
+                                Map.entry(PADDING, 4)),
+                        PanelPreset.HIGH_CONTRAST, Map.ofEntries(
+                                Map.entry(BACKGROUND_COLOR, "#FF000000"),
+                                Map.entry(BORDER_STYLE, BorderStyle.SOLID),
+                                Map.entry(BORDER_TOP_COLOR, "#FFFFFFFF"),
+                                Map.entry(SHOW_BRACKETS, false),
+                                Map.entry(HIGHLIGHT_COLOR, "#80FFFF00"),
+                                Map.entry(ACTIVE_COLOR, "#FFFFFF00"),
+                                Map.entry(DORMANT_MARK_COLOR, "#FFFFFFFF"),
+                                Map.entry(TITLE_COLOR, "#FFFFFF00"),
+                                Map.entry(ACTIVE_TEXT_COLOR, "#FFFFFF00"),
+                                Map.entry(DORMANT_TEXT_COLOR, "#FFFFFFFF"),
+                                Map.entry(FOOTER_TEXT_COLOR, "#FFFFFFFF"),
+                                Map.entry(SEPARATOR_COLOR, "#FFFFFFFF"),
+                                Map.entry(MARK_STYLE, "adjustability:checkbox"),
+                                Map.entry(GROUP_STYLE, GroupStyle.HEADER),
+                                Map.entry(ROW_HEIGHT, 13)));
         }
 
         private PlayerConfig()
@@ -252,6 +299,36 @@ public final class PlayerConfig
         public static void markStyles(Supplier<Collection<String>> registered)
         {
                 markStyles = registered;
+        }
+
+        /**
+         * Every look setting's value in a preset, in {@link #PANEL_SETTINGS} order: the defaults, then the preset's
+         * own. The key mode and the side aren't part of a look.
+         */
+        public static Map<ConfigValue<?>, Object> preset(PanelPreset preset)
+        {
+                Map<ConfigValue<?>, Object> values = new LinkedHashMap<>();
+                for (ConfigValue<?> value : PANEL_SETTINGS)
+                {
+                        if (value != PANEL_ACTIVATION && value != PANEL_SIDE)
+                        {
+                                values.put(value, PRESETS.get(preset).getOrDefault(value, value.getDefault()));
+                        }
+                }
+                return values;
+        }
+
+        /** Applies a preset and saves the file; false if the file isn't loaded. */
+        @SuppressWarnings("unchecked")
+        public static boolean applyPreset(PanelPreset preset)
+        {
+                if (!SPEC.isLoaded())
+                {
+                        return false;
+                }
+                preset(preset).forEach((value, newValue) -> ((ConfigValue<Object>) value).set(newValue));
+                SPEC.save();
+                return true;
         }
 
         /** Whether a setting is a color, an {@code #AARRGGBB} string. */

@@ -228,4 +228,5 @@ The panel settings can also be changed from chat, and apply right away:
 |---|---|
 | `/adjustability panel` | Lists the panel settings and their values; click one to change it |
 | `/adjustability panel <setting> <value>` | Changes one, e.g. `/adjustability panel activation hold`, `/adjustability panel side left` or `/adjustability panel bracket_color #00E5FF` |
+| `/adjustability panel preset <name>` | Applies a ready-made look: `magenta` (the defaults), `vanilla`, `minimal` or `high_contrast`. Keeps `activation` and `side` |
 | `/adjustability panel reset` | Puts them all back to the defaults |

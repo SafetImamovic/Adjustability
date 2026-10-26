@@ -3,7 +3,9 @@ package io.github.safetimamovic.adjustability.client;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.safetimamovic.adjustability.Constants;
 import io.github.safetimamovic.adjustability.PanelCommand;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelPreset;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
+import java.util.Locale;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.ClickEvent;
@@ -48,6 +50,18 @@ final class PanelSettingsActions<S> implements PanelCommand.Actions<S>
                 }
                 PlayerConfig.resetPanel();
                 chat(Component.translatable("adjustability.command.panel.reset"));
+                return 1;
+        }
+
+        @Override
+        public int preset(CommandContext<S> context, PanelPreset preset)
+        {
+                if (!PlayerConfig.applyPreset(preset))
+                {
+                        return this.unavailable();
+                }
+                chat(Component.translatable("adjustability.command.panel.preset",
+                        Component.translatable("adjustability.preset." + preset.name().toLowerCase(Locale.ROOT))));
                 return 1;
         }
 

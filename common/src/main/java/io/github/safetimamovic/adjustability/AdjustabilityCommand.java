@@ -8,6 +8,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.safetimamovic.adjustability.api.SwitchResult;
 import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelPreset;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import io.github.safetimamovic.adjustability.core.ItemRules;
@@ -103,6 +104,12 @@ public final class AdjustabilityCommand
 
                         @Override
                         public int reset(CommandContext<CommandSourceStack> context)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
+                        public int preset(CommandContext<CommandSourceStack> context, PanelPreset preset)
                         {
                                 return clientOnly(context);
                         }

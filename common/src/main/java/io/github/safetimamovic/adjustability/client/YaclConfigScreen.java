@@ -1,6 +1,7 @@
 package io.github.safetimamovic.adjustability.client;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
+import dev.isxander.yacl3.api.ButtonOption;
 import dev.isxander.yacl3.api.ConfigCategory;
 import dev.isxander.yacl3.api.ListOption;
 import dev.isxander.yacl3.api.Option;
@@ -17,6 +18,7 @@ import dev.isxander.yacl3.api.controller.StringControllerBuilder;
 import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder;
 import dev.isxander.yacl3.gui.image.ImageRenderer;
 import io.github.safetimamovic.adjustability.Constants;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelPreset;
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import java.awt.Color;
@@ -43,7 +45,7 @@ import org.jspecify.annotations.Nullable;
  * and per subsection (like {@code [panel.marks]}), in the order the specs define them, so new options show up without
  * code here. Names are the stock screen's translation keys, descriptions the spec comments. Values are read from and
  * written to the specs, so storage doesn't change. Colors get a color picker, the row mark a list of the registered
- * ones; the panel's settings show a live preview ({@link PanelPreview}).
+ * ones; the panel's settings show a live preview ({@link PanelPreview}) and buttons that apply a preset.
  *
  * <p>Server options can only be changed where this client runs the server (singleplayer, LAN host) or, from 26.1 on,
  * from the title screen; anywhere else they're shown greyed out. Only loaded through {@link ConfigScreens}.
@@ -75,7 +77,7 @@ final class YaclConfigScreen
                 return YetAnotherConfigLib.createBuilder()
                         .title(Component.translatable(KEY + "title"))
                         .category(category(PlayerConfig.SPEC, "adjustability.yacl.player", null,
-                                Map.of("panel", panel), Map.of(), playerOptions))
+                                Map.of("panel", panel), Map.of("panel", presets(playerOptions)), playerOptions))
                         .category(category(CreatorConfig.SPEC, "adjustability.yacl.server", lock, Map.of(),
                                 Map.of(), new HashMap<>()))
                         .save(() ->
@@ -163,6 +165,34 @@ final class YaclConfigScreen
                         here.add(subsection.getKey());
                         section(category, spec, here, subsection.getValue(), lock, preview, List.of(), built);
                 }
+        }
+
+        /** A button per panel preset; it fills in the preset's values, saved with the rest. */
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private static List<Option<?>> presets(Map<ConfigValue<?>, Option<?>> built)
+        {
+                List<Option<?>> buttons = new ArrayList<>();
+                for (PanelPreset preset : PanelPreset.values())
+                {
+                        String name = preset.name().toLowerCase(Locale.ROOT);
+                        buttons.add(ButtonOption.createBuilder()
+                                .name(Component.translatable("adjustability.yacl.preset",
+                                        Component.translatable("adjustability.preset." + name)))
+                                .description(OptionDescription.of(
+                                        Component.translatable("adjustability.preset." + name + ".description")))
+                                .action((screen, button) -> PlayerConfig.preset(preset).forEach((value, newValue) ->
+                                {
+                                        Option option = built.get(value);
+                                        if (option != null)
+                                        {
+                                                option.requestSet(PlayerConfig.isColor(value)
+                                                        ? color((String) newValue) : newValue);
+                                        }
+                                }))
+                                .available(PlayerConfig.canChange())
+                                .build());
+                }
+                return buttons;
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
