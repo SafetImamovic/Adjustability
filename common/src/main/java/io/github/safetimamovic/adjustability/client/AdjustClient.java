@@ -162,13 +162,15 @@ public final class AdjustClient
         *///?}
                 AdjustPanel open = panel(screen);
                 boolean toggle = activation() == PanelActivation.TOGGLE;
-                if (open != null && (key == InputConstants.KEY_ESCAPE
-                        || adjustKey && toggle && (hovered == null || menuIndex(screen, hovered) == open.slot())))
+                // An empty slot counts as no item: the panel often sits over one.
+                boolean sameOrNoItem = hovered == null || !hovered.hasItem()
+                        || open != null && menuIndex(screen, hovered) == open.slot();
+                if (open != null && (key == InputConstants.KEY_ESCAPE || adjustKey && toggle && sameOrNoItem))
                 {
                         panel = null;
                         return true;
                 }
-                if (open != null && adjustKey && (hovered == null || menuIndex(screen, hovered) == open.slot()))
+                if (open != null && adjustKey && sameOrNoItem)
                 {
                         // HOLD: already open over this item.
                         return true;
