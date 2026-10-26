@@ -149,6 +149,9 @@ remove_dormant = true
 show_dormant = true
 show_hint = true
 
+[hints]
+tutorial = "OPEN_PANEL"
+
 [panel]
 activation = "TOGGLE"
 side = "AUTO"
@@ -195,6 +198,7 @@ later are in the `[panel.*]` sections. [Panel styles](panel-styles.md) shows wha
 |---|---|---|
 | `show_dormant` | `true` | List dormant enchantments in item tooltips. |
 | `show_hint` | `true` | On items with dormant enchantments, show which key opens the Adjust panel. |
+| `tutorial` | `OPEN_PANEL` | Tutorial progress saved across worlds: `OPEN_PANEL` waits for a dormant item and reminds you to open its panel; `SWITCH` waits for a successful panel switch, then shows the Cycle hint; `DONE` disables it. `/adjustability tutorial` restarts it. |
 | `activation` | `TOGGLE` | How the Adjust key works (unless the server sets `panel_activation`). `TOGGLE`: press it to pin the panel, press it again (or Escape, or click outside) to close it. `HOLD`: the panel is open while you hold the key and closes when you let go. |
 | `side` | `AUTO` | Where the Adjust panel opens: `AUTO` (right of the item, left if there's no room), `RIGHT` or `LEFT`. It always stays inside the screen. |
 | `background_color` | `#F0080008` | The panel's background. |

@@ -50,7 +50,7 @@ import org.jspecify.annotations.Nullable;
 public final class AdjustabilityCommand
 {
         /** Run by the client; same names as in {@code AdjustabilityClientCommand}. */
-        private static final List<String> CLIENT_SUBCOMMANDS = List.of("help", "config", "keybinds");
+        private static final List<String> CLIENT_SUBCOMMANDS = List.of("help", "config", "keybinds", "tutorial");
 
         private AdjustabilityCommand()
         {

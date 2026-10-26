@@ -126,6 +126,13 @@ public final class AdjustabilityConfig
         {
         }
 
+        public enum TutorialStep
+        {
+                OPEN_PANEL,
+                SWITCH,
+                DONE
+        }
+
         /** The Adjust panel's look and how its key works; colors are ARGB. */
         public record PanelStyle(PanelActivation activation, PanelSide side, Frame frame, Marks marks, Text text,
                 Layout layout)

@@ -82,6 +82,14 @@ Item tooltips.
 | `show_dormant` | `true` | `true`, `false` | List dormant enchantments in the tooltip, each under the active one it conflicts with. |
 | `show_hint` | `true` | `true`, `false` | On items with dormant enchantments, show which key opens the Adjust panel. |
 
+### [hints]
+
+Help discovering enchantment switching. Saved on this client, across worlds.
+
+| Key | Default | Allowed | Description |
+|---|---|---|---|
+| `tutorial` | `OPEN_PANEL` | `OPEN_PANEL`, `SWITCH`, `DONE` | Tutorial progress: OPEN_PANEL waits for an item with dormant enchantments, then shows a reminder until you open its panel. SWITCH waits for a successful panel switch, then shows the Cycle hint. DONE disables the tutorial. Updated automatically; /adjustability tutorial starts it again. |
+
 ### [panel]
 
 The Adjust panel, pinned next to an item with the Adjust key. Also with /adjustability panel. Colors are #RRGGBB or #AARRGGBB (AA = opacity, FF = solid).

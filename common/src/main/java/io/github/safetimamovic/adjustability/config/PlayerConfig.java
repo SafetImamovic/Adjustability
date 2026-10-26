@@ -13,6 +13,7 @@ import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.SinglesS
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PlayerSettings;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.RowOrder;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Text;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.TutorialStep;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -45,6 +46,7 @@ public final class PlayerConfig
 
         private static final BooleanValue SHOW_DORMANT;
         private static final BooleanValue SHOW_HINT;
+        private static final EnumValue<TutorialStep> TUTORIAL;
 
         private static final EnumValue<PanelActivation> PANEL_ACTIVATION;
         private static final EnumValue<PanelSide> PANEL_SIDE;
@@ -108,6 +110,15 @@ public final class PlayerConfig
                         .define("show_dormant", true);
                 SHOW_HINT = builder.comment("On items with dormant enchantments, show which key opens the Adjust panel.")
                         .define("show_hint", true);
+                builder.pop();
+
+                builder.comment("Help discovering enchantment switching. Saved on this client, across worlds.")
+                        .push("hints");
+                TUTORIAL = builder.comment("Tutorial progress: OPEN_PANEL waits for an item with dormant enchantments,",
+                                "then shows a reminder until you open its panel. SWITCH waits for a successful panel",
+                                "switch, then shows the Cycle hint. DONE disables the tutorial. Updated automatically;",
+                                "/adjustability tutorial starts it again.")
+                        .defineEnum("tutorial", TutorialStep.OPEN_PANEL);
                 builder.pop();
 
                 builder.comment("The Adjust panel, pinned next to an item with the Adjust key. Also with",
@@ -214,6 +225,16 @@ public final class PlayerConfig
         static PlayerSettings read()
         {
                 return new PlayerSettings(get(SHOW_DORMANT), get(SHOW_HINT), panel(value -> null));
+        }
+
+        public static TutorialStep tutorial()
+        {
+                return get(TUTORIAL);
+        }
+
+        public static boolean tutorial(TutorialStep step)
+        {
+                return change(TUTORIAL, step);
         }
 
         /**

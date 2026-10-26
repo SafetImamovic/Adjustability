@@ -8,6 +8,7 @@ import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
+import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -65,6 +66,10 @@ public final class AdjustClient
 
         public static void send(CustomPacketPayload payload)
         {
+                if (payload instanceof ToggleEnchantmentPayload toggle)
+                {
+                        AdjustTutorial.requestedSwitch(toggle);
+                }
                 sender.accept(payload);
         }
 
@@ -75,6 +80,7 @@ public final class AdjustClient
          */
         public static void tick(Minecraft minecraft)
         {
+                AdjustTutorial.tick(minecraft);
                 while (AdjustKeys.CYCLE.consumeClick())
                 {
                         //? if >=26.1 {
@@ -201,6 +207,10 @@ public final class AdjustClient
                         menuIndex(screen, hovered), serverSlot[0], serverSlot[1], leftPos + hovered.x + 16,
                         topPos + hovered.y);
                 panel = opened.refresh(minecraft.font) ? opened : null;
+                if (panel != null)
+                {
+                        AdjustTutorial.openedPanel();
+                }
                 return panel != null;
         }
 
