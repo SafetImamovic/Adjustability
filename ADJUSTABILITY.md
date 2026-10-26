@@ -711,8 +711,9 @@ The mod's value proposition depends on "toggle, never stack". Things that could 
 - [ ] Removing the mod never deletes items (§6.3), tested on both loaders.
 - [ ] Modded enchantments work with zero config (registry + `areCompatible`).
 - [ ] Packs that edit `exclusive_set` change behavior after `/reload`; the conflict cache is rebuilt on reload.
-- [ ] Datapack removes an enchantment that's dormant on an item: keep the entry, ignore it at runtime, never crash
-      (see "Removed enchantments plan"); **verify** vanilla's behavior for an unknown id in `enchantments`.
+- [x] Datapack removes an enchantment that's dormant on an item: the entry is kept, ignored at runtime, never crashes
+      (M12a). Vanilla 26.3 can't decode an item with an unknown id in `enchantments` at all (the item is lost on load);
+      `unknown_active_partner` pins that down. 1.21.1 not checked (no GameTest run there).
 - [ ] Anvil mods (level-cap raisers, Apotheosis-style overhauls): `@WrapOperation` chains; test with the popular ones
       on both loaders. If a mod fully replaces the anvil, document "anvil path off, use `/adjustability add` or their
       mechanic".

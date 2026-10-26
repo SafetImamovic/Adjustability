@@ -39,6 +39,13 @@ What flattening does **not** reach, because it only looks at players:
 Those keep their `adjustability:dormant` entry. That's harmless: it's inert data in a vanilla component. If you want
 them gone too, put the items in a player's inventory and flatten again, or edit them with `/data` or `/item`.
 
+## Removing a mod that adds enchantments
+
+That's not uninstalling Adjustability, but it's close. If an enchantment from that mod or datapack was **dormant** on
+an item, Adjustability keeps it in the item's data, ignores it, and brings it back if you reinstall the mod (see
+[When an enchantment is gone](storage.md#when-an-enchantment-is-gone)). If it was **active**, vanilla can't load the
+item and it's lost, with or without Adjustability; check the other mod's own advice before removing it.
+
 ## Removing it from only one side
 
 Adjustability is meant to be on both the server and the clients. A client without it may be refused by a server that

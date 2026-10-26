@@ -24,6 +24,12 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 - Java API: `AdjustabilityClientApi.registerRowMark` lets other mods add row marks (client side, experimental).
 - A [panel styles](https://safetimamovic.github.io/Adjustability/guide/panel-styles) docs page with a picture of each.
 
+### Fixed
+
+- A dormant enchantment whose mod or datapack was removed is kept on the item instead of being dropped by the next
+  switch, anvil use or repair; it works again if the enchantment comes back. Ignored until then, listed by
+  `/adjustability inspect` and in advanced tooltips (F3+H), removed by the grindstone and flatten.
+
 ## [0.4.2] - 2026-10-25
 
 ### Fixed
