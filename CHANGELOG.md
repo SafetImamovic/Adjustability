@@ -5,6 +5,15 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Fixed
+
+- An anvil could reject compatible enchantments, such as Unbreaking on boots, after a conflict group was set to None.
+  None no longer consumes extra dormant allowance; the anvil preserves the selected groups and still enforces limits
+  on conflicting alternatives.
+- Grindstones can remove enchantments when every enchantment is dormant or switched off, including dormant-only
+  items that have no durability. The server's existing `[grindstone] remove_dormant` setting controls this. Curses
+  remain; unregistered enchantments give no experience.
+
 ## [0.5.0] - 2026-10-26
 
 ### Added

@@ -49,6 +49,9 @@ item and a book holding both), the enchantment whose id comes first alphabetical
 The anvil gives no result if the item would hold more dormant enchantments than the server allows, or if the price goes
 over the survival limit of 39 levels.
 
+Choosing **None** does not use extra dormant allowance. Boots holding all four Protections plus Depth Strider and
+Frost Walker can still receive a compatible Unbreaking book with either or both groups on None.
+
 ## Switching
 
 ![Switching a netherite pickaxe from Fortune III to Silk Touch: hover it, Left Alt, click Silk Touch](/screenshots/switch.gif)
@@ -118,7 +121,8 @@ Your switches are counted under Statistics → General → Enchantment Switches.
 ## Grindstones
 
 A grindstone removes dormant enchantments too, and gives experience for them like for active ones. Curses stay, like
-vanilla. Servers can keep dormant enchantments instead (`remove_dormant` in the
+vanilla. This also works when every enchantment is dormant or switched off. Servers can keep dormant enchantments
+instead (`remove_dormant` in the
 [server config](server-config.md)).
 
 ## If the mod is removed
