@@ -11,6 +11,7 @@ import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Exclusiv
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import io.github.safetimamovic.adjustability.core.Exclusivity;
+import io.github.safetimamovic.adjustability.core.GrindstoneRules;
 import io.github.safetimamovic.adjustability.core.Toggler;
 import java.util.List;
 import java.util.Map;
@@ -22,6 +23,9 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.AnvilMenu;
+import net.minecraft.world.inventory.GrindstoneMenu;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
@@ -38,6 +42,8 @@ final class RemovedEnchantmentTests
 {
         /** An id no datapack registers. */
         static final String GONE = "adjustability_test:gone";
+        /** Another one. */
+        static final String OTHER = "adjustability_test:other";
 
         private RemovedEnchantmentTests()
         {
@@ -153,6 +159,102 @@ final class RemovedEnchantmentTests
                         "Silk Touch takes over");
                 helper.assertTrue(split.dormant().isEmpty(), "nothing dormant");
                 helper.succeed();
+        }
+
+        /**
+         * The anvil keeps unknown entries from both items, the higher level when both hold one, also when there's
+         * nothing to split; they don't add to the price.
+         */
+        static void anvilKeepsUnknown(GameTestHelper helper)
+        {
+                HolderLookup.Provider registries = helper.getLevel().registryAccess();
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                ItemStack left = new ItemStack(Items.DIAMOND_PICKAXE);
+                left.enchant(fortune, 3);
+                CompoundTag leftDormant = new CompoundTag();
+                leftDormant.putInt(GONE, 3);
+                withDormant(left, leftDormant);
+                ItemStack right = new ItemStack(Items.DIAMOND_PICKAXE);
+                right.enchant(enchantment(helper, Enchantments.SILK_TOUCH), 1);
+                CompoundTag rightDormant = new CompoundTag();
+                rightDormant.putInt(GONE, 4);
+                rightDormant.putInt(OTHER, 1);
+                withDormant(right, rightDormant);
+
+                AnvilMenu anvil = anvil(helper);
+                anvil.getSlot(AnvilMenu.INPUT_SLOT).set(left);
+                anvil.getSlot(AnvilMenu.ADDITIONAL_SLOT).set(right);
+                ItemStack result = anvil.getSlot(AnvilMenu.RESULT_SLOT).getItem();
+                helper.assertFalse(result.isEmpty(), "a result");
+                helper.assertValueEqual(DormantEnchantments.unknown(result, registries), Map.of(GONE, 4, OTHER, 1),
+                        "both items' unknown entries");
+                helper.assertValueEqual(DormantEnchantments.get(result, registries).size(), 1, "Silk Touch dormant");
+
+                // No conflict, nothing to split: the left item's entry is still on the result.
+                anvil = anvil(helper);
+                anvil.getSlot(AnvilMenu.INPUT_SLOT).set(left.copy());
+                anvil.getSlot(AnvilMenu.ADDITIONAL_SLOT).set(book(enchantment(helper, Enchantments.UNBREAKING), 3));
+                result = anvil.getSlot(AnvilMenu.RESULT_SLOT).getItem();
+                helper.assertValueEqual(DormantEnchantments.unknown(result, registries), Map.of(GONE, 3),
+                        "kept without a split");
+                helper.succeed();
+        }
+
+        /** The grindstone removes unknown entries with everything else, and gives experience only for known ones. */
+        static void grindstoneDropsUnknown(GameTestHelper helper)
+        {
+                HolderLookup.Provider registries = helper.getLevel().registryAccess();
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+                pickaxe.enchant(enchantment(helper, Enchantments.FORTUNE), 3);
+                CompoundTag dormant = new CompoundTag();
+                dormant.putInt("minecraft:silk_touch", 1);
+                dormant.putInt(GONE, 3);
+                withDormant(pickaxe, dormant);
+                helper.assertValueEqual(GrindstoneRules.dormantExperience(pickaxe, registries),
+                        silkTouch.value().getMinCost(1), "experience for Silk Touch only");
+
+                GrindstoneMenu grindstone = new GrindstoneMenu(0, player(helper).getInventory());
+                grindstone.getSlot(GrindstoneMenu.INPUT_SLOT).set(pickaxe);
+                ItemStack result = grindstone.getSlot(GrindstoneMenu.RESULT_SLOT).getItem();
+                helper.assertFalse(result.isEmpty(), "a result");
+                helper.assertFalse(DormantEnchantments.has(result), "nothing dormant left, known or not");
+                helper.succeed();
+        }
+
+        /** Flatten removes Adjustability's data, unknown entries included. */
+        static void flattenDropsUnknown(GameTestHelper helper)
+        {
+                ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+                pickaxe.enchant(enchantment(helper, Enchantments.FORTUNE), 3);
+                CompoundTag dormant = new CompoundTag();
+                dormant.putInt(GONE, 3);
+                withDormant(pickaxe, dormant);
+                AdjustabilityApi.flatten(pickaxe);
+                helper.assertFalse(DormantEnchantments.has(pickaxe), "flattened");
+                helper.assertValueEqual(Adjuster.activeOf(pickaxe).size(), 1, "Fortune stays");
+                helper.succeed();
+        }
+
+        private static AnvilMenu anvil(GameTestHelper helper)
+        {
+                return new AnvilMenu(0, player(helper).getInventory());
+        }
+
+        private static Player player(GameTestHelper helper)
+        {
+                Player player = helper.makeMockPlayer(GameType.SURVIVAL);
+                player.experienceLevel = 30;
+                return player;
+        }
+
+        private static ItemStack book(Holder<Enchantment> enchantment, int level)
+        {
+                ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
+                ItemEnchantments.Mutable stored = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+                stored.set(enchantment, level);
+                book.set(DataComponents.STORED_ENCHANTMENTS, stored.toImmutable());
+                return book;
         }
 
         private static void withDormant(ItemStack stack, CompoundTag dormant)

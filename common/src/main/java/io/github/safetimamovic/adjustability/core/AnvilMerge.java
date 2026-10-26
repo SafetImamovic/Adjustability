@@ -53,7 +53,8 @@ public final class AnvilMerge
 
         /**
          * After vanilla computed the result: splits it into active and dormant, merges in both inputs' dormant
-         * enchantments, checks the limits and adds the dormant cost.
+         * enchantments, checks the limits and adds the dormant cost. Dormant entries for enchantments that aren't
+         * registered come along from both inputs, and count for nothing.
          *
          * @param result the stack in the result slot; changed in place
          * @return the result to keep in the slot: {@code result}, or {@link ItemStack#EMPTY} if a limit or the price
@@ -68,6 +69,8 @@ public final class AnvilMerge
                         return result;
                 }
                 HolderLookup.Provider registries = player.level().registryAccess();
+                // The left item's are already on the result, a copy of it.
+                DormantEnchantments.addUnknown(result, DormantEnchantments.unknown(addition, registries), registries);
                 ItemEnchantments merged = result.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
                 ItemEnchantments inputDormant = DormantEnchantments.get(input, registries);
                 ItemEnchantments additionDormant = DormantEnchantments.get(addition, registries);
