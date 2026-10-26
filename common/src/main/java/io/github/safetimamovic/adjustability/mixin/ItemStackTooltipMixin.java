@@ -40,7 +40,7 @@ abstract class ItemStackTooltipMixin
         {
                 if (component == DataComponents.ENCHANTMENTS)
                 {
-                        TooltipLines.addDormant(context, consumer, (ItemStack) (Object) this);
+                        TooltipLines.addDormant(context, consumer, flag, (ItemStack) (Object) this);
                 }
         }
         *///?}

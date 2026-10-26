@@ -125,5 +125,5 @@ and `holds` (enchantments, a list or a `#tag`, that the item must all hold after
 ## Uninstall cleanly
 
 Before removing the mod, run `/adjustability flatten @a` with everyone online. Items keep their active enchantments;
-dormant ones are removed. What it doesn't reach (chests in the world, shulker boxes) is harmless: see
+switched-off ones come back on, the other dormant ones are removed. What it doesn't reach (chests in the world, shulker boxes) is harmless: see
 [Uninstalling](uninstalling.md).

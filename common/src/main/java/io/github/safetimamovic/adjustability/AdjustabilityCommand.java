@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.safetimamovic.adjustability.api.AdjustabilityApi;
 import io.github.safetimamovic.adjustability.api.SwitchResult;
 import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
@@ -15,6 +16,7 @@ import io.github.safetimamovic.adjustability.core.Toggler;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import net.minecraft.ChatFormatting;
@@ -24,6 +26,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.ResourceArgument;
 import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -33,6 +36,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Server side of {@code /adjustability}, on the item in the player's main hand: {@code toggle <enchantment>} (every
@@ -46,7 +50,7 @@ import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 public final class AdjustabilityCommand
 {
         /** Run by the client; same names as in {@code AdjustabilityClientCommand}. */
-        private static final List<String> CLIENT_SUBCOMMANDS = List.of("help", "config", "keybinds");
+        private static final List<String> CLIENT_SUBCOMMANDS = List.of("help", "config", "keybinds", "tutorial");
 
         private AdjustabilityCommand()
         {
@@ -108,6 +112,30 @@ public final class AdjustabilityCommand
                         }
 
                         @Override
+                        public int profile(CommandContext<CommandSourceStack> context, String name)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
+                        public int save(CommandContext<CommandSourceStack> context, String name)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
+                        public int export(CommandContext<CommandSourceStack> context)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
+                        public int importCode(CommandContext<CommandSourceStack> context, @Nullable String code)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
                         public <T> int set(CommandContext<CommandSourceStack> context,
                                 ConfigValue<T> setting, T value)
                         {
@@ -135,9 +163,14 @@ public final class AdjustabilityCommand
         {
                 ServerPlayer player = context.getSource().getPlayerOrException();
                 Holder<Enchantment> enchantment = ResourceArgument.getEnchantment(context, "enchantment");
-                SwitchResult outcome = Toggler.activate(player, player.getMainHandItem(), enchantment,
-                        SwitchSource.COMMAND);
-                Toggler.report(player, outcome, enchantment, player.getMainHandItem());
+                ItemStack stack = player.getMainHandItem();
+                // An active enchantment that conflicts with nothing switches off; anything else switches on.
+                boolean off = Adjuster.activeOf(stack).getLevel(enchantment) > 0
+                        && Adjuster.normalize(stack, player.level().registryAccess()).graph().singles()
+                                .contains(enchantment);
+                SwitchResult outcome = off ? Toggler.deactivate(player, stack, enchantment, SwitchSource.COMMAND)
+                        : Toggler.activate(player, stack, enchantment, SwitchSource.COMMAND);
+                Toggler.report(player, outcome, enchantment, stack, off);
                 return outcome == SwitchResult.DONE ? 1 : 0;
         }
 
@@ -147,8 +180,8 @@ public final class AdjustabilityCommand
                 int items = 0;
                 for (ServerPlayer player : players)
                 {
-                        items += flatten(player.getInventory());
-                        items += flatten(player.getEnderChestInventory());
+                        items += flatten(player.getInventory(), player.level().registryAccess());
+                        items += flatten(player.getEnderChestInventory(), player.level().registryAccess());
                         player.inventoryMenu.broadcastChanges();
                 }
                 int flattened = items;
@@ -157,7 +190,7 @@ public final class AdjustabilityCommand
                 return flattened;
         }
 
-        private static int flatten(Container container)
+        private static int flatten(Container container, HolderLookup.Provider registries)
         {
                 int items = 0;
                 for (int i = 0; i < container.getContainerSize(); i++)
@@ -165,7 +198,7 @@ public final class AdjustabilityCommand
                         ItemStack stack = container.getItem(i);
                         if (DormantEnchantments.has(stack))
                         {
-                                DormantEnchantments.clear(stack);
+                                Adjuster.flatten(stack, registries);
                                 container.setChanged();
                                 items++;
                         }
@@ -185,10 +218,25 @@ public final class AdjustabilityCommand
                 Adjuster.Split split = Adjuster.normalize(stack, source.registryAccess());
                 ItemEnchantments active = Adjuster.activeOf(stack);
                 ItemEnchantments dormant = Adjuster.dormantOf(stack, source.registryAccess());
+                ItemEnchantments waiting = AdjustabilityApi.dormantEnchantments(stack, source.registryAccess());
+                ItemEnchantments off = AdjustabilityApi.switchedOffEnchantments(stack, source.registryAccess());
                 source.sendSuccess(() -> Component.translatable("adjustability.command.inspect.header",
                         stack.getHoverName()).withStyle(ChatFormatting.GOLD), false);
                 source.sendSuccess(() -> line("adjustability.command.inspect.active", list(active)), false);
-                source.sendSuccess(() -> line("adjustability.command.inspect.dormant", list(dormant)), false);
+                source.sendSuccess(() -> line("adjustability.command.inspect.dormant", list(waiting)), false);
+                if (!off.isEmpty())
+                {
+                        source.sendSuccess(() -> line("adjustability.command.inspect.off", list(off)), false);
+                }
+                Map<String, Integer> unknown = DormantEnchantments.unknown(stack, source.registryAccess());
+                if (!unknown.isEmpty())
+                {
+                        String entries = unknown.entrySet().stream()
+                                .map(entry -> entry.getKey() + " " + entry.getValue())
+                                .collect(Collectors.joining(", "));
+                        source.sendSuccess(() -> line("adjustability.command.inspect.unknown",
+                                Component.literal(entries)), false);
+                }
                 List<Set<Holder<Enchantment>>> components = split.graph().components();
                 for (Set<Holder<Enchantment>> component : components)
                 {
@@ -222,7 +270,7 @@ public final class AdjustabilityCommand
                 ItemEnchantments.Mutable extra = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                 extra.set(enchantment, level);
                 Adjuster.Split split = Adjuster.add(stack, extra.toImmutable(), source.registryAccess());
-                Adjuster.write(stack, split);
+                Adjuster.write(stack, split, source.registryAccess());
                 boolean dormant = split.dormant().getLevel(enchantment) > 0;
                 source.sendSuccess(() -> Component.translatable(dormant ? "adjustability.command.add.dormant"
                         : "adjustability.command.add.active", TooltipLines.name(enchantment, level)), true);

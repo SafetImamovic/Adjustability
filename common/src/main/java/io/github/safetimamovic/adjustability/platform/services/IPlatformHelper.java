@@ -1,5 +1,7 @@
 package io.github.safetimamovic.adjustability.platform.services;
 
+import java.nio.file.Path;
+
 public interface IPlatformHelper
 {
 
@@ -24,6 +26,20 @@ public interface IPlatformHelper
          * @return True if in a development environment, false otherwise.
          */
         boolean isDevelopmentEnvironment();
+
+        /**
+         * The game's config folder, where the loader keeps mods' config files.
+         *
+         * @return The config folder.
+         */
+        Path configDirectory();
+
+        /**
+         * Adjustability's version, as the loader read it from the mod's metadata.
+         *
+         * @return The mod's version, such as {@code 0.4.2}.
+         */
+        String modVersion();
 
         /**
          * Gets the name of the environment type as a string.

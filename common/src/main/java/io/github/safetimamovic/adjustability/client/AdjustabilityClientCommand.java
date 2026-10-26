@@ -16,7 +16,8 @@ import net.minecraft.network.chat.Component;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Client side of {@code /adjustability}: {@code help}, {@code config}, {@code keybinds} and {@code panel}, for every
+ * Client side of {@code /adjustability}: {@code help}, {@code config}, {@code keybinds}, {@code tutorial} and
+ * {@code panel}, for every
  * player. They share
  * the root with the server's {@code toggle}, {@code inspect}, {@code add} and {@code flatten}; both loaders send a
  * subcommand the client doesn't know on to the server.
@@ -26,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 public final class AdjustabilityClientCommand
 {
         /** Subcommands in help order; from {@code toggle} on they are the server's, the last three for game masters. */
-        private static final List<String> SUBCOMMANDS = List.of("help", "config", "keybinds", "panel", "toggle",
+        private static final List<String> SUBCOMMANDS = List.of("help", "config", "keybinds", "tutorial", "panel", "toggle",
                 "inspect", "add", "flatten");
 
         private static UnaryOperator<@Nullable Screen> configScreen = parent -> parent;
@@ -51,6 +52,7 @@ public final class AdjustabilityClientCommand
                         .then(LiteralArgumentBuilder.<S>literal("keybinds")
                                 .executes(context -> open(
                                         () -> new KeyBindsScreen(null, Minecraft.getInstance().options))))
+                        .then(LiteralArgumentBuilder.<S>literal("tutorial").executes(context -> AdjustTutorial.restart()))
                         .then(PanelCommand.tree(new PanelSettingsActions<>())));
         }
 

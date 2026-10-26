@@ -1,11 +1,14 @@
 package io.github.safetimamovic.adjustability.client;
 
 import dev.isxander.yacl3.gui.image.ImageRenderer;
-import io.github.safetimamovic.adjustability.client.AdjustPanel.Row;
-import io.github.safetimamovic.adjustability.client.AdjustPanel.Size;
+import io.github.safetimamovic.adjustability.client.PanelLayout.Content;
+import io.github.safetimamovic.adjustability.client.PanelLayout.Entry;
+import io.github.safetimamovic.adjustability.client.PanelLayout.Group;
+import io.github.safetimamovic.adjustability.client.PanelLayout.Row;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelSide;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelStyle;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.SinglesSection;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import java.util.ArrayList;
@@ -23,10 +26,11 @@ import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The Adjust panel in YACL's description pane, live: a pickaxe with Fortune III and a dormant Silk Touch in a mock
- * slot, and the panel next to it with the values being edited, not yet saved, drawn by the panel's own code. Silk Touch
- * is shown hovered, for the highlight color; the cost line and a None row follow the server's settings (the defaults
- * outside a world). Scaled down if the pane is narrower than the panel.
+ * The Adjust panel in YACL's description pane, live: boots with Protection IV and Depth Strider III active, Fire
+ * Protection IV and Frost Walker II dormant, in a mock slot, and the panel next to it with the values being edited, not
+ * yet saved, drawn by the panel's own code. Two groups, so separators and headings show; Fire Protection is hovered,
+ * for the highlight color. The cost line and None rows follow the server's settings (the defaults outside a world).
+ * Scaled down if the pane is narrower than the panel.
  */
 final class PanelPreview implements ImageRenderer
 {
@@ -40,7 +44,7 @@ final class PanelPreview implements ImageRenderer
 
         /** A setting's value on the screen, or {@code null} for the saved one. */
         private final Function<ConfigValue<?>, @Nullable Object> pending;
-        private final ItemStack item = new ItemStack(Items.DIAMOND_PICKAXE);
+        private final ItemStack item = new ItemStack(Items.DIAMOND_BOOTS);
 
         PanelPreview(Function<ConfigValue<?>, @Nullable Object> pending)
         {
@@ -54,19 +58,19 @@ final class PanelPreview implements ImageRenderer
                 Font font = Minecraft.getInstance().font;
                 PanelStyle style = PlayerConfig.panel(this.pending);
                 ToggleConfig toggle = AdjustabilityConfig.toggle();
-                Component title = this.item.getHoverName();
-                List<Row> rows = rows(font, toggle.allowNone());
                 Component footer = AdjustPanel.footer(toggle.defaultCost(), toggle.cooldownTicks());
-                Size size = AdjustPanel.size(font, style, title, rows, List.of(), footer);
+                Content content = PanelLayout.layout(font, style, this.item.getHoverName(), this.item,
+                        groups(toggle.allowNone(), toggle.allowSwitchOff() ? style.layout().singles()
+                                : SinglesSection.HIDDEN), List.of(), footer);
 
                 // Just room for the slot and the panel, the slot on the side the panel doesn't open to.
-                int sceneWidth = 2 * MARGIN + 16 + AdjustPanel.GAP_FROM_SLOT + size.width()
-                        + AdjustPanel.BRACKET_OFFSET;
-                int sceneHeight = size.height() + 2 * (MARGIN + AdjustPanel.BRACKET_OFFSET);
+                int sceneWidth = 2 * MARGIN + 16 + PanelLayout.GAP_FROM_SLOT + content.width()
+                        + PanelLayout.BRACKET_OFFSET;
+                int sceneHeight = content.height() + 2 * (MARGIN + PanelLayout.BRACKET_OFFSET);
                 int slotRight = style.side() == PanelSide.LEFT ? sceneWidth - MARGIN : MARGIN + 16;
-                int slotTop = MARGIN + AdjustPanel.BRACKET_OFFSET + AdjustPanel.PADDING;
-                int panelX = AdjustPanel.placeX(style, slotRight, size.width(), sceneWidth);
-                int panelY = AdjustPanel.placeY(slotTop, size.height(), sceneHeight);
+                int slotTop = MARGIN + PanelLayout.BRACKET_OFFSET + style.layout().padding();
+                int panelX = PanelLayout.placeX(style, slotRight, content.width(), sceneWidth);
+                int panelY = PanelLayout.placeY(style, slotTop, content.height(), sceneHeight);
 
                 float scale = Math.min(1, (float) renderWidth / sceneWidth);
                 int height = Math.round(sceneHeight * scale);
@@ -88,8 +92,10 @@ final class PanelPreview implements ImageRenderer
                 graphics.fakeItem(this.item, slotLeft, slotTop);
                 //?} else
                 /*graphics.renderFakeItem(this.item, slotLeft, slotTop);*/
-                AdjustPanel.draw(graphics, font, style, panelX, panelY, size.width(), size.height(), title, rows,
-                        List.of(), footer, rows.get(1));
+                Row hovered = content.rows().stream().filter(row -> !row.active() && !row.none()).findFirst()
+                        .orElse(null);
+                PanelRenderer.draw(graphics, font, style, panelX, panelY, content, hovered, null,
+                        row -> row.active() ? 1 : 0);
                 //? if >=26.1 {
                 graphics.pose().popMatrix();
                 //?} else
@@ -97,22 +103,37 @@ final class PanelPreview implements ImageRenderer
                 return height;
         }
 
-        /** Fortune III active, Silk Touch dormant, and None if the server allows it. */
-        private static List<Row> rows(Font font, boolean allowNone)
+        /**
+         * The Protections and the boots group, each with a None row if the server allows it, then the single
+         * enchantments as {@code singles} says.
+         */
+        private static List<Group> groups(boolean allowNone, SinglesSection singles)
         {
-                List<Row> rows = new ArrayList<>();
-                int top = AdjustPanel.rowsTop(font);
-                rows.add(new Row(null, Component.translatable("enchantment.minecraft.fortune")
-                        .append(CommonComponents.SPACE).append(Component.translatable("enchantment.level.3")), true,
-                        top, 0, false));
-                rows.add(new Row(null, Component.translatable("enchantment.minecraft.silk_touch"), false,
-                        top + AdjustPanel.ROW_HEIGHT, 0, false));
-                if (allowNone)
+                List<Group> groups = new ArrayList<>(List.of(
+                        group("armor", allowNone, entry("protection", 4, true), entry("fire_protection", 4, false)),
+                        group("boots", allowNone, entry("depth_strider", 3, true), entry("frost_walker", 2, false))));
+                if (singles != SinglesSection.HIDDEN)
                 {
-                        rows.add(new Row(null, Component.translatable("adjustability.panel.none"), false,
-                                top + 2 * AdjustPanel.ROW_HEIGHT, 0, true));
+                        boolean collapsed = singles == SinglesSection.COLLAPSED;
+                        groups.add(new Group(AdjustPanel.singlesHeading(collapsed, 1), collapsed ? List.of()
+                                : List.of(entry("unbreaking", 3, true), entry("mending", 1, false)), null, true));
                 }
-                return rows;
+                return groups;
+        }
+
+        private static Group group(String tag, boolean allowNone, Entry... entries)
+        {
+                Entry none = allowNone
+                        ? new Entry(null, Component.translatable("adjustability.panel.none"), false, true) : null;
+                return new Group(Component.translatable("adjustability.group.minecraft.exclusive_set." + tag),
+                        List.of(entries), none, false);
+        }
+
+        private static Entry entry(String enchantment, int level, boolean active)
+        {
+                return new Entry(null, Component.translatable("enchantment.minecraft." + enchantment)
+                        .append(CommonComponents.SPACE).append(Component.translatable("enchantment.level." + level)),
+                        active, false);
         }
 
         @Override

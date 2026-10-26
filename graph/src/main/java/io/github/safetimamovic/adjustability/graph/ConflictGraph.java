@@ -143,6 +143,23 @@ public final class ConflictGraph<T>
         }
 
         /**
+         * The vertices that conflict with nothing, in vertex order: the ones {@link #components} leaves out. Each is a
+         * group of one, which can only be on or off.
+         */
+        public List<T> singles()
+        {
+                List<T> result = new ArrayList<>();
+                for (int i = 0; i < this.vertices.size(); i++)
+                {
+                        if (this.neighbours[i].isEmpty())
+                        {
+                                result.add(this.vertices.get(i));
+                        }
+                }
+                return Collections.unmodifiableList(result);
+        }
+
+        /**
          * Splits the vertices into an active and a dormant set: walks {@code preferred} first, then the remaining
          * vertices in vertex order, and makes each one active unless it conflicts with one already active. The result
          * is a maximal independent set; vertices earlier in {@code preferred} win their conflicts.

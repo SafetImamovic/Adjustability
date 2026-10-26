@@ -5,6 +5,51 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Added
+
+- Switching tutorial: a persistent book-icon reminder when a dormant item reaches your inventory, then a timed Cycle
+  reminder after your first successful panel switch. Progress stays on your client across worlds;
+  `/adjustability tutorial` restarts it. New player section `[hints]`.
+- A magenta corner marks inventory slots holding dormant or switched-off enchantments. Player settings `slot_marker`
+  and `slot_marker_color` control it; slot checks are cached until the item's custom data changes.
+- Adjust panel styles: the mark in front of each row can be a circle (as before), square, checkbox, toggle switch,
+  radio button or none, and animates when an enchantment switches. Every color and size the panel used to hard-code is
+  now a setting: title, row and cost-line colors, text shadow, padding, row height, the line between groups or a
+  heading with each group's name (like Mining), row order, where the None row goes, and the item's icon next to its
+  name. New `[panel.marks]`, `[panel.text]` and `[panel.layout]` sections; older files keep their values.
+- Border styles: `GRADIENT` (as before), `SOLID`, `NONE`, or `SPRITE`, a GUI sprite resource packs can replace.
+- Panel profiles: `magenta` (the defaults), `vanilla`, `minimal` and `high_contrast` built in, plus JSON files in
+  `config/adjustability/panel_profiles` that modpacks ship or `/adjustability panel save <name>` writes. Apply one with
+  `/adjustability panel profile <name>` or the YACL screen's buttons. `default_profile` makes `/adjustability panel
+  reset` go back to a modpack's look.
+- Share codes: `/adjustability panel export` copies a short code for your look, `/adjustability panel import` (from the
+  clipboard, or with the code) or YACL's Paste Code applies one. Every value is checked; what doesn't fit is skipped.
+- The YACL screen shows the panel's sections as their own groups, picks the row mark from a list, and its preview shows
+  two groups.
+- Java API: `AdjustabilityClientApi.registerRowMark` lets other mods add row marks (client side, experimental).
+- A [panel styles](https://safetimamovic.github.io/Adjustability/guide/panel-styles) docs page with a picture of each.
+
+- Switch off any enchantment that conflicts with nothing (Knockback, Fire Aspect, a lone Silk Touch) and back on: the
+  Adjust panel opens on any enchanted item and lists them under **Other enchantments**, one on/off row each, in a
+  section that folds. Off stays off through anvils and repairs; the tooltip says `(off)`. Server setting
+  `allow_switch_off` (on by default), player setting `singles`. Curses never.
+- API: `switchedOffEnchantments`, `flatten(stack, registries)` (turns switched-off ones back on);
+  `SwitchResult.SWITCH_OFF_NOT_ALLOWED`. `/adjustability toggle` and `inspect` know switched-off enchantments.
+
+### Changed
+
+- The key hint now says "Left Alt: switch enchantments", with a magenta key and plain gray text directly after the
+  enchantment lines. The root advancement's description names your actual Adjust binding.
+- `AdjustabilityApi.dormantEnchantments` no longer includes switched-off enchantments; `flatten(stack)` is deprecated.
+- `/adjustability flatten` switches switched-off enchantments back on instead of removing them.
+
+### Fixed
+
+- Left Alt didn't close the Adjust panel when the cursor was over an empty slot (the panel often covers one).
+- A dormant enchantment whose mod or datapack was removed is kept on the item instead of being dropped by the next
+  switch, anvil use or repair; it works again if the enchantment comes back. Ignored until then, listed by
+  `/adjustability inspect` and in advanced tooltips (F3+H), removed by the grindstone and flatten.
+
 ## [0.4.2] - 2026-10-25
 
 ### Fixed

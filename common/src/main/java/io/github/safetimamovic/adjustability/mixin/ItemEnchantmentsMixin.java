@@ -53,7 +53,7 @@ abstract class ItemEnchantmentsMixin
         {
                 if (components.get(DataComponents.ENCHANTMENTS) == (Object) this)
                 {
-                        TooltipLines.addDormant(context, consumer, components);
+                        TooltipLines.addDormant(context, consumer, flag, components);
                 }
         }
         //?}

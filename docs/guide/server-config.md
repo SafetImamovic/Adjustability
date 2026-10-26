@@ -93,6 +93,7 @@ allow_in_world_cycle = true
 allow_command = true
 group_costs = []
 allow_none = false
+allow_switch_off = true
 panel_activation = "PLAYER"
 ```
 
@@ -108,6 +109,7 @@ panel_activation = "PLAYER"
 | `allow_command` | `true` | Players can use `/adjustability toggle`. |
 | `group_costs` | `[]` | Own costs for particular groups, instead of `cost_type` / `cost_amount` / `cost_item`. See below. |
 | `allow_none` | `false` | A group may have **none** of its enchantments active: the Adjust panel gets a **None** row per group, and the Cycle key steps through none after the last choice. Switching to none costs the same as any switch in that group. Turned back off, items left on none get one of the group active again at their next switch or anvil use. |
+| `allow_switch_off` | `true` | An enchantment that conflicts with nothing on the item can be switched **off** and on again in the Adjust panel (Knockback, Fire Aspect, a lone Silk Touch). Curses never. Same cost and cooldown as any switch; a `group_costs` entry naming the enchantment applies. It stays off through anvils and repairs until it's switched on. |
 | `panel_activation` | `PLAYER` | How the Adjust key works for everyone: `PLAYER` (each player's own `activation` setting), `TOGGLE` or `HOLD`. |
 | `play_sound` | `true` | A sound on each switch (`adjustability:item.switch`, an enchanting table sound by default; resource packs can replace it). The player and anyone nearby hear it. |
 
@@ -147,6 +149,11 @@ remove_dormant = true
 show_dormant = true
 show_hint = true
 
+[hints]
+tutorial = "OPEN_PANEL"
+slot_marker = true
+slot_marker_color = "#FFFF55FF"
+
 [panel]
 activation = "TOGGLE"
 side = "AUTO"
@@ -159,12 +166,43 @@ bracket_length = 9
 highlight_color = "#50FF00FF"
 active_color = "#FFFF55FF"
 show_cost = true
+border_style = "GRADIENT"
+default_profile = ""
+
+[panel.marks]
+mark_style = "adjustability:circle"
+dormant_mark_color = "#FFAAAAAA"
+animate_marks = true
+
+[panel.text]
+title_color = "#FFFFFFFF"
+active_text_color = "#FFFFFFFF"
+dormant_text_color = "#FFAAAAAA"
+footer_text_color = "#FF808080"
+text_shadow = true
+show_title = true
+show_item_icon = false
+
+[panel.layout]
+padding = 5
+row_height = 11
+group_style = "LINE"
+separator_color = "#30FF00FF"
+row_order = "REGISTRY"
+none_row = "LAST"
+singles = "EXPANDED"
 ```
+
+The settings directly under `[panel]` are where 0.1.0 put them, so older files keep their values. The ones added
+later are in the `[panel.*]` sections. [Panel styles](panel-styles.md) shows what the marks and profiles look like.
 
 | Key | Default | What it does |
 |---|---|---|
 | `show_dormant` | `true` | List dormant enchantments in item tooltips. |
 | `show_hint` | `true` | On items with dormant enchantments, show which key opens the Adjust panel. |
+| `tutorial` | `OPEN_PANEL` | Tutorial progress saved across worlds: `OPEN_PANEL` waits for a dormant item and reminds you to open its panel; `SWITCH` waits for a successful panel switch, then shows the Cycle hint; `DONE` disables it. `/adjustability tutorial` restarts it. |
+| `slot_marker` | `true` | Mark the top-right corner of slots whose item holds dormant or switched-off enchantments. |
+| `slot_marker_color` | `#FFFF55FF` | The slot marker's color, as `#RRGGBB` or `#AARRGGBB`. |
 | `activation` | `TOGGLE` | How the Adjust key works (unless the server sets `panel_activation`). `TOGGLE`: press it to pin the panel, press it again (or Escape, or click outside) to close it. `HOLD`: the panel is open while you hold the key and closes when you let go. |
 | `side` | `AUTO` | Where the Adjust panel opens: `AUTO` (right of the item, left if there's no room), `RIGHT` or `LEFT`. It always stays inside the screen. |
 | `background_color` | `#F0080008` | The panel's background. |
@@ -174,8 +212,27 @@ show_cost = true
 | `bracket_color` | `#FFC71FC0` | The corner brackets. |
 | `bracket_length` | `9` | Length of each bracket arm, 2 to 32 GUI pixels. |
 | `highlight_color` | `#50FF00FF` | Behind the row under the mouse. |
-| `active_color` | `#FFFF55FF` | The ● in front of active enchantments. |
+| `active_color` | `#FFFF55FF` | The mark in front of active enchantments. |
 | `show_cost` | `true` | The cost and cooldown line at the bottom. |
+| `border_style` | `GRADIENT` | `GRADIENT` (fades from `border_top_color` to `border_bottom_color`, like a tooltip), `SOLID` (`border_top_color` all around), `NONE`, or `SPRITE`: the `adjustability:panel` GUI sprite, which resource packs can replace. The sprite includes the background, so the background and border colors aren't used with it. |
+| `default_profile` | `` | A [panel profile](panel-styles.md#profiles) that `/adjustability panel reset` goes back to, instead of the defaults: a built-in one or a file's name. Empty: the defaults. For modpacks. |
+| `mark_style` | `adjustability:circle` | The mark in front of each row: `adjustability:circle`, `square`, `checkbox`, `toggle` (a switch), `radio` or `text_only` (no mark). Other mods can add their own. |
+| `dormant_mark_color` | `#FFAAAAAA` | The mark in front of dormant enchantments. |
+| `animate_marks` | `true` | Animate a mark when its enchantment switches; a toggle's knob slides across. |
+| `title_color` | `#FFFFFFFF` | The item's name at the top. |
+| `active_text_color` | `#FFFFFFFF` | Active enchantments, and the row under the mouse. |
+| `dormant_text_color` | `#FFAAAAAA` | Dormant enchantments. |
+| `footer_text_color` | `#FF808080` | The cost line, each group's cost and the group headings. |
+| `text_shadow` | `true` | Draw the title and the rows with a shadow. |
+| `show_title` | `true` | Show the item's name at the top. |
+| `show_item_icon` | `false` | Show the item in front of its name. |
+| `padding` | `5` | Space between the border and the text, 2 to 16 GUI pixels. |
+| `row_height` | `11` | Height of each row, 9 to 24 GUI pixels. |
+| `group_style` | `LINE` | Between groups of conflicting enchantments: `LINE` (a gap with a thin line), `GAP`, `NONE`, or `HEADER` (the group's name above it, like Mining). |
+| `separator_color` | `#30FF00FF` | The line between groups. |
+| `row_order` | `REGISTRY` | Order of the rows in a group: `REGISTRY` (the game's), `ALPHABETICAL` or `ACTIVE_FIRST`. |
+| `none_row` | `LAST` | Where the None row goes when the server allows switching a group off: `LAST` or `FIRST`. |
+| `singles` | `EXPANDED` | The section for enchantments that conflict with nothing, which the server may let you switch off one by one: `EXPANDED` or `COLLAPSED` (how it starts; click its heading to fold it) or `HIDDEN`. |
 
 Colors are `#RRGGBB` or `#AARRGGBB`, where `AA` is the opacity (`FF` solid, `00` invisible).
 
@@ -185,4 +242,8 @@ The panel settings can also be changed from chat, and apply right away:
 |---|---|
 | `/adjustability panel` | Lists the panel settings and their values; click one to change it |
 | `/adjustability panel <setting> <value>` | Changes one, e.g. `/adjustability panel activation hold`, `/adjustability panel side left` or `/adjustability panel bracket_color #00E5FF` |
-| `/adjustability panel reset` | Puts them all back to the defaults |
+| `/adjustability panel profile <name>` | Applies a [profile](panel-styles.md#profiles): `magenta` (the defaults), `vanilla`, `minimal`, `high_contrast`, or one from `config/adjustability/panel_profiles`. Keeps `activation` and `side` |
+| `/adjustability panel save <name>` | Saves the current look as a profile file |
+| `/adjustability panel export` | Copies a share code for the current look to the clipboard |
+| `/adjustability panel import [code]` | Applies the look from a share code; without one, the code on the clipboard |
+| `/adjustability panel reset` | Puts them all back to the defaults, or to `default_profile` if it's set |

@@ -49,7 +49,10 @@ export default defineConfig({
         },
         {
           text: 'Server admins',
-          items: [{ text: 'Server config', link: '/guide/server-config' }],
+          items: [
+            { text: 'Server config', link: '/guide/server-config' },
+            { text: 'Panel styles', link: '/guide/panel-styles' },
+          ],
         },
         {
           text: 'Pack devs',

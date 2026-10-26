@@ -1,6 +1,7 @@
 package io.github.safetimamovic.adjustability.mixin.client;
 
 import io.github.safetimamovic.adjustability.client.AdjustClient;
+import io.github.safetimamovic.adjustability.client.SlotMarkers;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
@@ -27,6 +28,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(AbstractContainerScreen.class)
 abstract class AbstractContainerScreenMixin extends Screen
 {
+        @Unique
+        private final SlotMarkers adjustability$markers = new SlotMarkers();
+
         @Shadow
         protected @Nullable Slot hoveredSlot;
 
@@ -64,6 +68,18 @@ abstract class AbstractContainerScreenMixin extends Screen
         private AbstractContainerScreen<?> adjustability$self()
         {
                 return (AbstractContainerScreen<?>) (Object) this;
+        }
+
+        //? if >=26.1 {
+        @Inject(method = "extractSlot", at = @At("TAIL"))
+        private void adjustability$slotMarker(GuiGraphicsExtractor graphics, Slot slot, int mouseX, int mouseY,
+                CallbackInfo ci)
+        //?} else {
+        /*@Inject(method = "renderSlot", at = @At("TAIL"))
+        private void adjustability$slotMarker(GuiGraphicsExtractor graphics, Slot slot, CallbackInfo ci)
+        *///?}
+        {
+                this.adjustability$markers.draw(graphics, slot);
         }
 
         //? if >=26.1 {

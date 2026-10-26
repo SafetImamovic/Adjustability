@@ -3,7 +3,11 @@ package io.github.safetimamovic.adjustability.client;
 import com.mojang.brigadier.context.CommandContext;
 import io.github.safetimamovic.adjustability.Constants;
 import io.github.safetimamovic.adjustability.PanelCommand;
+import io.github.safetimamovic.adjustability.config.PanelProfiles;
+import io.github.safetimamovic.adjustability.config.PanelProfiles.Look;
+import io.github.safetimamovic.adjustability.config.PanelProfiles.ProfileException;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
+import java.nio.file.Path;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.ClickEvent;
@@ -11,6 +15,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
+import org.jspecify.annotations.Nullable;
 
 /** The client's {@code /adjustability panel}: changes the player file and says so in chat. */
 final class PanelSettingsActions<S> implements PanelCommand.Actions<S>
@@ -46,9 +51,108 @@ final class PanelSettingsActions<S> implements PanelCommand.Actions<S>
                 {
                         return this.unavailable();
                 }
-                PlayerConfig.resetPanel();
-                chat(Component.translatable("adjustability.command.panel.reset"));
+                PlayerConfig.resetPanel().ifPresentOrElse(this::failure,
+                        () -> chat(Component.translatable("adjustability.command.panel.reset")));
                 return 1;
+        }
+
+        @Override
+        public int profile(CommandContext<S> context, String name)
+        {
+                if (!PlayerConfig.canChange())
+                {
+                        return this.unavailable();
+                }
+                try
+                {
+                        return this.apply(PanelProfiles.load(name), Component.translatable(
+                                "adjustability.command.panel.profile", profileName(name)));
+                }
+                catch (ProfileException exception)
+                {
+                        return this.failure(exception);
+                }
+        }
+
+        @Override
+        public int save(CommandContext<S> context, String name)
+        {
+                if (!PlayerConfig.canChange())
+                {
+                        return this.unavailable();
+                }
+                try
+                {
+                        Path file = PanelProfiles.save(name, PlayerConfig.currentLook());
+                        chat(Component.translatable("adjustability.command.panel.saved", name,
+                                Component.literal(PanelProfiles.display(file)).withStyle(ChatFormatting.GRAY)));
+                        return 1;
+                }
+                catch (ProfileException exception)
+                {
+                        return this.failure(exception);
+                }
+        }
+
+        @Override
+        public int export(CommandContext<S> context)
+        {
+                String code = PanelProfiles.encode(PlayerConfig.currentLook());
+                Minecraft.getInstance().keyboardHandler.setClipboard(code);
+                chat(Component.translatable("adjustability.command.panel.exported",
+                        Component.literal(code).withStyle(style -> style.withColor(ChatFormatting.AQUA)
+                                .withClickEvent(
+                                //? if >=1.21.5 {
+                                new ClickEvent.CopyToClipboard(code)
+                                //?} else
+                                /*new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, code)*/
+                        ))));
+                return 1;
+        }
+
+        @Override
+        public int importCode(CommandContext<S> context, @Nullable String code)
+        {
+                if (!PlayerConfig.canChange())
+                {
+                        return this.unavailable();
+                }
+                try
+                {
+                        String text = code != null ? code : Minecraft.getInstance().keyboardHandler.getClipboard();
+                        return this.apply(PanelProfiles.decode(text),
+                                Component.translatable("adjustability.command.panel.imported"));
+                }
+                catch (ProfileException exception)
+                {
+                        return this.failure(exception);
+                }
+        }
+
+        /** Applies a look, says so, and lists what it had that this version can't use. */
+        private int apply(Look look, Component done)
+        {
+                PlayerConfig.applyLook(look.values());
+                chat(done);
+                if (!look.skipped().isEmpty())
+                {
+                        chat(Component.translatable("adjustability.command.panel.skipped",
+                                String.join(", ", look.skipped())).withStyle(ChatFormatting.GRAY));
+                }
+                return 1;
+        }
+
+        /** A built-in profile's translated name, else the file's. */
+        static Component profileName(String id)
+        {
+                return PanelProfiles.isBuiltIn(id) ? Component.translatable("adjustability.profile." + id)
+                        : Component.literal(id);
+        }
+
+        private int failure(ProfileException exception)
+        {
+                chat(exception.message().copy().withStyle(ChatFormatting.RED));
+                return 0;
         }
 
         @Override

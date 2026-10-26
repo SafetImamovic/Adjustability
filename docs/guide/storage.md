@@ -23,6 +23,19 @@ minecraft:custom_data={
 }
 ```
 
+Enchantments the player [switched off](how-it-works.md#switching-an-enchantment-off) are dormant too, and their ids are
+also listed under `adjustability:off`, so nothing turns them back on by itself:
+
+```snbt
+minecraft:custom_data={
+    "adjustability:dormant": {"minecraft:knockback": 2},
+    "adjustability:off": ["minecraft:knockback"]
+}
+```
+
+An id in `adjustability:off` that isn't in `adjustability:dormant` is dropped at the next write. Older versions of
+Adjustability ignore the list and switch such an enchantment back on.
+
 A Fortune III pickaxe with a dormant Silk Touch, as a `/give` command:
 
 ```
@@ -43,13 +56,30 @@ A Fortune III pickaxe with a dormant Silk Touch, as a `/give` command:
 To see an item's split in game, hold it and run `/adjustability inspect` (operators): it lists the active and dormant
 enchantments and which ones conflict.
 
+## When an enchantment is gone
+
+An enchantment disappears when the mod or datapack that added it is removed (a restart without it; `/reload` can't
+remove enchantments). If one was dormant on an item:
+
+- Its entry stays in `adjustability:dormant`, at the same level, through switching, anvils and repairs. Put the mod or
+  datapack back and it's a normal dormant enchantment again.
+- Until then it's ignored: not in the tooltip, the Adjust panel or the Cycle key, and it doesn't count toward
+  `max_dormant_per_item`. An anvil keeps it from both items (the higher level if both hold it).
+- The grindstone and `/adjustability flatten` remove it with everything else; the grindstone gives no experience for
+  it.
+- `/adjustability inspect` lists it as "Kept, not registered", and advanced tooltips (F3+H) show a dark gray
+  `Unknown: <id> <level>` line. The log names each such id once per session.
+
+An **active** enchantment that disappears is vanilla's business, and vanilla can't load such an item at all: it's lost
+when the world loads it. Dormant ones are safer than active ones here.
+
 ## Why there, and not somewhere else
 
 - **Removing the mod never breaks an item.** `custom_data` is vanilla, so an item with dormant enchantments always
   loads, with or without Adjustability. See [Uninstalling](uninstalling.md).
 - **Plain ids.** Enchantments are stored by name, not by an internal number, so the data reads the same on every
   server and needs nothing from the world to load. An enchantment that no longer exists (a datapack or mod removed) is
-  skipped and kept in the data, and comes back if the enchantment does.
+  skipped and kept in the data, and comes back if the enchantment does (see above).
 - **No per-world database.** Items are copied, split and moved all the time; data that lives anywhere other than on
   the item gets lost or out of sync.
 

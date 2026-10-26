@@ -12,6 +12,8 @@ import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
+import net.minecraft.ChatFormatting;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -22,14 +24,20 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.network.chat.TextColor;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.CreativeModeTabs;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.ItemLore;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -73,6 +81,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         context.waitForScreen(InventoryScreen.class);
                         hoverSlot(context, HOTBAR_0);
                         context.waitTick();
+                        hint(context);
                         cleanScreen(context);
                         context.takeScreenshot("adjustability_1_tooltip");
 
@@ -183,10 +192,42 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         context.waitForScreen(null);
 
                         noneAndServerActivation(context, world);
+                        switchOffSingle(context, world);
                         cycleKey(context, world);
                         groupCosts(world, List.of());
                         creativeInventory(context, world);
                 }
+        }
+
+        private static void hint(ClientGameTestContext context)
+        {
+                context.runOnClient(minecraft ->
+                {
+                        ItemStack stack = minecraft.player.getInventory().getItem(0).copy();
+                        stack.set(DataComponents.LORE, new ItemLore(List.of(Component.literal("After enchantments"))));
+                        List<Component> lines = stack.getTooltipLines(Item.TooltipContext.of(minecraft.level),
+                                minecraft.player, TooltipFlag.NORMAL);
+                        String key = AdjustKeys.ADJUST.getTranslatedKeyMessage().getString();
+                        Component hint = lines.stream().filter(line -> line.getString()
+                                .equals(key + ": switch enchantments")).findFirst().orElseThrow(
+                                        () -> new AssertionError("No switch enchantments hint: " + lines));
+                        int index = lines.indexOf(hint);
+                        if (index < 1 || !lines.get(index + 1).getString().equals("After enchantments"))
+                        {
+                                throw new AssertionError("Hint should follow enchantments, before lore: " + lines);
+                        }
+                        hint.visit((style, text) ->
+                        {
+                                ChatFormatting color = text.equals(key) ? ChatFormatting.LIGHT_PURPLE
+                                        : ChatFormatting.GRAY;
+                                if (style.isItalic() || style.getColor() == null
+                                        || !style.getColor().equals(TextColor.fromLegacyFormat(color)))
+                                {
+                                        throw new AssertionError("Hint style: " + text + " " + style);
+                                }
+                                return Optional.empty();
+                        }, Style.EMPTY);
+                });
         }
 
         /**
@@ -349,6 +390,83 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 context.waitForScreen(null);
         }
 
+        /**
+         * The section of single enchantments: a click on Efficiency's row switches it off on the server; a click on
+         * the section's heading folds it and another unfolds it.
+         */
+        private static void switchOffSingle(ClientGameTestContext context, TestSingleplayerContext world)
+        {
+                world.getServer().runOnServer(server -> server.getPlayerList().getPlayers().getFirst().getInventory()
+                        .setItem(0, pickaxe(server.getPlayerList().getPlayers().getFirst())));
+                world.getConnection().waitForClientboundPackets();
+                context.waitTicks(25);
+                context.getInput().pressKey(options -> options.keyInventory);
+                context.waitForScreen(InventoryScreen.class);
+                hoverSlot(context, HOTBAR_0);
+                context.waitTick();
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.waitTick();
+                cleanScreen(context);
+                context.takeScreenshot("adjustability_8_singles");
+
+                int[] row = context.computeOnClient(minecraft ->
+                {
+                        AdjustPanel panel = AdjustClient.panel((AbstractContainerScreen<?>) minecraft.gui.screen());
+                        Holder<Enchantment> efficiency = minecraft.level.registryAccess()
+                                .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.EFFICIENCY);
+                        return panel.rowCentre(efficiency).orElseThrow(() -> new AssertionError("No Efficiency row"));
+                });
+                moveTo(context, row[0], row[1]);
+                context.waitTick();
+                context.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
+                world.getConnection().waitForServerboundPackets();
+                world.getConnection().waitForClientboundPackets();
+                context.waitTicks(2);
+                cleanScreen(context);
+                context.takeScreenshot("adjustability_8b_switched_off");
+                world.getServer().runOnServer(server ->
+                {
+                        ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                        ItemStack pickaxe = player.getInventory().getItem(0);
+                        Holder<Enchantment> efficiency = enchantment(player, Enchantments.EFFICIENCY);
+                        if (Adjuster.activeOf(pickaxe).getLevel(efficiency) > 0
+                                || !DormantEnchantments.off(pickaxe, player.level().registryAccess())
+                                        .contains(efficiency))
+                        {
+                                throw new AssertionError("Efficiency should be switched off: "
+                                        + Adjuster.activeOf(pickaxe));
+                        }
+                });
+
+                for (boolean folded : new boolean[]{true, false})
+                {
+                        int[] heading = context.computeOnClient(minecraft -> AdjustClient
+                                .panel((AbstractContainerScreen<?>) minecraft.gui.screen()).singlesHeadingCentre()
+                                .orElseThrow(() -> new AssertionError("No heading for the single enchantments")));
+                        moveTo(context, heading[0], heading[1]);
+                        context.waitTick();
+                        context.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
+                        context.waitTicks(2);
+                        if (folded)
+                        {
+                                context.takeScreenshot("adjustability_8c_folded");
+                        }
+                        boolean rowShown = context.computeOnClient(minecraft -> AdjustClient
+                                .panel((AbstractContainerScreen<?>) minecraft.gui.screen())
+                                .rowCentre(minecraft.level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                                        .getOrThrow(Enchantments.EFFICIENCY)).isPresent());
+                        if (rowShown == folded)
+                        {
+                                throw new AssertionError(folded ? "Folded: no Efficiency row expected"
+                                        : "Unfolded: the Efficiency row should be back");
+                        }
+                }
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.waitTick();
+                context.getInput().pressKey(options -> options.keyInventory);
+                context.waitForScreen(null);
+        }
+
         @SuppressWarnings("unchecked")
         private static <T> void serverSetting(TestSingleplayerContext world, String path, T value)
         {
@@ -439,7 +557,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 ItemEnchantments.Mutable dormant = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                 dormant.set(enchantment(player, Enchantments.FIRE_PROTECTION), 4);
                 dormant.set(enchantment(player, Enchantments.FROST_WALKER), 2);
-                DormantEnchantments.set(boots, dormant.toImmutable());
+                DormantEnchantments.set(boots, dormant.toImmutable(), player.level().registryAccess());
                 return boots;
         }
 
@@ -482,7 +600,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 pickaxe.set(DataComponents.ENCHANTMENTS, active.toImmutable());
                 ItemEnchantments.Mutable dormant = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                 dormant.set(enchantment(player, Enchantments.SILK_TOUCH), 1);
-                DormantEnchantments.set(pickaxe, dormant.toImmutable());
+                DormantEnchantments.set(pickaxe, dormant.toImmutable(), player.level().registryAccess());
                 return pickaxe;
         }
 

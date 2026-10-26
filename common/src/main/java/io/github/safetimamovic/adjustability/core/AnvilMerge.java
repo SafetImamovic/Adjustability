@@ -53,7 +53,8 @@ public final class AnvilMerge
 
         /**
          * After vanilla computed the result: splits it into active and dormant, merges in both inputs' dormant
-         * enchantments, checks the limits and adds the dormant cost.
+         * enchantments, checks the limits and adds the dormant cost. Dormant entries for enchantments that aren't
+         * registered come along from both inputs, and count for nothing.
          *
          * @param result the stack in the result slot; changed in place
          * @return the result to keep in the slot: {@code result}, or {@link ItemStack#EMPTY} if a limit or the price
@@ -68,6 +69,8 @@ public final class AnvilMerge
                         return result;
                 }
                 HolderLookup.Provider registries = player.level().registryAccess();
+                // The left item's are already on the result, a copy of it.
+                DormantEnchantments.addUnknown(result, DormantEnchantments.unknown(addition, registries), registries);
                 ItemEnchantments merged = result.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
                 ItemEnchantments inputDormant = DormantEnchantments.get(input, registries);
                 ItemEnchantments additionDormant = DormantEnchantments.get(addition, registries);
@@ -81,15 +84,18 @@ public final class AnvilMerge
                 Adjuster.mergeInto(all, additionDormant);
                 Set<Holder<Enchantment>> keepActive = input.getOrDefault(DataComponents.ENCHANTMENTS,
                         ItemEnchantments.EMPTY).keySet();
+                // What the player switched off on the left item stays off; the right item's choices don't count.
+                Set<Holder<Enchantment>> off = DormantEnchantments.off(input, registries);
                 // With allow_none, what was dormant on the left item stays dormant: a group left on none stays so.
                 Adjuster.Split split = AdjustabilityConfig.toggle().allowNone()
                         ? Adjuster.split(all.toImmutable(), keepActive,
-                                enchantment -> inputDormant.getLevel(enchantment) == 0)
-                        : Adjuster.split(all.toImmutable(), keepActive);
+                                enchantment -> inputDormant.getLevel(enchantment) == 0, off)
+                        : Adjuster.split(all.toImmutable(), keepActive, off);
 
                 AnvilConfig config = AdjustabilityConfig.anvil();
                 int maxDormant = ItemRules.maxDormant(result, config.maxDormantPerItem());
-                if (split.dormant().size() > maxDormant
+                // Switched-off enchantments wait behind nothing; the limit is about holding conflicts.
+                if (split.dormant().size() - split.off().size() > maxDormant
                         || config.maxConflictsPerComponent() > 0
                         && split.largestComponent() > config.maxConflictsPerComponent())
                 {
@@ -112,7 +118,7 @@ public final class AnvilMerge
                                 newlyDormantLevels += split.dormant().getLevel(enchantment);
                         }
                 }
-                Adjuster.write(result, split);
+                Adjuster.write(result, split, registries);
 
                 int price = (int) Math.min(Integer.MAX_VALUE,
                         (long) cost.get() + (long) newlyDormantLevels * config.dormantCostPerLevel());

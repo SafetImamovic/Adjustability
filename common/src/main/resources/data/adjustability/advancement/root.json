@@ -23,7 +23,12 @@
             "translate": "advancements.adjustability.root.title"
         },
         "description": {
-            "translate": "advancements.adjustability.root.description"
+            "translate": "advancements.adjustability.root.description",
+            "with": [
+                {
+                    "keybind": "key.adjustability.adjust"
+                }
+            ]
         },
         "frame": "task",
         "background": "minecraft:block/amethyst_block",

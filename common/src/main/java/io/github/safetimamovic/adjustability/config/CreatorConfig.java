@@ -54,6 +54,7 @@ public final class CreatorConfig
         private static final BooleanValue ALLOW_COMMAND;
         private static final ConfigValue<List<? extends String>> GROUP_COSTS;
         private static final BooleanValue ALLOW_NONE;
+        private static final BooleanValue ALLOW_SWITCH_OFF;
         private static final EnumValue<ServerPanelActivation> PANEL_ACTIVATION;
         private static final BooleanValue PLAY_SOUND;
 
@@ -150,6 +151,11 @@ public final class CreatorConfig
                                 "Adjust panel gets a None row per group and the Cycle key steps through none. Off: one",
                                 "of each group is always active (items left on none are fixed by their next switch).")
                         .define("allow_none", false);
+                ALLOW_SWITCH_OFF = builder.comment("Enchantments that conflict with nothing can be switched off",
+                                "(and on again) in the Adjust panel, e.g. Knockback or a lone Silk Touch. Curses never.",
+                                "A switched-off enchantment stays off through anvils and repairs until it's switched",
+                                "on.")
+                        .define("allow_switch_off", true);
                 PANEL_ACTIVATION = builder.comment("How the Adjust key works for everyone on this server. PLAYER: each",
                                 "player's own choice ([panel] activation in their client file). TOGGLE or HOLD: that,",
                                 "for everyone.")
@@ -205,6 +211,7 @@ public final class CreatorConfig
                         get(ALLOW_IN_WORLD_CYCLE),
                         get(ALLOW_COMMAND),
                         get(ALLOW_NONE),
+                        get(ALLOW_SWITCH_OFF),
                         get(PANEL_ACTIVATION),
                         get(PLAY_SOUND));
         }

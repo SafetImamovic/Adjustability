@@ -16,8 +16,9 @@ import org.jetbrains.annotations.ApiStatus;
  * @param target         the dormant enchantment being made active; with {@code none}, any enchantment of the group
  *                       being left with nothing active
  * @param activeBefore   the item's active enchantments before the switch
- * @param dormantBefore  its dormant enchantments before the switch
- * @param none           true for the "none" choice: every enchantment of {@code target}'s group becomes dormant
+ * @param dormantBefore  its dormant enchantments before the switch, switched-off ones included
+ * @param none           true for the "none" choice: every enchantment of {@code target}'s group becomes dormant. Also
+ *                       for switching off an enchantment that conflicts with nothing, a group of one.
  */
 @ApiStatus.Experimental
 public record SwitchEvent(ServerPlayer player, ItemStack stack, Holder<Enchantment> target, SwitchSource source,

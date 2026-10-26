@@ -65,6 +65,7 @@ Switching which enchantments are active.
 | `allow_command` | `true` | `true`, `false` | Every player can use /adjustability toggle &lt;enchantment&gt;. |
 | `group_costs` | `[]` |  | Own costs for switching within particular groups, instead of cost_type / cost_amount / cost_item: "&lt;ids and #tags&gt; = &lt;cost&gt;", where &lt;cost&gt; is NONE, XP_LEVELS &lt;n&gt;, XP_POINTS &lt;n&gt;, DURABILITY &lt;n&gt; or ITEM &lt;n&gt; &lt;item id&gt;. E.g. ["#minecraft:exclusive_set/mining = ITEM 2 minecraft:lapis_lazuli", "minecraft:riptide = XP_LEVELS 5", "#minecraft:exclusive_set/armor = NONE"]. An entry covers a group if any of the group's enchantments matches; the first entry that covers it wins. Creative players still switch for free. |
 | `allow_none` | `false` | `true`, `false` | A group of conflicting enchantments may have none of them active: the Adjust panel gets a None row per group and the Cycle key steps through none. Off: one of each group is always active (items left on none are fixed by their next switch). |
+| `allow_switch_off` | `true` | `true`, `false` | Enchantments that conflict with nothing can be switched off (and on again) in the Adjust panel, e.g. Knockback or a lone Silk Touch. Curses never. A switched-off enchantment stays off through anvils and repairs until it's switched on. |
 | `panel_activation` | `PLAYER` | `PLAYER`, `TOGGLE`, `HOLD` | How the Adjust key works for everyone on this server. PLAYER: each player's own choice ([panel] activation in their client file). TOGGLE or HOLD: that, for everyone. |
 | `play_sound` | `true` | `true`, `false` | Play a sound on a switch (adjustability:item.switch, for the player and anyone nearby). Players can turn it down with their Players volume. |
 
@@ -80,6 +81,16 @@ Item tooltips.
 |---|---|---|---|
 | `show_dormant` | `true` | `true`, `false` | List dormant enchantments in the tooltip, each under the active one it conflicts with. |
 | `show_hint` | `true` | `true`, `false` | On items with dormant enchantments, show which key opens the Adjust panel. |
+
+### [hints]
+
+Help discovering enchantment switching. Saved on this client, across worlds.
+
+| Key | Default | Allowed | Description |
+|---|---|---|---|
+| `tutorial` | `OPEN_PANEL` | `OPEN_PANEL`, `SWITCH`, `DONE` | Tutorial progress: OPEN_PANEL waits for an item with dormant enchantments, then shows a reminder until you open its panel. SWITCH waits for a successful panel switch, then shows the Cycle hint. DONE disables the tutorial. Updated automatically; /adjustability tutorial starts it again. |
+| `slot_marker` | `true` | `true`, `false` | Mark the corner of inventory slots holding dormant or switched-off enchantments. |
+| `slot_marker_color` | `#FFFF55FF` |  | The slot marker's color. |
 
 ### [panel]
 
@@ -98,3 +109,43 @@ The Adjust panel, pinned next to an item with the Adjust key. Also with /adjusta
 | `highlight_color` | `#50FF00FF` |  | Behind the row under the mouse. |
 | `active_color` | `#FFFF55FF` |  | The mark in front of active enchantments. |
 | `show_cost` | `true` | `true`, `false` | Show what a switch costs and the cooldown at the bottom. |
+| `border_style` | `GRADIENT` | `GRADIENT`, `SOLID`, `NONE`, `SPRITE` | GRADIENT: fades from border_top_color to border_bottom_color, like a tooltip. SOLID: border_top_color all around. NONE: no border. SPRITE: the adjustability:panel GUI sprite, which resource packs can replace (it includes the background, so background_color and the border colors aren't used). |
+| `default_profile` | `` |  | A panel profile /adjustability panel reset goes back to, instead of Adjustability's defaults: magenta, vanilla, minimal, high_contrast, or a file's name (without .json) in config/adjustability/panel_profiles. Empty: the defaults. For modpacks: ship the profile, set this, and ship this file with the profile applied. |
+
+### [panel.marks]
+
+The mark in front of each row; active_color above colors the active one.
+
+| Key | Default | Allowed | Description |
+|---|---|---|---|
+| `mark_style` | `adjustability:circle` |  | adjustability:circle, square, checkbox, toggle (a switch), radio or text_only (no mark, only the text color). Other mods can add their own. |
+| `dormant_mark_color` | `#FFAAAAAA` |  | The mark in front of dormant enchantments. |
+| `animate_marks` | `true` | `true`, `false` | Animate a mark when its enchantment switches (a toggle's knob slides). |
+
+### [panel.text]
+
+The item's name at the top, the rows and the cost line.
+
+| Key | Default | Allowed | Description |
+|---|---|---|---|
+| `title_color` | `#FFFFFFFF` |  | The item's name. |
+| `active_text_color` | `#FFFFFFFF` |  | Active enchantments, and the row under the mouse. |
+| `dormant_text_color` | `#FFAAAAAA` |  | Dormant enchantments. |
+| `footer_text_color` | `#FF808080` |  | The cost line, each group's cost and the group headings. |
+| `text_shadow` | `true` | `true`, `false` | Draw the title and the rows with a shadow. |
+| `show_title` | `true` | `true`, `false` | Show the item's name at the top. |
+| `show_item_icon` | `false` | `true`, `false` | Show the item in front of its name. |
+
+### [panel.layout]
+
+Spacing, and how the groups of conflicting enchantments are told apart.
+
+| Key | Default | Allowed | Description |
+|---|---|---|---|
+| `padding` | `5` | `2` – `16` | Space between the border and the text, in GUI pixels. |
+| `row_height` | `11` | `9` – `24` | Height of each row, in GUI pixels. |
+| `group_style` | `LINE` | `LINE`, `GAP`, `NONE`, `HEADER` | Between groups: LINE (a gap with a thin line), GAP, NONE, or HEADER (the group's name above it, like Mining). |
+| `separator_color` | `#30FF00FF` |  | The line between groups. |
+| `row_order` | `REGISTRY` | `REGISTRY`, `ALPHABETICAL`, `ACTIVE_FIRST` | Order of the rows in a group: REGISTRY (the game's), ALPHABETICAL or ACTIVE_FIRST. |
+| `none_row` | `LAST` | `LAST`, `FIRST` | Where the None row goes when the server allows switching a group off: LAST or FIRST. |
+| `singles` | `EXPANDED` | `EXPANDED`, `COLLAPSED`, `HIDDEN` | The section for enchantments that conflict with nothing, which the server may let you switch off one by one: EXPANDED or COLLAPSED (how it starts; click its heading to fold it) or HIDDEN. |

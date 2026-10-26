@@ -8,6 +8,7 @@ import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
+import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
@@ -60,10 +61,15 @@ public final class AdjustClient
         {
                 sender = payloadSender;
                 TooltipLines.setClientHooks(() -> AdjustabilityConfig.player().showDormant(), AdjustClient::hint);
+                RowMarks.init();
         }
 
         public static void send(CustomPacketPayload payload)
         {
+                if (payload instanceof ToggleEnchantmentPayload toggle)
+                {
+                        AdjustTutorial.requestedSwitch(toggle);
+                }
                 sender.accept(payload);
         }
 
@@ -74,6 +80,7 @@ public final class AdjustClient
          */
         public static void tick(Minecraft minecraft)
         {
+                AdjustTutorial.tick(minecraft);
                 while (AdjustKeys.CYCLE.consumeClick())
                 {
                         //? if >=26.1 {
@@ -161,13 +168,15 @@ public final class AdjustClient
         *///?}
                 AdjustPanel open = panel(screen);
                 boolean toggle = activation() == PanelActivation.TOGGLE;
-                if (open != null && (key == InputConstants.KEY_ESCAPE
-                        || adjustKey && toggle && (hovered == null || menuIndex(screen, hovered) == open.slot())))
+                // An empty slot counts as no item: the panel often sits over one.
+                boolean sameOrNoItem = hovered == null || !hovered.hasItem()
+                        || open != null && menuIndex(screen, hovered) == open.slot();
+                if (open != null && (key == InputConstants.KEY_ESCAPE || adjustKey && toggle && sameOrNoItem))
                 {
                         panel = null;
                         return true;
                 }
-                if (open != null && adjustKey && (hovered == null || menuIndex(screen, hovered) == open.slot()))
+                if (open != null && adjustKey && sameOrNoItem)
                 {
                         // HOLD: already open over this item.
                         return true;
@@ -187,8 +196,10 @@ public final class AdjustClient
                         return false;
                 }
                 ItemStack stack = hovered.getItem();
+                // With switching off allowed, any enchanted item has something to adjust.
                 if (!ItemRules.canAdjust(stack)
-                        || !DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack)))
+                        || !DormantEnchantments.has(stack) && !Adjuster.hasConflict(Adjuster.activeOf(stack))
+                        && !(AdjustabilityConfig.toggle().allowSwitchOff() && !Adjuster.activeOf(stack).isEmpty()))
                 {
                         return false;
                 }
@@ -196,6 +207,10 @@ public final class AdjustClient
                         menuIndex(screen, hovered), serverSlot[0], serverSlot[1], leftPos + hovered.x + 16,
                         topPos + hovered.y);
                 panel = opened.refresh(minecraft.font) ? opened : null;
+                if (panel != null)
+                {
+                        AdjustTutorial.openedPanel();
+                }
                 return panel != null;
         }
 
@@ -348,7 +363,8 @@ public final class AdjustClient
                 {
                         return null;
                 }
-                return Component.translatable("adjustability.tooltip.hint", AdjustKeys.ADJUST.getTranslatedKeyMessage())
-                        .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC);
+                return Component.translatable("adjustability.tooltip.hint",
+                        AdjustKeys.ADJUST.getTranslatedKeyMessage().copy().withStyle(ChatFormatting.LIGHT_PURPLE))
+                        .withStyle(ChatFormatting.GRAY);
         }
 }

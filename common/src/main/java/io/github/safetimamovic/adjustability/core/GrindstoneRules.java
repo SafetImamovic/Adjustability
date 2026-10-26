@@ -32,7 +32,7 @@ public final class GrindstoneRules
                 }
                 else
                 {
-                        Adjuster.write(item, Adjuster.resplit(item, ItemEnchantments.EMPTY, registries));
+                        Adjuster.write(item, Adjuster.resplit(item, ItemEnchantments.EMPTY, registries), registries);
                 }
         }
 
