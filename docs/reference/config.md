@@ -89,6 +89,8 @@ Help discovering enchantment switching. Saved on this client, across worlds.
 | Key | Default | Allowed | Description |
 |---|---|---|---|
 | `tutorial` | `OPEN_PANEL` | `OPEN_PANEL`, `SWITCH`, `DONE` | Tutorial progress: OPEN_PANEL waits for an item with dormant enchantments, then shows a reminder until you open its panel. SWITCH waits for a successful panel switch, then shows the Cycle hint. DONE disables the tutorial. Updated automatically; /adjustability tutorial starts it again. |
+| `slot_marker` | `true` | `true`, `false` | Mark the corner of inventory slots holding dormant or switched-off enchantments. |
+| `slot_marker_color` | `#FFFF55FF` |  | The slot marker's color. |
 
 ### [panel]
 

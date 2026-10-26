@@ -47,6 +47,8 @@ public final class PlayerConfig
         private static final BooleanValue SHOW_DORMANT;
         private static final BooleanValue SHOW_HINT;
         private static final EnumValue<TutorialStep> TUTORIAL;
+        private static final BooleanValue SLOT_MARKER;
+        private static final ConfigValue<String> SLOT_MARKER_COLOR;
 
         private static final EnumValue<PanelActivation> PANEL_ACTIVATION;
         private static final EnumValue<PanelSide> PANEL_SIDE;
@@ -119,6 +121,10 @@ public final class PlayerConfig
                                 "switch, then shows the Cycle hint. DONE disables the tutorial. Updated automatically;",
                                 "/adjustability tutorial starts it again.")
                         .defineEnum("tutorial", TutorialStep.OPEN_PANEL);
+                SLOT_MARKER = builder.comment("Mark the corner of inventory slots holding dormant or switched-off",
+                                "enchantments.")
+                        .define("slot_marker", true);
+                SLOT_MARKER_COLOR = color(builder, "slot_marker_color", "#FFFF55FF", "The slot marker's color.");
                 builder.pop();
 
                 builder.comment("The Adjust panel, pinned next to an item with the Adjust key. Also with",
@@ -213,7 +219,7 @@ public final class PlayerConfig
                         ROW_HEIGHT, GROUP_STYLE, SEPARATOR_COLOR, ROW_ORDER, NONE_ROW, SINGLES);
                 COLORS = Set.of(BACKGROUND_COLOR, BORDER_TOP_COLOR, BORDER_BOTTOM_COLOR, BRACKET_COLOR, HIGHLIGHT_COLOR,
                         ACTIVE_COLOR, DORMANT_MARK_COLOR, TITLE_COLOR, ACTIVE_TEXT_COLOR, DORMANT_TEXT_COLOR,
-                        FOOTER_TEXT_COLOR, SEPARATOR_COLOR);
+                        FOOTER_TEXT_COLOR, SEPARATOR_COLOR, SLOT_MARKER_COLOR);
                 LOOK_SETTINGS = PANEL_SETTINGS.stream()
                         .filter(value -> value != PANEL_ACTIVATION && value != PANEL_SIDE).toList();
         }
@@ -235,6 +241,16 @@ public final class PlayerConfig
         public static boolean tutorial(TutorialStep step)
         {
                 return change(TUTORIAL, step);
+        }
+
+        public static boolean slotMarker()
+        {
+                return get(SLOT_MARKER);
+        }
+
+        public static int slotMarkerColor()
+        {
+                return argb(SLOT_MARKER_COLOR, value -> null);
         }
 
         /**

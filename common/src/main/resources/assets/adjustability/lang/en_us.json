@@ -27,6 +27,8 @@
     "adjustability.command.help.tutorial": "Start the switching tutorial again",
     "adjustability.configuration.hints": "Hints",
     "adjustability.configuration.tutorial": "Tutorial Progress",
+    "adjustability.configuration.slot_marker": "Slot Marker",
+    "adjustability.configuration.slot_marker_color": "Slot Marker Color",
     "adjustability.panel.cost": "Each switch: %s · cooldown %ss",
     "adjustability.panel.cooldown": "Cooldown %ss",
     "adjustability.panel.none": "None",

@@ -14,6 +14,8 @@ import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Set;
+import javax.imageio.ImageIO;
 import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestSingleplayerContext;
@@ -27,15 +29,18 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AnvilMenu;
+import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
+import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 
 /** First-install path from a real anvil result through both tutorial steps. */
 public class DiscoverabilityClientGameTest implements FabricClientGameTest
@@ -48,6 +53,8 @@ public class DiscoverabilityClientGameTest implements FabricClientGameTest
                         PlayerConfig.tutorial(TutorialStep.OPEN_PANEL);
                         PlayerConfig.resetPanel();
                 });
+                hintSetting(context, "slot_marker", true);
+                hintSetting(context, "slot_marker_color", "#FFFF55FF");
                 try (TestSingleplayerContext world = context.worldBuilder().create())
                 {
                         world.getConnection().waitForChunksRender();
@@ -136,6 +143,9 @@ public class DiscoverabilityClientGameTest implements FabricClientGameTest
                         hoverSlot(context, slot);
                         context.waitTick();
                         context.takeScreenshot("discoverability_2_hint");
+                        markers(context, world, slot);
+                        hoverSlot(context, slot);
+                        context.waitTick();
                         context.runOnClient(minecraft ->
                         {
                                 AdjustToast toast = minecraft.gui.toastManager()
@@ -207,7 +217,87 @@ public class DiscoverabilityClientGameTest implements FabricClientGameTest
                 finally
                 {
                         context.runOnClient(minecraft -> PlayerConfig.tutorial(TutorialStep.DONE));
+                        hintSetting(context, "slot_marker", true);
+                        hintSetting(context, "slot_marker_color", "#FFFF55FF");
                 }
+        }
+
+        private static void markers(ClientGameTestContext context, TestSingleplayerContext world, int slot)
+        {
+                moveTo(context, 1, 1);
+                marker(context, slot, 0xFF55FF, true, "discoverability_4_marker");
+                hintSetting(context, "slot_marker", false);
+                marker(context, slot, 0xFF55FF, false, "discoverability_4b_marker_disabled");
+                hintSetting(context, "slot_marker", true);
+                hintSetting(context, "slot_marker_color", "#FF00FFFF");
+                marker(context, slot, 0x00FFFF, true, "discoverability_4c_marker_color");
+                hintSetting(context, "slot_marker_color", "#FFFF55FF");
+                CustomData original = world.getServer().computeOnServer(server ->
+                {
+                        ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                        ItemStack stack = player.containerMenu.getSlot(slot).getItem();
+                        CustomData data = stack.remove(DataComponents.CUSTOM_DATA);
+                        Holder<Enchantment> knockback = player.level().registryAccess()
+                                .lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(Enchantments.KNOCKBACK);
+                        ItemStack sword = new ItemStack(Items.DIAMOND_SWORD);
+                        ItemEnchantments.Mutable off = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
+                        off.set(knockback, 2);
+                        DormantEnchantments.set(sword, off.toImmutable(), Set.of(knockback),
+                                player.level().registryAccess());
+                        player.getInventory().setItem(0, sword);
+                        ItemStack vanilla = new ItemStack(Items.DIAMOND_SWORD);
+                        vanilla.enchant(knockback, 2);
+                        player.getInventory().setItem(1, vanilla);
+                        player.containerMenu.broadcastChanges();
+                        return data;
+                });
+                world.getConnection().waitForClientboundPackets();
+                marker(context, slot, 0xFF55FF, false, "discoverability_4d_marker_cleared");
+                marker(context, InventoryMenu.USE_ROW_SLOT_START, 0xFF55FF, true, "discoverability_4e_marker_off");
+                marker(context, InventoryMenu.USE_ROW_SLOT_START + 1, 0xFF55FF, false,
+                        "discoverability_4f_vanilla_unmarked");
+                world.getServer().runOnServer(server ->
+                {
+                        ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                        player.containerMenu.getSlot(slot).getItem().set(DataComponents.CUSTOM_DATA, original);
+                        player.containerMenu.broadcastChanges();
+                });
+                world.getConnection().waitForClientboundPackets();
+                marker(context, slot, 0xFF55FF, true, "discoverability_4g_marker_restored");
+        }
+
+        private static void marker(ClientGameTestContext context, int slot, int color, boolean shown, String picture)
+        {
+                context.waitTicks(2);
+                int[] position = slotPosition(context, slot);
+                int scale = context.computeOnClient(minecraft -> minecraft.getWindow().getGuiScale());
+                Path screenshot = context.takeScreenshot(picture);
+                try
+                {
+                        int pixel = ImageIO.read(screenshot.toFile()).getRGB((position[0] + 7) * scale + scale / 2,
+                                (position[1] - 6) * scale + scale / 2) & 0xFFFFFF;
+                        if ((pixel == color) != shown)
+                        {
+                                throw new AssertionError(picture + ": marker pixel " + Integer.toHexString(pixel));
+                        }
+                }
+                catch (IOException exception)
+                {
+                        throw new AssertionError(exception);
+                }
+        }
+
+        @SuppressWarnings("unchecked")
+        private static <T> void hintSetting(ClientGameTestContext context, String name, T setting)
+        {
+                context.runOnClient(minecraft ->
+                {
+                        ConfigValue<T> value = (ConfigValue<T>) PlayerConfig.SPEC.getValues().get("hints." + name);
+                        if (!PlayerConfig.change(value, setting))
+                        {
+                                throw new AssertionError("Could not change " + name);
+                        }
+                });
         }
 
         private static void step(ClientGameTestContext context, TutorialStep expected)
@@ -242,7 +332,13 @@ public class DiscoverabilityClientGameTest implements FabricClientGameTest
 
         private static void hoverSlot(ClientGameTestContext context, int index)
         {
-                int[] position = context.computeOnClient(minecraft ->
+                int[] position = slotPosition(context, index);
+                moveTo(context, position[0], position[1]);
+        }
+
+        private static int[] slotPosition(ClientGameTestContext context, int index)
+        {
+                return context.computeOnClient(minecraft ->
                 {
                         AbstractContainerScreen<?> screen = (AbstractContainerScreen<?>) minecraft.gui.screen();
                         Slot slot = screen.getMenu().getSlot(index);
@@ -259,7 +355,6 @@ public class DiscoverabilityClientGameTest implements FabricClientGameTest
                                 throw new AssertionError(exception);
                         }
                 });
-                moveTo(context, position[0], position[1]);
         }
 
         private static void moveTo(ClientGameTestContext context, int x, int y)
