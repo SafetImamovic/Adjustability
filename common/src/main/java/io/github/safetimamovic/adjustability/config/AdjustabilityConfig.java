@@ -126,19 +126,95 @@ public final class AdjustabilityConfig
         }
 
         /** The Adjust panel's look and how its key works; colors are ARGB. */
-        public record PanelStyle(
-                PanelActivation activation,
-                PanelSide side,
+        public record PanelStyle(PanelActivation activation, PanelSide side, Frame frame, Marks marks, Text text,
+                Layout layout)
+        {
+        }
+
+        /** The panel's background, border, corner brackets and the hovered row's highlight. */
+        public record Frame(
+                BorderStyle border,
                 int background,
                 int borderTop,
                 int borderBottom,
                 boolean showBrackets,
                 int bracket,
                 int bracketLength,
-                int highlight,
-                int activeMark,
+                int highlight)
+        {
+        }
+
+        /**
+         * The mark in front of each row.
+         *
+         * @param style a row mark's id, like {@code adjustability:circle}; mods can add their own
+         */
+        public record Marks(String style, int active, int dormant, boolean animate)
+        {
+        }
+
+        /** The title (item name), the rows' text and the cost line at the bottom. */
+        public record Text(
+                int title,
+                int active,
+                int dormant,
+                int footer,
+                boolean shadow,
+                boolean showTitle,
+                boolean showIcon,
                 boolean showCost)
         {
+        }
+
+        /** Spacing, how groups of conflicting enchantments are told apart, and the order of the rows. */
+        public record Layout(
+                int padding,
+                int rowHeight,
+                GroupStyle groups,
+                int separator,
+                RowOrder order,
+                NonePosition none)
+        {
+        }
+
+        /**
+         * GRADIENT: a tooltip-like border fading from the top color to the bottom one. SOLID: the top color all around.
+         * NONE: only the background. SPRITE: the {@code adjustability:panel} GUI sprite, which resource packs can
+         * replace (it includes the background).
+         */
+        public enum BorderStyle
+        {
+                GRADIENT,
+                SOLID,
+                NONE,
+                SPRITE
+        }
+
+        /**
+         * Between groups of conflicting enchantments. LINE: a gap with a thin line. GAP: only the gap. NONE: nothing.
+         * HEADER: a heading with the group's name above each group.
+         */
+        public enum GroupStyle
+        {
+                LINE,
+                GAP,
+                NONE,
+                HEADER
+        }
+
+        /** REGISTRY: the game's order. ALPHABETICAL: by name. ACTIVE_FIRST: the active ones, then the game's order. */
+        public enum RowOrder
+        {
+                REGISTRY,
+                ALPHABETICAL,
+                ACTIVE_FIRST
+        }
+
+        /** Where a group's None row goes, when the server allows switching a group off. */
+        public enum NonePosition
+        {
+                LAST,
+                FIRST
         }
 
         /** The server's say on the Adjust key: PLAYER leaves it to each player's {@link PanelActivation}. */

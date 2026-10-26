@@ -93,6 +93,24 @@ public final class PanelCommand
                                                 : actions.invalid(context, enumValue, input);
                                 }));
                 }
+                if (PlayerConfig.isMarkStyle(setting))
+                {
+                        ConfigValue<String> mark = (ConfigValue<String>) setting;
+                        return node.then(RequiredArgumentBuilder.<S, String>argument(VALUE,
+                                        StringArgumentType.greedyString())
+                                .suggests((context, builder) ->
+                                {
+                                        PlayerConfig.markStyles().forEach(builder::suggest);
+                                        return builder.buildFuture();
+                                })
+                                .executes(context ->
+                                {
+                                        String input = StringArgumentType.getString(context, VALUE).trim();
+                                        return PlayerConfig.markStyles().contains(input)
+                                                ? actions.set(context, mark, input)
+                                                : actions.invalid(context, mark, input);
+                                }));
+                }
                 // The rest are colors, kept as text in the file.
                 ConfigValue<String> color = (ConfigValue<String>) setting;
                 return node.then(RequiredArgumentBuilder.<S, String>argument(VALUE, StringArgumentType.greedyString())

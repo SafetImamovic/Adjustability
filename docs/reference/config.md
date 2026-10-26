@@ -98,3 +98,41 @@ The Adjust panel, pinned next to an item with the Adjust key. Also with /adjusta
 | `highlight_color` | `#50FF00FF` |  | Behind the row under the mouse. |
 | `active_color` | `#FFFF55FF` |  | The mark in front of active enchantments. |
 | `show_cost` | `true` | `true`, `false` | Show what a switch costs and the cooldown at the bottom. |
+| `border_style` | `GRADIENT` | `GRADIENT`, `SOLID`, `NONE`, `SPRITE` | GRADIENT: fades from border_top_color to border_bottom_color, like a tooltip. SOLID: border_top_color all around. NONE: no border. SPRITE: the adjustability:panel GUI sprite, which resource packs can replace (it includes the background, so background_color and the border colors aren't used). |
+
+### [panel.marks]
+
+The mark in front of each row; active_color above colors the active one.
+
+| Key | Default | Allowed | Description |
+|---|---|---|---|
+| `mark_style` | `adjustability:circle` |  | adjustability:circle, square, checkbox, toggle (a switch), radio or text_only (no mark, only the text color). Other mods can add their own. |
+| `dormant_mark_color` | `#FFAAAAAA` |  | The mark in front of dormant enchantments. |
+| `animate_marks` | `true` | `true`, `false` | Animate a mark when its enchantment switches (a toggle's knob slides). |
+
+### [panel.text]
+
+The item's name at the top, the rows and the cost line.
+
+| Key | Default | Allowed | Description |
+|---|---|---|---|
+| `title_color` | `#FFFFFFFF` |  | The item's name. |
+| `active_text_color` | `#FFFFFFFF` |  | Active enchantments, and the row under the mouse. |
+| `dormant_text_color` | `#FFAAAAAA` |  | Dormant enchantments. |
+| `footer_text_color` | `#FF808080` |  | The cost line, each group's cost and the group headings. |
+| `text_shadow` | `true` | `true`, `false` | Draw the title and the rows with a shadow. |
+| `show_title` | `true` | `true`, `false` | Show the item's name at the top. |
+| `show_item_icon` | `false` | `true`, `false` | Show the item in front of its name. |
+
+### [panel.layout]
+
+Spacing, and how the groups of conflicting enchantments are told apart.
+
+| Key | Default | Allowed | Description |
+|---|---|---|---|
+| `padding` | `5` | `2` – `16` | Space between the border and the text, in GUI pixels. |
+| `row_height` | `11` | `9` – `24` | Height of each row, in GUI pixels. |
+| `group_style` | `LINE` | `LINE`, `GAP`, `NONE`, `HEADER` | Between groups: LINE (a gap with a thin line), GAP, NONE, or HEADER (the group's name above it, like Mining). |
+| `separator_color` | `#30FF00FF` |  | The line between groups. |
+| `row_order` | `REGISTRY` | `REGISTRY`, `ALPHABETICAL`, `ACTIVE_FIRST` | Order of the rows in a group: REGISTRY (the game's), ALPHABETICAL or ACTIVE_FIRST. |
+| `none_row` | `LAST` | `LAST`, `FIRST` | Where the None row goes when the server allows switching a group off: LAST or FIRST. |

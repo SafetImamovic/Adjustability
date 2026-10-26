@@ -10,6 +10,7 @@ import dev.isxander.yacl3.api.YetAnotherConfigLib;
 import dev.isxander.yacl3.api.controller.ColorControllerBuilder;
 import dev.isxander.yacl3.api.controller.ControllerBuilder;
 import dev.isxander.yacl3.api.controller.DoubleFieldControllerBuilder;
+import dev.isxander.yacl3.api.controller.DropdownStringControllerBuilder;
 import dev.isxander.yacl3.api.controller.EnumControllerBuilder;
 import dev.isxander.yacl3.api.controller.IntegerFieldControllerBuilder;
 import dev.isxander.yacl3.api.controller.StringControllerBuilder;
@@ -38,10 +39,11 @@ import net.neoforged.neoforge.common.ModConfigSpec.Range;
 import org.jspecify.annotations.Nullable;
 
 /**
- * The YACL config screen, built by walking the two {@link ModConfigSpec}s: a category per file, a group per section, in
- * the order the specs define them, so new options show up without code here. Names are the stock screen's translation
- * keys, descriptions the spec comments. Values are read from and written to the specs, so storage doesn't change.
- * Colors get a color picker; the panel's settings show a live preview ({@link PanelPreview}).
+ * The YACL config screen, built by walking the two {@link ModConfigSpec}s: a category per file, a group per section
+ * and per subsection (like {@code [panel.marks]}), in the order the specs define them, so new options show up without
+ * code here. Names are the stock screen's translation keys, descriptions the spec comments. Values are read from and
+ * written to the specs, so storage doesn't change. Colors get a color picker, the row mark a list of the registered
+ * ones; the panel's settings show a live preview ({@link PanelPreview}).
  *
  * <p>Server options can only be changed where this client runs the server (singleplayer, LAN host) or, from 26.1 on,
  * from the title screen; anywhere else they're shown greyed out. Only loaded through {@link ConfigScreens}.
@@ -73,9 +75,9 @@ final class YaclConfigScreen
                 return YetAnotherConfigLib.createBuilder()
                         .title(Component.translatable(KEY + "title"))
                         .category(category(PlayerConfig.SPEC, "adjustability.yacl.player", null,
-                                Map.of("panel", panel), playerOptions))
+                                Map.of("panel", panel), Map.of(), playerOptions))
                         .category(category(CreatorConfig.SPEC, "adjustability.yacl.server", lock, Map.of(),
-                                new HashMap<>()))
+                                Map.of(), new HashMap<>()))
                         .save(() ->
                         {
                                 if (PlayerConfig.SPEC.isLoaded())
@@ -93,11 +95,12 @@ final class YaclConfigScreen
 
         /**
          * {@code lock}: why the file can't be edited here, or {@code null} if it can. {@code previews}: a picture for
-         * the settings of a section, by section. Each option is put in {@code built} by its value. Sections are one
-         * level deep.
+         * the settings of a top-level section and its subsections, by section; {@code extras}: options put first in a
+         * top-level section's group. Each option is put in {@code built} by its value.
          */
         private static ConfigCategory category(ModConfigSpec spec, String name, @Nullable Component lock,
-                Map<String, ImageRenderer> previews, Map<ConfigValue<?>, Option<?>> built)
+                Map<String, ImageRenderer> previews, Map<String, List<Option<?>>> extras,
+                Map<ConfigValue<?>, Option<?>> built)
         {
                 ConfigCategory.Builder category = ConfigCategory.createBuilder().name(Component.translatable(name));
                 if (lock != null)
@@ -106,39 +109,60 @@ final class YaclConfigScreen
                 }
                 for (Map.Entry<String, Object> section : spec.getSpec().valueMap().entrySet())
                 {
-                        if (!(section.getValue() instanceof UnmodifiableConfig values))
+                        if (section.getValue() instanceof UnmodifiableConfig values)
                         {
-                                continue;
+                                section(category, spec, List.of(section.getKey()), values, lock,
+                                        previews.get(section.getKey()),
+                                        extras.getOrDefault(section.getKey(), List.of()), built);
                         }
-                        List<String> sectionPath = List.of(section.getKey());
-                        OptionGroup.Builder group = OptionGroup.createBuilder()
-                                .name(Component.translatable(KEY + section.getKey()));
-                        String comment = spec.getLevelComment(sectionPath);
-                        if (comment != null)
-                        {
-                                group.description(OptionDescription.of(Component.literal(comment)));
-                        }
-                        ImageRenderer preview = previews.get(section.getKey());
-                        // YACL's lists are groups of their own, so they go right after their section.
-                        List<OptionGroup> lists = new ArrayList<>();
-                        for (String key : values.valueMap().keySet())
-                        {
-                                ConfigValue<?> value = spec.getValues().get(List.of(section.getKey(), key));
-                                if (value.getDefault() instanceof List<?>)
-                                {
-                                        lists.add(listOption(spec, value, lock, preview));
-                                }
-                                else
-                                {
-                                        Option<?> option = option(spec, value, lock, preview);
-                                        built.put(value, option);
-                                        group.option(option);
-                                }
-                        }
-                        category.group(group.build());
-                        lists.forEach(category::group);
                 }
                 return category.build();
+        }
+
+        /** A section's group, then its lists (YACL's lists are groups of their own), then its subsections' groups. */
+        private static void section(ConfigCategory.Builder category, ModConfigSpec spec, List<String> path,
+                UnmodifiableConfig values, @Nullable Component lock, @Nullable ImageRenderer preview,
+                List<Option<?>> extras, Map<ConfigValue<?>, Option<?>> built)
+        {
+                OptionGroup.Builder group = OptionGroup.createBuilder()
+                        .name(Component.translatable(KEY + path.getLast()));
+                String comment = spec.getLevelComment(path);
+                if (comment != null)
+                {
+                        group.description(OptionDescription.of(Component.literal(comment)));
+                }
+                extras.forEach(group::option);
+                List<OptionGroup> lists = new ArrayList<>();
+                List<Map.Entry<String, UnmodifiableConfig>> subsections = new ArrayList<>();
+                for (Map.Entry<String, Object> entry : values.valueMap().entrySet())
+                {
+                        List<String> here = new ArrayList<>(path);
+                        here.add(entry.getKey());
+                        if (entry.getValue() instanceof UnmodifiableConfig subsection)
+                        {
+                                subsections.add(Map.entry(entry.getKey(), subsection));
+                                continue;
+                        }
+                        ConfigValue<?> value = spec.getValues().get(here);
+                        if (value.getDefault() instanceof List<?>)
+                        {
+                                lists.add(listOption(spec, value, lock, preview));
+                        }
+                        else
+                        {
+                                Option<?> option = option(spec, value, lock, preview);
+                                built.put(value, option);
+                                group.option(option);
+                        }
+                }
+                category.group(group.build());
+                lists.forEach(category::group);
+                for (Map.Entry<String, UnmodifiableConfig> subsection : subsections)
+                {
+                        List<String> here = new ArrayList<>(path);
+                        here.add(subsection.getKey());
+                        section(category, spec, here, subsection.getValue(), lock, preview, List.of(), built);
+                }
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
@@ -172,6 +196,12 @@ final class YaclConfigScreen
                 if (initial instanceof String && PlayerConfig.isColor(value))
                 {
                         return colorOption(spec, (ConfigValue<String>) value, lock, preview);
+                }
+                if (initial instanceof String && PlayerConfig.isMarkStyle(value))
+                {
+                        return option(spec, (ConfigValue<String>) value, lock, preview,
+                                option -> DropdownStringControllerBuilder.create(option)
+                                        .values(new ArrayList<>(PlayerConfig.markStyles())));
                 }
                 if (initial instanceof String)
                 {

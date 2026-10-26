@@ -159,7 +159,33 @@ bracket_length = 9
 highlight_color = "#50FF00FF"
 active_color = "#FFFF55FF"
 show_cost = true
+border_style = "GRADIENT"
+
+[panel.marks]
+mark_style = "adjustability:circle"
+dormant_mark_color = "#FFAAAAAA"
+animate_marks = true
+
+[panel.text]
+title_color = "#FFFFFFFF"
+active_text_color = "#FFFFFFFF"
+dormant_text_color = "#FFAAAAAA"
+footer_text_color = "#FF808080"
+text_shadow = true
+show_title = true
+show_item_icon = false
+
+[panel.layout]
+padding = 5
+row_height = 11
+group_style = "LINE"
+separator_color = "#30FF00FF"
+row_order = "REGISTRY"
+none_row = "LAST"
 ```
+
+The settings directly under `[panel]` are where 0.1.0 put them, so older files keep their values. The ones added
+later are in the `[panel.*]` sections.
 
 | Key | Default | What it does |
 |---|---|---|
@@ -174,8 +200,25 @@ show_cost = true
 | `bracket_color` | `#FFC71FC0` | The corner brackets. |
 | `bracket_length` | `9` | Length of each bracket arm, 2 to 32 GUI pixels. |
 | `highlight_color` | `#50FF00FF` | Behind the row under the mouse. |
-| `active_color` | `#FFFF55FF` | The ● in front of active enchantments. |
+| `active_color` | `#FFFF55FF` | The mark in front of active enchantments. |
 | `show_cost` | `true` | The cost and cooldown line at the bottom. |
+| `border_style` | `GRADIENT` | `GRADIENT` (fades from `border_top_color` to `border_bottom_color`, like a tooltip), `SOLID` (`border_top_color` all around), `NONE`, or `SPRITE`: the `adjustability:panel` GUI sprite, which resource packs can replace. The sprite includes the background, so the background and border colors aren't used with it. |
+| `mark_style` | `adjustability:circle` | The mark in front of each row: `adjustability:circle`, `square`, `checkbox`, `toggle` (a switch), `radio` or `text_only` (no mark). Other mods can add their own. |
+| `dormant_mark_color` | `#FFAAAAAA` | The mark in front of dormant enchantments. |
+| `animate_marks` | `true` | Animate a mark when its enchantment switches; a toggle's knob slides across. |
+| `title_color` | `#FFFFFFFF` | The item's name at the top. |
+| `active_text_color` | `#FFFFFFFF` | Active enchantments, and the row under the mouse. |
+| `dormant_text_color` | `#FFAAAAAA` | Dormant enchantments. |
+| `footer_text_color` | `#FF808080` | The cost line, each group's cost and the group headings. |
+| `text_shadow` | `true` | Draw the title and the rows with a shadow. |
+| `show_title` | `true` | Show the item's name at the top. |
+| `show_item_icon` | `false` | Show the item in front of its name. |
+| `padding` | `5` | Space between the border and the text, 2 to 16 GUI pixels. |
+| `row_height` | `11` | Height of each row, 9 to 24 GUI pixels. |
+| `group_style` | `LINE` | Between groups of conflicting enchantments: `LINE` (a gap with a thin line), `GAP`, `NONE`, or `HEADER` (the group's name above it, like Mining). |
+| `separator_color` | `#30FF00FF` | The line between groups. |
+| `row_order` | `REGISTRY` | Order of the rows in a group: `REGISTRY` (the game's), `ALPHABETICAL` or `ACTIVE_FIRST`. |
+| `none_row` | `LAST` | Where the None row goes when the server allows switching a group off: `LAST` or `FIRST`. |
 
 Colors are `#RRGGBB` or `#AARRGGBB`, where `AA` is the opacity (`FF` solid, `00` invisible).
 

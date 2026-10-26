@@ -60,6 +60,7 @@ public final class AdjustClient
         {
                 sender = payloadSender;
                 TooltipLines.setClientHooks(() -> AdjustabilityConfig.player().showDormant(), AdjustClient::hint);
+                RowMarks.init();
         }
 
         public static void send(CustomPacketPayload payload)
