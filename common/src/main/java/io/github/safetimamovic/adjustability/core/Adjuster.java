@@ -7,6 +7,7 @@ import io.github.safetimamovic.adjustability.tags.ModTags;
 import it.unimi.dsi.fastutil.objects.Object2IntMap.Entry;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -24,9 +25,11 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
  * <ol>
  *     <li>no two active enchantments conflict,</li>
  *     <li>an enchantment is either active or dormant, never both,</li>
- *     <li>every dormant enchantment conflicts with an active one,</li>
+ *     <li>every dormant enchantment conflicts with an active one, or was switched off by the player (see
+ *     {@link DormantEnchantments#off}), or {@code [toggle] allow_none} is on,</li>
  *     <li>enchantments in {@link ModTags#NEVER_DORMANT} are active.</li>
  * </ol>
+ * No split turns a switched-off enchantment back on: only switching it on does.
  */
 public final class Adjuster
 {
@@ -70,17 +73,13 @@ public final class Adjuster
 
         /**
          * Splits {@code all} into active and dormant, keeping {@code preferred} active where possible. Never-dormant
-         * enchantments come first, then {@code preferred} in id order, then the rest in id order.
+         * enchantments come first, then {@code preferred} in id order, then the rest in id order. Those in
+         * {@code off} stay dormant unless they're preferred.
          */
-        public static Split split(ItemEnchantments all, Set<Holder<Enchantment>> preferred)
+        public static Split split(ItemEnchantments all, Set<Holder<Enchantment>> preferred,
+                Set<Holder<Enchantment>> off)
         {
-                ConflictGraph<Holder<Enchantment>> graph = graph(all);
-                List<Holder<Enchantment>> order = new ArrayList<>();
-                graph.vertices().stream().filter(enchantment -> enchantment.is(ModTags.NEVER_DORMANT))
-                        .forEach(order::add);
-                graph.vertices().stream().filter(preferred::contains).forEach(order::add);
-                Selection<Holder<Enchantment>> selection = graph.select(order);
-                return new Split(graph, levels(all, selection.active()), levels(all, selection.dormant()));
+                return split(all, preferred, enchantment -> true, off);
         }
 
         /**
@@ -93,14 +92,17 @@ public final class Adjuster
                 ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(active);
                 mergeInto(all, DormantEnchantments.get(stack, registries));
                 mergeInto(all, extra);
-                return split(all.toImmutable(), active.keySet());
+                return split(all.toImmutable(), active.keySet(), DormantEnchantments.off(stack, registries));
         }
 
-        /** A split from a {@link Selection} of {@code graph}, with levels from {@code all}. */
+        /**
+         * A split from a {@link Selection} of {@code graph}, with levels from {@code all}; {@code off} are the
+         * switched-off ones (only the dormant ones count).
+         */
         public static Split split(ConflictGraph<Holder<Enchantment>> graph, ItemEnchantments all,
-                Selection<Holder<Enchantment>> selection)
+                Selection<Holder<Enchantment>> selection, Set<Holder<Enchantment>> off)
         {
-                return new Split(graph, levels(all, selection.active()), levels(all, selection.dormant()));
+                return Split.of(graph, all, selection, off);
         }
 
         /** The item's active enchantments, as stored (not re-split). */
@@ -130,15 +132,16 @@ public final class Adjuster
                 ItemEnchantments active = activeOf(stack);
                 ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(active);
                 mergeInto(all, dormantOf(stack, registries));
-                return split(all.toImmutable(), active.keySet(), enchantment -> false);
+                return split(all.toImmutable(), active.keySet(), enchantment -> false,
+                        DormantEnchantments.off(stack, registries));
         }
 
         /**
-         * {@link #split(ItemEnchantments, Set)}, but an enchantment outside {@code preferred} only becomes active if
-         * {@code mayActivate} allows it (never-dormant ones always may).
+         * {@link #split(ItemEnchantments, Set, Set)}, but an enchantment outside {@code preferred} only becomes active
+         * if {@code mayActivate} allows it and it isn't in {@code off} (never-dormant ones always may).
          */
         public static Split split(ItemEnchantments all, Set<Holder<Enchantment>> preferred,
-                Predicate<Holder<Enchantment>> mayActivate)
+                Predicate<Holder<Enchantment>> mayActivate, Set<Holder<Enchantment>> off)
         {
                 ConflictGraph<Holder<Enchantment>> graph = graph(all);
                 List<Holder<Enchantment>> order = new ArrayList<>();
@@ -146,8 +149,9 @@ public final class Adjuster
                         .forEach(order::add);
                 graph.vertices().stream().filter(preferred::contains).forEach(order::add);
                 Selection<Holder<Enchantment>> selection = graph.select(order,
-                        enchantment -> enchantment.is(ModTags.NEVER_DORMANT) || mayActivate.test(enchantment));
-                return new Split(graph, levels(all, selection.active()), levels(all, selection.dormant()));
+                        enchantment -> enchantment.is(ModTags.NEVER_DORMANT)
+                                || !off.contains(enchantment) && mayActivate.test(enchantment));
+                return Split.of(graph, all, selection, off);
         }
 
         /**
@@ -165,14 +169,18 @@ public final class Adjuster
                 ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(active);
                 mergeInto(all, dormantOf(stack, registries));
                 mergeInto(all, extra);
-                return split(all.toImmutable(), active.keySet(), enchantment -> extra.getLevel(enchantment) > 0);
+                return split(all.toImmutable(), active.keySet(), enchantment -> extra.getLevel(enchantment) > 0,
+                        DormantEnchantments.off(stack, registries));
         }
 
-        /** Writes a split to the item. Dormant entries for enchantments that aren't registered stay. */
+        /**
+         * Writes a split to the item, with its switched-off flags. Dormant entries for enchantments that aren't
+         * registered stay.
+         */
         public static void write(ItemStack stack, Split split, HolderLookup.Provider registries)
         {
                 EnchantmentHelper.setEnchantments(stack, split.active());
-                DormantEnchantments.set(stack, split.dormant(), registries);
+                DormantEnchantments.set(stack, split.dormant(), split.off(), registries);
         }
 
         /**
@@ -206,9 +214,19 @@ public final class Adjuster
                 return result.toImmutable();
         }
 
-        /** An item's enchantments, split. */
-        public record Split(ConflictGraph<Holder<Enchantment>> graph, ItemEnchantments active, ItemEnchantments dormant)
+        /** An item's enchantments, split; {@code off} are the dormant ones the player switched off. */
+        public record Split(ConflictGraph<Holder<Enchantment>> graph, ItemEnchantments active, ItemEnchantments dormant,
+                Set<Holder<Enchantment>> off)
         {
+                static Split of(ConflictGraph<Holder<Enchantment>> graph, ItemEnchantments all,
+                        Selection<Holder<Enchantment>> selection, Set<Holder<Enchantment>> off)
+                {
+                        Set<Holder<Enchantment>> dormantOff = new LinkedHashSet<>(off);
+                        dormantOff.retainAll(selection.dormant());
+                        return new Split(graph, levels(all, selection.active()), levels(all, selection.dormant()),
+                                Set.copyOf(dormantOff));
+                }
+
                 /** Size of the largest group of enchantments that conflict with each other, directly or not. */
                 public int largestComponent()
                 {

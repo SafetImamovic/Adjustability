@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "adjustability:off_survives_repair",
+  "max_ticks": 20,
+  "structure": "minecraft:empty"
+}

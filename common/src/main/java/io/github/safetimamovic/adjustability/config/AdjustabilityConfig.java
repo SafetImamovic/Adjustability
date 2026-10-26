@@ -78,6 +78,7 @@ public final class AdjustabilityConfig
                 boolean allowInWorldCycle,
                 boolean allowCommand,
                 boolean allowNone,
+                boolean allowSwitchOff,
                 ServerPanelActivation panelActivation,
                 boolean playSound)
         {

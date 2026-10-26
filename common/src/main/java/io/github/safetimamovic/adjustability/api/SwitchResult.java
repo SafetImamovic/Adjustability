@@ -24,7 +24,12 @@ public enum SwitchResult
         /** An {@link AdjustabilityListener} refused it. */
         CANCELLED,
         /** "None" for a group, but the server doesn't allow it ({@code [toggle] allow_none}). */
-        NONE_NOT_ALLOWED;
+        NONE_NOT_ALLOWED,
+        /**
+         * Switching off an enchantment that conflicts with nothing, but the server doesn't allow it
+         * ({@code [toggle] allow_switch_off}).
+         */
+        SWITCH_OFF_NOT_ALLOWED;
 
         /** For translation keys: {@code adjustability.toggle.<key>}. */
         public String key()

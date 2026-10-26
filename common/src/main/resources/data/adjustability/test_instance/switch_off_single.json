@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "adjustability:switch_off_single",
+  "max_ticks": 20,
+  "structure": "minecraft:empty"
+}

@@ -2,10 +2,12 @@ package io.github.safetimamovic.adjustability.core;
 
 import io.github.safetimamovic.adjustability.Constants;
 import it.unimi.dsi.fastutil.objects.Object2IntMap.Entry;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
@@ -13,6 +15,10 @@ import net.minecraft.core.component.DataComponentGetter;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+//? if <1.21.5
+/*import net.minecraft.nbt.Tag;*/
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.ItemStack;
@@ -31,10 +37,17 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
  * <p>An id that isn't a registered enchantment (a datapack or mod that added it was removed) is left out of
  * {@link #get} but kept on the item by {@link #set}, at the same level, so it works again if the enchantment comes
  * back. Only {@link #clear} removes it.
+ *
+ * <p>Dormant enchantments the player switched off (ones that conflict with nothing, so nothing else keeps them
+ * dormant) are also listed by id under {@code adjustability:off}:
+ * {@code {"adjustability:off": ["minecraft:knockback"]}}.
+ * Their levels stay in {@code adjustability:dormant}; an id listed there but not dormant is dropped on write. Older
+ * versions ignore the list and turn such an enchantment back on at their next repair, losing nothing.
  */
 public final class DormantEnchantments
 {
         private static final String KEY = Constants.MOD_ID + ":dormant";
+        private static final String OFF_KEY = Constants.MOD_ID + ":off";
 
         /** Ids already logged as not registered, so each is logged once a session, not on every read. */
         private static final Set<String> LOGGED_UNKNOWN = ConcurrentHashMap.newKeySet();
@@ -111,12 +124,46 @@ public final class DormantEnchantments
         }
 
         /**
+         * The item's dormant enchantments that the player switched off, as opposed to ones that wait behind an active
+         * enchantment they conflict with. Only registered ones that are dormant.
+         */
+        public static Set<Holder<Enchantment>> off(DataComponentGetter components, HolderLookup.Provider registries)
+        {
+                Set<Holder<Enchantment>> result = new LinkedHashSet<>();
+                ItemEnchantments dormant = get(components, registries);
+                HolderLookup.RegistryLookup<Enchantment> enchantments =
+                        registries.lookupOrThrow(Registries.ENCHANTMENT);
+                for (String id : offIds(components))
+                {
+                        resolve(enchantments, id).filter(enchantment -> dormant.getLevel(enchantment) > 0)
+                                .ifPresent(result::add);
+                }
+                return result;
+        }
+
+        /**
          * Replaces the item's dormant enchantments, keeping its entries for enchantments that aren't registered (see
-         * {@link #unknown}). Nothing left removes the entry, and {@code custom_data} if it's empty.
+         * {@link #unknown}) and the switched-off flags of the ones that stay dormant. Nothing left removes the entry,
+         * and {@code custom_data} if it's empty.
          */
         public static void set(ItemStack stack, ItemEnchantments dormant, HolderLookup.Provider registries)
         {
-                write(stack, dormant, unknown(stack, registries));
+                write(stack, dormant, unknown(stack, registries), offIds(stack));
+        }
+
+        /**
+         * {@link #set(ItemStack, ItemEnchantments, HolderLookup.Provider)}, with {@code off} as the switched-off ones
+         * (only those in {@code dormant} count). Flags on entries that aren't registered stay.
+         */
+        public static void set(ItemStack stack, ItemEnchantments dormant, Set<Holder<Enchantment>> off,
+                HolderLookup.Provider registries)
+        {
+                Map<String, Integer> unknown = unknown(stack, registries);
+                Set<String> ids = new TreeSet<>();
+                offIds(stack).stream().filter(unknown::containsKey).forEach(ids::add);
+                off.forEach(enchantment -> enchantment.unwrapKey()
+                        .ifPresent(key -> ids.add(key.identifier().toString())));
+                write(stack, dormant, unknown, ids);
         }
 
         /**
@@ -131,19 +178,20 @@ public final class DormantEnchantments
                 }
                 Map<String, Integer> unknown = unknown(stack, registries);
                 extra.forEach((id, level) -> unknown.merge(id, level, Math::max));
-                write(stack, get(stack, registries), unknown);
+                write(stack, get(stack, registries), unknown, offIds(stack));
         }
 
-        /** Removes all dormant enchantments, registered or not. */
+        /** Removes all dormant enchantments, registered or not, and the switched-off flags. */
         public static void clear(ItemStack stack)
         {
-                if (has(stack))
+                if (has(stack) || !offIds(stack).isEmpty())
                 {
-                        write(stack, ItemEnchantments.EMPTY, Map.of());
+                        write(stack, ItemEnchantments.EMPTY, Map.of(), Set.of());
                 }
         }
 
-        private static void write(ItemStack stack, ItemEnchantments dormant, Map<String, Integer> unknown)
+        private static void write(ItemStack stack, ItemEnchantments dormant, Map<String, Integer> unknown,
+                Set<String> off)
         {
                 CustomData.update(DataComponents.CUSTOM_DATA, stack, tag ->
                 {
@@ -162,7 +210,44 @@ public final class DormantEnchantments
                         {
                                 tag.put(KEY, entries);
                         }
+                        ListTag flags = new ListTag();
+                        new TreeSet<>(off).stream().filter(entries::contains).map(StringTag::valueOf)
+                                .forEach(flags::add);
+                        if (flags.isEmpty())
+                        {
+                                tag.remove(OFF_KEY);
+                        }
+                        else
+                        {
+                                tag.put(OFF_KEY, flags);
+                        }
                 });
+        }
+
+        /** The ids listed as switched off, as stored. */
+        private static Set<String> offIds(DataComponentGetter components)
+        {
+                CustomData data = components.get(DataComponents.CUSTOM_DATA);
+                Set<String> result = new TreeSet<>();
+                if (data == null || data.isEmpty())
+                {
+                        return result;
+                }
+                //? if >=1.21.5 {
+                ListTag list = data.copyTag().getListOrEmpty(OFF_KEY);
+                for (int i = 0; i < list.size(); i++)
+                {
+                        list.getString(i).ifPresent(result::add);
+                }
+                //?} else {
+                /*ListTag list = data.copyTag().getList(OFF_KEY, Tag.TAG_STRING);
+                for (int i = 0; i < list.size(); i++)
+                {
+                        result.add(list.getString(i));
+                }
+                *///?}
+                result.remove("");
+                return result;
         }
 
         private static CompoundTag entries(DataComponentGetter components)

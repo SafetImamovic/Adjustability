@@ -84,11 +84,13 @@ public final class AnvilMerge
                 Adjuster.mergeInto(all, additionDormant);
                 Set<Holder<Enchantment>> keepActive = input.getOrDefault(DataComponents.ENCHANTMENTS,
                         ItemEnchantments.EMPTY).keySet();
+                // What the player switched off on the left item stays off; the right item's choices don't count.
+                Set<Holder<Enchantment>> off = DormantEnchantments.off(input, registries);
                 // With allow_none, what was dormant on the left item stays dormant: a group left on none stays so.
                 Adjuster.Split split = AdjustabilityConfig.toggle().allowNone()
                         ? Adjuster.split(all.toImmutable(), keepActive,
-                                enchantment -> inputDormant.getLevel(enchantment) == 0)
-                        : Adjuster.split(all.toImmutable(), keepActive);
+                                enchantment -> inputDormant.getLevel(enchantment) == 0, off)
+                        : Adjuster.split(all.toImmutable(), keepActive, off);
 
                 AnvilConfig config = AdjustabilityConfig.anvil();
                 int maxDormant = ItemRules.maxDormant(result, config.maxDormantPerItem());

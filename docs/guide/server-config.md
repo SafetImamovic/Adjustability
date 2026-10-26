@@ -93,6 +93,7 @@ allow_in_world_cycle = true
 allow_command = true
 group_costs = []
 allow_none = false
+allow_switch_off = true
 panel_activation = "PLAYER"
 ```
 
@@ -108,6 +109,7 @@ panel_activation = "PLAYER"
 | `allow_command` | `true` | Players can use `/adjustability toggle`. |
 | `group_costs` | `[]` | Own costs for particular groups, instead of `cost_type` / `cost_amount` / `cost_item`. See below. |
 | `allow_none` | `false` | A group may have **none** of its enchantments active: the Adjust panel gets a **None** row per group, and the Cycle key steps through none after the last choice. Switching to none costs the same as any switch in that group. Turned back off, items left on none get one of the group active again at their next switch or anvil use. |
+| `allow_switch_off` | `true` | An enchantment that conflicts with nothing on the item can be switched **off** and on again in the Adjust panel (Knockback, Fire Aspect, a lone Silk Touch). Curses never. Same cost and cooldown as any switch; a `group_costs` entry naming the enchantment applies. It stays off through anvils and repairs until it's switched on. |
 | `panel_activation` | `PLAYER` | How the Adjust key works for everyone: `PLAYER` (each player's own `activation` setting), `TOGGLE` or `HOLD`. |
 | `play_sound` | `true` | A sound on each switch (`adjustability:item.switch`, an enchanting table sound by default; resource packs can replace it). The player and anyone nearby hear it. |
 

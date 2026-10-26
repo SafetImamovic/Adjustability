@@ -114,6 +114,10 @@ public final class AdjustabilityGameTests
                 test(registrar, "grindstone_drops_unknown", RemovedEnchantmentTests::grindstoneDropsUnknown);
                 test(registrar, "flatten_drops_unknown", RemovedEnchantmentTests::flattenDropsUnknown);
                 test(registrar, "unknown_tooltip", RemovedEnchantmentTests::unknownTooltip);
+                test(registrar, "switch_off_single", SwitchOffTests::switchOffSingle);
+                test(registrar, "off_survives_repair", SwitchOffTests::offSurvivesRepair);
+                test(registrar, "off_refuses_curse", SwitchOffTests::offRefusesCurse);
+                test(registrar, "switch_off_disabled", SwitchOffTests::switchOffDisabled);
                 test(registrar, "generated_docs", ReferenceDocs::generatedDocs);
                 test(registrar, "hand_written_docs", ReferenceDocs::handWrittenDocs);
         }

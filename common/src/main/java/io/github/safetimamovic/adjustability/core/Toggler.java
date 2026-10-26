@@ -12,6 +12,7 @@ import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ToggleCo
 import io.github.safetimamovic.adjustability.graph.ConflictGraph;
 import io.github.safetimamovic.adjustability.graph.Selection;
 import io.github.safetimamovic.adjustability.tags.ModTags;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -57,7 +58,8 @@ public final class Toggler
 
         /**
          * The "none" choice: leaves the group {@code anyInGroup} belongs to with nothing active. Only with
-         * {@code [toggle] allow_none}; same checks, cost and listeners as {@link #activate}.
+         * {@code [toggle] allow_none}; same checks, cost and listeners as {@link #activate}. For an enchantment that
+         * conflicts with nothing, this switches it off, which {@code [toggle] allow_switch_off} decides instead.
          */
         public static SwitchResult deactivate(ServerPlayer player, ItemStack stack, Holder<Enchantment> anyInGroup,
                 SwitchSource source)
@@ -73,10 +75,6 @@ public final class Toggler
                 {
                         return SwitchResult.DISABLED;
                 }
-                if (none && !config.allowNone())
-                {
-                        return SwitchResult.NONE_NOT_ALLOWED;
-                }
                 if (!ItemRules.canAdjust(stack))
                 {
                         return SwitchResult.NOTHING_TO_SWITCH;
@@ -91,16 +89,28 @@ public final class Toggler
                 Selection<Holder<Enchantment>> before = new Selection<>(current.active().keySet(),
                         current.dormant().keySet());
                 Selection<Holder<Enchantment>> next;
+                Set<Holder<Enchantment>> off = new LinkedHashSet<>(current.off());
                 if (none)
                 {
-                        Optional<Set<Holder<Enchantment>>> group = graph.components().stream()
-                                .filter(component -> component.contains(target)).findFirst();
+                        // An enchantment that conflicts with nothing is a group of one: its "none" switches it off.
+                        boolean single = graph.singles().contains(target);
+                        if (single ? !config.allowSwitchOff() : !config.allowNone())
+                        {
+                                return single ? SwitchResult.SWITCH_OFF_NOT_ALLOWED : SwitchResult.NONE_NOT_ALLOWED;
+                        }
+                        Optional<Set<Holder<Enchantment>>> group = single ? Optional.of(Set.of(target))
+                                : graph.components().stream().filter(component -> component.contains(target))
+                                        .findFirst();
                         if (group.isEmpty() || group.get().stream().noneMatch(before.active()::contains))
                         {
                                 return repairedOr(stack, current, registries,
                                         broken ? SwitchResult.NOTHING_TO_SWITCH : null, SwitchResult.NOTHING_TO_SWITCH);
                         }
                         next = graph.deactivate(before, group.get());
+                        if (single)
+                        {
+                                off.add(target);
+                        }
                 }
                 else
                 {
@@ -111,6 +121,7 @@ public final class Toggler
                                         SwitchResult.NOT_DORMANT);
                         }
                         next = graph.activate(before, target, config.autoFill());
+                        off.remove(target);
                 }
                 if (next.dormant().stream().anyMatch(enchantment -> enchantment.is(ModTags.NEVER_DORMANT)))
                 {
@@ -137,7 +148,7 @@ public final class Toggler
 
                 ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(current.active());
                 current.dormant().entrySet().forEach(entry -> all.set(entry.getKey(), entry.getIntValue()));
-                Adjuster.write(stack, Adjuster.split(graph, all.toImmutable(), next), registries);
+                Adjuster.write(stack, Adjuster.split(graph, all.toImmutable(), next, off), registries);
                 LAST_SWITCH.put(player, now);
                 if (config.playSound())
                 {
@@ -212,8 +223,9 @@ public final class Toggler
         private static Cost costOf(ConflictGraph<Holder<Enchantment>> graph, Holder<Enchantment> target,
                 ToggleConfig config)
         {
-                return graph.components().stream().filter(group -> group.contains(target)).findFirst()
-                        .flatMap(Exclusivity::groupCost).orElseGet(config::defaultCost);
+                Set<Holder<Enchantment>> group = graph.components().stream()
+                        .filter(component -> component.contains(target)).findFirst().orElse(Set.of(target));
+                return Exclusivity.groupCost(group).orElseGet(config::defaultCost);
         }
 
         /**
