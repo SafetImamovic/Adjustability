@@ -353,7 +353,8 @@ public final class AdjustClient
                 {
                         return null;
                 }
-                return Component.translatable("adjustability.tooltip.hint", AdjustKeys.ADJUST.getTranslatedKeyMessage())
-                        .withStyle(ChatFormatting.DARK_GRAY, ChatFormatting.ITALIC);
+                return Component.translatable("adjustability.tooltip.hint",
+                        AdjustKeys.ADJUST.getTranslatedKeyMessage().copy().withStyle(ChatFormatting.LIGHT_PURPLE))
+                        .withStyle(ChatFormatting.GRAY);
         }
 }
