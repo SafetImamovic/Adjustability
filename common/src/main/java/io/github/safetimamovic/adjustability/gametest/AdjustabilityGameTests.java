@@ -103,6 +103,9 @@ public final class AdjustabilityGameTests
                 test(registrar, "none_switch", AdjustabilityGameTests::noneSwitch);
                 test(registrar, "none_not_allowed", AdjustabilityGameTests::noneNotAllowed);
                 test(registrar, "none_survives_anvil", AdjustabilityGameTests::noneSurvivesAnvil);
+                test(registrar, "anvil_none_boots", NoneAnvilTests::boots);
+                test(registrar, "anvil_none_limits", NoneAnvilTests::limits);
+                test(registrar, "anvil_none_pickaxe", NoneAnvilTests::pickaxe);
                 test(registrar, "cycle_through_none", AdjustabilityGameTests::cycleThroughNone);
                 test(registrar, "advancements", AdjustabilityGameTests::advancements);
                 test(registrar, "tooltip_order", AdjustabilityGameTests::tooltipOrder);

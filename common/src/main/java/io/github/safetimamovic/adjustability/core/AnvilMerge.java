@@ -94,8 +94,11 @@ public final class AnvilMerge
 
                 AnvilConfig config = AdjustabilityConfig.anvil();
                 int maxDormant = ItemRules.maxDormant(result, config.maxDormantPerItem());
-                // Switched-off enchantments wait behind nothing; the limit is about holding conflicts.
-                if (split.dormant().size() - split.off().size() > maxDormant
+                // Count conflicting alternatives with compatible choices filled, without changing None selections.
+                int countedDormant = split.graph().select(
+                        split.graph().vertices().stream().filter(split.active().keySet()::contains).toList(),
+                        enchantment -> !split.off().contains(enchantment)).dormant().size() - split.off().size();
+                if (countedDormant > maxDormant
                         || config.maxConflictsPerComponent() > 0
                         && split.largestComponent() > config.maxConflictsPerComponent())
                 {

@@ -38,7 +38,7 @@ Combining conflicting enchantments in an anvil. Which enchantments conflict come
 | `combine_books` | `true` | `true`, `false` | Two enchanted books with conflicting enchantments make one book that holds them all. Putting that book on an item splits them into active and dormant. |
 | `dormant_cost_per_level` | `1` | `0` – `100` | Extra anvil levels per level of each enchantment that becomes dormant, on top of vanilla's price. |
 | `allow_too_expensive` | `false` | `true`, `false` | The extra cost may take the price past vanilla's survival limit of 39 levels. |
-| `max_dormant_per_item` | `4` | `0` – `255` | Most dormant enchantments one item can hold. 0: no limit. |
+| `max_dormant_per_item` | `4` | `0` – `255` | Most conflicting dormant enchantments on one item. None choices and switched-off single enchantments do not consume extra allowance. 0: no limit. |
 | `max_conflicts_per_component` | `0` | `0` – `255` | Most enchantments in one group of conflicting enchantments on an item (2 = at most two Protections on one armor piece). 0: no limit. |
 
 ### [grindstone]

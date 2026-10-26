@@ -76,7 +76,7 @@ max_conflicts_per_component = 0
 | `combine_books` | `true` | Two books with conflicting enchantments make one book that holds them all. |
 | `dormant_cost_per_level` | `1` | Extra anvil levels per level of each enchantment that becomes dormant. |
 | `allow_too_expensive` | `false` | Lets the extra cost take the price past the survival limit of 39 levels. |
-| `max_dormant_per_item` | `4` | Most dormant enchantments one item can hold; the anvil gives no result past it. `0`: no limit. |
+| `max_dormant_per_item` | `4` | Most conflicting dormant alternatives one item can hold; the anvil gives no result past it. Selecting None does not consume extra allowance, and switched-off single enchantments do not count. `0`: no limit. |
 | `max_conflicts_per_component` | `0` | Most enchantments in one group of conflicting ones (e.g. `2` = at most two Protections on one piece); the anvil gives no result past it. `0`: no limit. |
 
 ## Switching

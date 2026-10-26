@@ -103,7 +103,8 @@ public final class CreatorConfig
                 ALLOW_TOO_EXPENSIVE = builder.comment("The extra cost may take the price past vanilla's survival limit",
                                 "of 39 levels.")
                         .define("allow_too_expensive", false);
-                MAX_DORMANT_PER_ITEM = builder.comment("Most dormant enchantments one item can hold. 0: no limit.")
+                MAX_DORMANT_PER_ITEM = builder.comment("Most conflicting dormant enchantments on one item. None choices",
+                                "and switched-off single enchantments do not consume extra allowance. 0: no limit.")
                         .defineInRange("max_dormant_per_item", 4, 0, 255);
                 MAX_CONFLICTS_PER_COMPONENT = builder.comment("Most enchantments in one group of conflicting enchantments",
                                 "on an item (2 = at most two Protections on one armor piece). 0: no limit.")
