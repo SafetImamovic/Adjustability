@@ -7,6 +7,11 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ### Added
 
+- Switching tutorial: a persistent book-icon reminder when a dormant item reaches your inventory, then a timed Cycle
+  reminder after your first successful panel switch. Progress stays on your client across worlds;
+  `/adjustability tutorial` restarts it. New player section `[hints]`.
+- A magenta corner marks inventory slots holding dormant or switched-off enchantments. Player settings `slot_marker`
+  and `slot_marker_color` control it; slot checks are cached until the item's custom data changes.
 - Adjust panel styles: the mark in front of each row can be a circle (as before), square, checkbox, toggle switch,
   radio button or none, and animates when an enchantment switches. Every color and size the panel used to hard-code is
   now a setting: title, row and cost-line colors, text shadow, padding, row height, the line between groups or a
@@ -33,6 +38,8 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ### Changed
 
+- The key hint now says "Left Alt: switch enchantments", with a magenta key and plain gray text directly after the
+  enchantment lines. The root advancement's description names your actual Adjust binding.
 - `AdjustabilityApi.dormantEnchantments` no longer includes switched-off enchantments; `flatten(stack)` is deprecated.
 - `/adjustability flatten` switches switched-off enchantments back on instead of removing them.
 

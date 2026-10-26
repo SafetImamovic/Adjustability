@@ -4,6 +4,18 @@ Vanilla won't put some enchantments on the same item: Fortune and Silk Touch, th
 Bane of Arthropods, Depth Strider and Frost Walker, Multishot and Piercing, Riptide and Loyalty or Channeling, Infinity
 and Mending. Adjustability lets an item **hold** them anyway, with only one side of each conflict **active**.
 
+## First time
+
+When an item with a dormant enchantment enters your inventory, a book-icon reminder explains how to open the Adjust
+panel. It stays until you open a panel: hover the item and press **Left Alt**, or your rebound Adjust key. After your
+first successful panel switch, a second reminder suggests binding **Cycle** in Controls to switch while mining.
+
+Slots holding dormant or switched-off enchantments have a small magenta corner. Turn it off with `slot_marker`, or
+change `slot_marker_color`, under `[hints]` in your player settings.
+
+Progress is saved on your client across worlds and servers. `/adjustability tutorial` starts both steps again;
+`tutorial = "DONE"` under `[hints]` in the [player settings](server-config.md#player-settings) turns them off.
+
 ## Active and dormant
 
 - **Active** enchantments work exactly like vanilla ones. Vanilla and every other mod see only these.
@@ -45,7 +57,8 @@ over the survival limit of 39 levels.
   opens next to it, like a tooltip that stays: each group of conflicting enchantments, the active one marked ●, the
   dormant ones ○. Click a dormant one to make it active. **Left Alt** again, **Escape** or a click outside closes it;
   that click never picks up an item. Prefer holding the key? `/adjustability panel activation hold`: the panel is
-  open while you hold Left Alt (click while holding), and closes when you let go. The item's tooltip shows the key as a reminder (`Left Alt: switch enchantments`). Its colors,
+  open while you hold Left Alt (click while holding), and closes when you let go. The item's tooltip shows the key as a
+  reminder (`Left Alt: switch enchantments`). Its colors,
   side and decorations are yours to change: `/adjustability panel`, or the [player settings](server-config.md#player-settings).
 - **While playing:** bind **Cycle held item's enchantments** under Controls → Adjustability (unbound by default). One
   press steps the held item to its next choice, e.g. Fortune → Silk Touch → Fortune, and says which one is active above

@@ -1301,6 +1301,17 @@ advancement's toast only says "Adjustability".
 
 Commits: hint line and advancement text → toasts, `[hints]`, tutorial command → slot marker → client test and docs.
 
+State (2026-10-26): done on `feat/m13-discoverability`. The hint uses the existing enchantment-list hook, verified
+before lore and item stats. `[hints] tutorial` progresses through `OPEN_PANEL`, `SWITCH`, `DONE`; the first toast stays
+until a panel opens, the Cycle reminder lasts eight seconds (scaled by Minecraft's notification-time setting).
+Only a confirmed panel switch advances the second step. Preview and carried items do not start the tutorial.
+
+The client test takes a real anvil result, follows both toasts, checks a refused switch and saved progress across
+worlds, then restarts with the command. Pixel checks cover the marker, its color and toggle, switched-off items,
+vanilla items and cache invalidation. Both versions/loaders build; 26.3 server GameTests pass 51/51 on each loader,
+the four Fabric client tests and the docs build pass. Fresh `discoverability_*` screenshots are in the client test's
+screenshots folder; public screenshots still need the usual manual refresh (also the M12 singles section).
+
 ---
 
 ## 21. Open questions
