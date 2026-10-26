@@ -5,7 +5,8 @@ import org.jetbrains.annotations.ApiStatus;
 
 /**
  * The mark in front of each row of the Adjust panel, like the circle (filled when active) or the toggle switch. Players
- * pick one by id with {@code mark_style} in {@code [panel.marks]}.
+ * pick one by id with {@code mark_style} in {@code [panel.marks]}; register yours with
+ * {@link AdjustabilityClientApi#registerRowMark}.
  *
  * <p>A mark draws into a box {@link #width()} wide and {@link #HEIGHT} tall, centred on the row; the row's text
  * starts a few pixels after it. Draw with {@code fill} and sprites rather than font glyphs, which change with resource
