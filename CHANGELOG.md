@@ -5,6 +5,8 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-26
+
 ### Added
 
 - Switching tutorial: a persistent book-icon reminder when a dormant item reaches your inventory, then a timed Cycle
