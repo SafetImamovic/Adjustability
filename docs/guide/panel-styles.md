@@ -32,8 +32,9 @@ They change the values on the screen, which are saved when you press Save.
 
 ### Share codes
 
-A code like `ADJ1:q1bKTc...` holds only the settings that differ from the defaults; settings it leaves out go to
-their defaults. A look that changes many settings makes a code longer than the chat box takes, so
+A code like `ADJ-0.4.2:q1bKTc...` names the Adjustability version that made it and holds only the settings that differ
+from the defaults; settings it leaves out go to their defaults. Codes from older versions keep working; a code from a
+newer version works too unless that version changed the format, and then the message says to update. A look that changes many settings makes a code longer than the chat box takes, so
 `/adjustability panel import` with no code reads it from the clipboard. Codes are safe to paste: they can only hold the panel's
 look, every value is checked like the config file checks it, and anything this version doesn't know (a setting from a
 newer version, a mark from a mod you don't have) is skipped and named in chat, not applied.

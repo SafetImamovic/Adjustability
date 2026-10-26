@@ -1146,7 +1146,7 @@ so every new key gets a YACL option and the live preview for free.
    the key mode and side). Built in: `magenta` (default), `vanilla`, `minimal`, `high_contrast`; more as JSON files in
    `config/adjustability/panel_profiles` (modpacks ship them, `/adjustability panel save` writes them). Applying one
    copies its values into the player file; no live link, so the file stays the one source of the look.
-   `default_profile` in `[panel]` is what `reset` returns to, for modpacks. Share codes: `ADJ1:` + URL-safe Base64 of
+   `default_profile` in `[panel]` is what `reset` returns to, for modpacks. Share codes: `ADJ-<mod version>:` + URL-safe Base64 of
    the deflated JSON of the non-default settings, via `panel export` / `panel import` and YACL's Copy / Paste Code.
    Profiles and codes go through one parser: each value checked like the config file, unknown keys and bad values
    skipped and reported, the inflated JSON capped at 16 KB. Resource-pack profiles left out for now.
