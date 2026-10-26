@@ -7,7 +7,6 @@ import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Layout;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Marks;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.NonePosition;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelActivation;
-import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelPreset;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelSide;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelStyle;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PlayerSettings;
@@ -93,8 +92,10 @@ public final class PlayerConfig
         /** The settings that are colors ({@code #AARRGGBB} strings), for the YACL screen's color pickers. */
         private static final Set<ConfigValue<?>> COLORS;
 
-        /** What each preset changes from the defaults. */
-        private static final Map<PanelPreset, Map<ConfigValue<?>, Object>> PRESETS;
+        /** The settings a panel profile holds: every panel setting but the key mode and the side. */
+        public static final List<ConfigValue<?>> LOOK_SETTINGS;
+
+        private static final ConfigValue<String> DEFAULT_PROFILE;
 
         static
         {
@@ -136,6 +137,12 @@ public final class PlayerConfig
                                 "adjustability:panel GUI sprite, which resource packs can replace (it includes the",
                                 "background, so background_color and the border colors aren't used).")
                         .defineEnum("border_style", BorderStyle.GRADIENT);
+                DEFAULT_PROFILE = builder.comment("A panel profile /adjustability panel reset goes back to, instead of",
+                                "Adjustability's defaults: magenta, vanilla, minimal, high_contrast, or a file's name",
+                                "(without .json) in config/adjustability/panel_profiles. Empty: the defaults. For",
+                                "modpacks: ship the profile, set this, and ship this file with the profile applied.")
+                        .define("default_profile", "", value -> value instanceof String text
+                                && text.matches("[a-z0-9_.-]*"));
 
                 builder.comment("The mark in front of each row; active_color above colors the active one.")
                         .push("marks");
@@ -190,47 +197,8 @@ public final class PlayerConfig
                 COLORS = Set.of(BACKGROUND_COLOR, BORDER_TOP_COLOR, BORDER_BOTTOM_COLOR, BRACKET_COLOR, HIGHLIGHT_COLOR,
                         ACTIVE_COLOR, DORMANT_MARK_COLOR, TITLE_COLOR, ACTIVE_TEXT_COLOR, DORMANT_TEXT_COLOR,
                         FOOTER_TEXT_COLOR, SEPARATOR_COLOR);
-                PRESETS = Map.of(
-                        PanelPreset.MAGENTA, Map.of(),
-                        // Vanilla's tooltip colors.
-                        PanelPreset.VANILLA, Map.ofEntries(
-                                Map.entry(BACKGROUND_COLOR, "#F0100010"),
-                                Map.entry(BORDER_TOP_COLOR, "#505000FF"),
-                                Map.entry(BORDER_BOTTOM_COLOR, "#5028007F"),
-                                Map.entry(SHOW_BRACKETS, false),
-                                Map.entry(HIGHLIGHT_COLOR, "#30FFFFFF"),
-                                Map.entry(ACTIVE_COLOR, "#FFFFFFFF"),
-                                Map.entry(SEPARATOR_COLOR, "#305000FF"),
-                                Map.entry(MARK_STYLE, "adjustability:radio")),
-                        PanelPreset.MINIMAL, Map.ofEntries(
-                                Map.entry(BACKGROUND_COLOR, "#D0000000"),
-                                Map.entry(BORDER_STYLE, BorderStyle.NONE),
-                                Map.entry(SHOW_BRACKETS, false),
-                                Map.entry(HIGHLIGHT_COLOR, "#30FFFFFF"),
-                                Map.entry(ACTIVE_COLOR, "#FFFFFFFF"),
-                                Map.entry(DORMANT_MARK_COLOR, "#FF777777"),
-                                Map.entry(DORMANT_TEXT_COLOR, "#FF999999"),
-                                Map.entry(MARK_STYLE, "adjustability:square"),
-                                Map.entry(GROUP_STYLE, GroupStyle.GAP),
-                                Map.entry(SHOW_COST, false),
-                                Map.entry(TEXT_SHADOW, false),
-                                Map.entry(PADDING, 4)),
-                        PanelPreset.HIGH_CONTRAST, Map.ofEntries(
-                                Map.entry(BACKGROUND_COLOR, "#FF000000"),
-                                Map.entry(BORDER_STYLE, BorderStyle.SOLID),
-                                Map.entry(BORDER_TOP_COLOR, "#FFFFFFFF"),
-                                Map.entry(SHOW_BRACKETS, false),
-                                Map.entry(HIGHLIGHT_COLOR, "#80FFFF00"),
-                                Map.entry(ACTIVE_COLOR, "#FFFFFF00"),
-                                Map.entry(DORMANT_MARK_COLOR, "#FFFFFFFF"),
-                                Map.entry(TITLE_COLOR, "#FFFFFF00"),
-                                Map.entry(ACTIVE_TEXT_COLOR, "#FFFFFF00"),
-                                Map.entry(DORMANT_TEXT_COLOR, "#FFFFFFFF"),
-                                Map.entry(FOOTER_TEXT_COLOR, "#FFFFFFFF"),
-                                Map.entry(SEPARATOR_COLOR, "#FFFFFFFF"),
-                                Map.entry(MARK_STYLE, "adjustability:checkbox"),
-                                Map.entry(GROUP_STYLE, GroupStyle.HEADER),
-                                Map.entry(ROW_HEIGHT, 13)));
+                LOOK_SETTINGS = PANEL_SETTINGS.stream()
+                        .filter(value -> value != PANEL_ACTIVATION && value != PANEL_SIDE).toList();
         }
 
         private PlayerConfig()
@@ -301,34 +269,45 @@ public final class PlayerConfig
                 markStyles = registered;
         }
 
-        /**
-         * Every look setting's value in a preset, in {@link #PANEL_SETTINGS} order: the defaults, then the preset's
-         * own. The key mode and the side aren't part of a look.
-         */
-        public static Map<ConfigValue<?>, Object> preset(PanelPreset preset)
+        /** A look setting by its key in the file, like {@code mark_style}. */
+        public static Optional<ConfigValue<?>> lookSetting(String name)
+        {
+                return LOOK_SETTINGS.stream().filter(value -> name(value).equals(name)).findFirst();
+        }
+
+        /** Every look setting's current value, in file order. */
+        public static Map<ConfigValue<?>, Object> currentLook()
         {
                 Map<ConfigValue<?>, Object> values = new LinkedHashMap<>();
-                for (ConfigValue<?> value : PANEL_SETTINGS)
-                {
-                        if (value != PANEL_ACTIVATION && value != PANEL_SIDE)
-                        {
-                                values.put(value, PRESETS.get(preset).getOrDefault(value, value.getDefault()));
-                        }
-                }
+                LOOK_SETTINGS.forEach(value -> values.put(value, get(value)));
                 return values;
         }
 
-        /** Applies a preset and saves the file; false if the file isn't loaded. */
+        /**
+         * Sets every look setting, to its value in {@code look} or else its default, and saves the file. Values must
+         * be valid for their setting (as {@link PanelProfiles} makes them).
+         *
+         * @return false if the file isn't loaded
+         */
         @SuppressWarnings("unchecked")
-        public static boolean applyPreset(PanelPreset preset)
+        public static boolean applyLook(Map<ConfigValue<?>, Object> look)
         {
                 if (!SPEC.isLoaded())
                 {
                         return false;
                 }
-                preset(preset).forEach((value, newValue) -> ((ConfigValue<Object>) value).set(newValue));
+                for (ConfigValue<?> value : LOOK_SETTINGS)
+                {
+                        ((ConfigValue<Object>) value).set(look.getOrDefault(value, value.getDefault()));
+                }
                 SPEC.save();
                 return true;
+        }
+
+        /** The profile {@code reset} goes back to; empty for Adjustability's defaults. */
+        public static String defaultProfile()
+        {
+                return get(DEFAULT_PROFILE);
         }
 
         /** Whether a setting is a color, an {@code #AARRGGBB} string. */
@@ -365,18 +344,37 @@ public final class PlayerConfig
                 return true;
         }
 
-        /** Puts every panel setting back to its default and saves the file. */
-        public static void resetPanel()
+        /**
+         * Puts every panel setting back to its default, or the look to {@code default_profile} if one is set, and saves
+         * the file.
+         *
+         * @return the default profile's problem, if it's set but can't be read (the defaults apply then)
+         */
+        public static Optional<PanelProfiles.ProfileException> resetPanel()
         {
                 if (!SPEC.isLoaded())
                 {
-                        return;
+                        return Optional.empty();
                 }
                 for (ConfigValue<?> value : PANEL_SETTINGS)
                 {
                         reset(value);
                 }
                 SPEC.save();
+                String profile = defaultProfile();
+                if (profile.isEmpty())
+                {
+                        return Optional.empty();
+                }
+                try
+                {
+                        applyLook(PanelProfiles.load(profile).values());
+                        return Optional.empty();
+                }
+                catch (PanelProfiles.ProfileException exception)
+                {
+                        return Optional.of(exception);
+                }
         }
 
         public static <T> T current(ConfigValue<T> value)

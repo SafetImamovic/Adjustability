@@ -217,15 +217,6 @@ public final class AdjustabilityConfig
                 FIRST
         }
 
-        /** Ready-made looks; applying one changes every look setting, not the key mode or the side. */
-        public enum PanelPreset
-        {
-                MAGENTA,
-                VANILLA,
-                MINIMAL,
-                HIGH_CONTRAST
-        }
-
         /** The server's say on the Adjust key: PLAYER leaves it to each player's {@link PanelActivation}. */
         public enum ServerPanelActivation
         {

@@ -99,6 +99,7 @@ The Adjust panel, pinned next to an item with the Adjust key. Also with /adjusta
 | `active_color` | `#FFFF55FF` |  | The mark in front of active enchantments. |
 | `show_cost` | `true` | `true`, `false` | Show what a switch costs and the cooldown at the bottom. |
 | `border_style` | `GRADIENT` | `GRADIENT`, `SOLID`, `NONE`, `SPRITE` | GRADIENT: fades from border_top_color to border_bottom_color, like a tooltip. SOLID: border_top_color all around. NONE: no border. SPRITE: the adjustability:panel GUI sprite, which resource packs can replace (it includes the background, so background_color and the border colors aren't used). |
+| `default_profile` | `` |  | A panel profile /adjustability panel reset goes back to, instead of Adjustability's defaults: magenta, vanilla, minimal, high_contrast, or a file's name (without .json) in config/adjustability/panel_profiles. Empty: the defaults. For modpacks: ship the profile, set this, and ship this file with the profile applied. |
 
 ### [panel.marks]
 

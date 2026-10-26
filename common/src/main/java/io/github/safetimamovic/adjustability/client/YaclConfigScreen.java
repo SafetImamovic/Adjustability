@@ -18,13 +18,16 @@ import dev.isxander.yacl3.api.controller.StringControllerBuilder;
 import dev.isxander.yacl3.api.controller.TickBoxControllerBuilder;
 import dev.isxander.yacl3.gui.image.ImageRenderer;
 import io.github.safetimamovic.adjustability.Constants;
-import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelPreset;
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
+import io.github.safetimamovic.adjustability.config.PanelProfiles;
+import io.github.safetimamovic.adjustability.config.PanelProfiles.Look;
+import io.github.safetimamovic.adjustability.config.PanelProfiles.ProfileException;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -32,6 +35,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.components.toasts.SystemToast;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -45,7 +49,7 @@ import org.jspecify.annotations.Nullable;
  * and per subsection (like {@code [panel.marks]}), in the order the specs define them, so new options show up without
  * code here. Names are the stock screen's translation keys, descriptions the spec comments. Values are read from and
  * written to the specs, so storage doesn't change. Colors get a color picker, the row mark a list of the registered
- * ones; the panel's settings show a live preview ({@link PanelPreview}) and buttons that apply a preset.
+ * ones; the panel's settings show a live preview ({@link PanelPreview}) and buttons for profiles and share codes.
  *
  * <p>Server options can only be changed where this client runs the server (singleplayer, LAN host) or, from 26.1 on,
  * from the title screen; anywhere else they're shown greyed out. Only loaded through {@link ConfigScreens}.
@@ -77,7 +81,7 @@ final class YaclConfigScreen
                 return YetAnotherConfigLib.createBuilder()
                         .title(Component.translatable(KEY + "title"))
                         .category(category(PlayerConfig.SPEC, "adjustability.yacl.player", null,
-                                Map.of("panel", panel), Map.of("panel", presets(playerOptions)), playerOptions))
+                                Map.of("panel", panel), Map.of("panel", profiles(playerOptions)), playerOptions))
                         .category(category(CreatorConfig.SPEC, "adjustability.yacl.server", lock, Map.of(),
                                 Map.of(), new HashMap<>()))
                         .save(() ->
@@ -167,32 +171,104 @@ final class YaclConfigScreen
                 }
         }
 
-        /** A button per panel preset; it fills in the preset's values, saved with the rest. */
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        private static List<Option<?>> presets(Map<ConfigValue<?>, Option<?>> built)
+        /**
+         * The panel's profile buttons: one per profile, then Copy Code and Paste Code. They work on the values on the
+         * screen, which are saved with the rest.
+         */
+        private static List<Option<?>> profiles(Map<ConfigValue<?>, Option<?>> built)
         {
                 List<Option<?>> buttons = new ArrayList<>();
-                for (PanelPreset preset : PanelPreset.values())
+                for (String id : PanelProfiles.ids())
                 {
-                        String name = preset.name().toLowerCase(Locale.ROOT);
-                        buttons.add(ButtonOption.createBuilder()
-                                .name(Component.translatable("adjustability.yacl.preset",
-                                        Component.translatable("adjustability.preset." + name)))
-                                .description(OptionDescription.of(
-                                        Component.translatable("adjustability.preset." + name + ".description")))
-                                .action((screen, button) -> PlayerConfig.preset(preset).forEach((value, newValue) ->
+                        Component description = PanelProfiles.isBuiltIn(id)
+                                ? Component.translatable("adjustability.profile." + id + ".description")
+                                : Component.translatable("adjustability.yacl.profile.file",
+                                        PanelProfiles.display(PanelProfiles.folder().resolve(id + ".json")));
+                        buttons.add(button(Component.translatable("adjustability.yacl.profile",
+                                PanelSettingsActions.profileName(id)), description, () ->
+                        {
+                                try
                                 {
-                                        Option option = built.get(value);
-                                        if (option != null)
-                                        {
-                                                option.requestSet(PlayerConfig.isColor(value)
-                                                        ? color((String) newValue) : newValue);
-                                        }
-                                }))
-                                .available(PlayerConfig.canChange())
-                                .build());
+                                        show(built, PanelProfiles.load(id));
+                                }
+                                catch (ProfileException exception)
+                                {
+                                        toast(exception);
+                                }
+                        }));
                 }
+                buttons.add(button(Component.translatable("adjustability.yacl.copy_code"),
+                        Component.translatable("adjustability.yacl.copy_code.description"),
+                        () -> Minecraft.getInstance().keyboardHandler.setClipboard(
+                                PanelProfiles.encode(pending(built)))));
+                buttons.add(button(Component.translatable("adjustability.yacl.paste_code"),
+                        Component.translatable("adjustability.yacl.paste_code.description"), () ->
+                {
+                        try
+                        {
+                                show(built, PanelProfiles.decode(Minecraft.getInstance().keyboardHandler
+                                        .getClipboard()));
+                        }
+                        catch (ProfileException exception)
+                        {
+                                toast(exception);
+                        }
+                }));
                 return buttons;
+        }
+
+        private static ButtonOption button(Component name, Component description, Runnable action)
+        {
+                return ButtonOption.createBuilder()
+                        .name(name)
+                        .description(OptionDescription.of(description))
+                        .action((screen, button) -> action.run())
+                        .available(PlayerConfig.canChange())
+                        .build();
+        }
+
+        /** Puts a look's values on the screen; the settings it doesn't set go to their defaults. */
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        private static void show(Map<ConfigValue<?>, Option<?>> built, Look look)
+        {
+                for (ConfigValue<?> value : PlayerConfig.LOOK_SETTINGS)
+                {
+                        Option option = built.get(value);
+                        Object newValue = look.values().getOrDefault(value, value.getDefault());
+                        if (option != null)
+                        {
+                                option.requestSet(PlayerConfig.isColor(value) ? color((String) newValue) : newValue);
+                        }
+                }
+        }
+
+        /** The look as it is on the screen, not yet saved. */
+        private static Map<ConfigValue<?>, Object> pending(Map<ConfigValue<?>, Option<?>> built)
+        {
+                Map<ConfigValue<?>, Object> look = new LinkedHashMap<>(PlayerConfig.currentLook());
+                for (ConfigValue<?> value : PlayerConfig.LOOK_SETTINGS)
+                {
+                        Option<?> option = built.get(value);
+                        if (option != null)
+                        {
+                                Object pending = option.pendingValue();
+                                look.put(value, pending instanceof Color color ? hex(color) : pending);
+                        }
+                }
+                return look;
+        }
+
+        /** A profile or code that can't be used: the screen has no chat, so a toast says why. */
+        private static void toast(ProfileException exception)
+        {
+                Minecraft minecraft = Minecraft.getInstance();
+                //? if >=26.1 {
+                SystemToast.addOrUpdate(minecraft.gui.toastManager(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                        Component.translatable("adjustability.yacl.profile_failed"), exception.message());
+                //?} else {
+                /*SystemToast.addOrUpdate(minecraft.getToasts(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                        Component.translatable("adjustability.yacl.profile_failed"), exception.message());
+                *///?}
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})

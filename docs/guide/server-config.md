@@ -160,6 +160,7 @@ highlight_color = "#50FF00FF"
 active_color = "#FFFF55FF"
 show_cost = true
 border_style = "GRADIENT"
+default_profile = ""
 
 [panel.marks]
 mark_style = "adjustability:circle"
@@ -185,7 +186,7 @@ none_row = "LAST"
 ```
 
 The settings directly under `[panel]` are where 0.1.0 put them, so older files keep their values. The ones added
-later are in the `[panel.*]` sections. [Panel styles](panel-styles.md) shows what the marks and presets look like.
+later are in the `[panel.*]` sections. [Panel styles](panel-styles.md) shows what the marks and profiles look like.
 
 | Key | Default | What it does |
 |---|---|---|
@@ -203,6 +204,7 @@ later are in the `[panel.*]` sections. [Panel styles](panel-styles.md) shows wha
 | `active_color` | `#FFFF55FF` | The mark in front of active enchantments. |
 | `show_cost` | `true` | The cost and cooldown line at the bottom. |
 | `border_style` | `GRADIENT` | `GRADIENT` (fades from `border_top_color` to `border_bottom_color`, like a tooltip), `SOLID` (`border_top_color` all around), `NONE`, or `SPRITE`: the `adjustability:panel` GUI sprite, which resource packs can replace. The sprite includes the background, so the background and border colors aren't used with it. |
+| `default_profile` | `` | A [panel profile](panel-styles.md#profiles) that `/adjustability panel reset` goes back to, instead of the defaults: a built-in one or a file's name. Empty: the defaults. For modpacks. |
 | `mark_style` | `adjustability:circle` | The mark in front of each row: `adjustability:circle`, `square`, `checkbox`, `toggle` (a switch), `radio` or `text_only` (no mark). Other mods can add their own. |
 | `dormant_mark_color` | `#FFAAAAAA` | The mark in front of dormant enchantments. |
 | `animate_marks` | `true` | Animate a mark when its enchantment switches; a toggle's knob slides across. |
@@ -228,5 +230,8 @@ The panel settings can also be changed from chat, and apply right away:
 |---|---|
 | `/adjustability panel` | Lists the panel settings and their values; click one to change it |
 | `/adjustability panel <setting> <value>` | Changes one, e.g. `/adjustability panel activation hold`, `/adjustability panel side left` or `/adjustability panel bracket_color #00E5FF` |
-| `/adjustability panel preset <name>` | Applies a ready-made look: `magenta` (the defaults), `vanilla`, `minimal` or `high_contrast`. Keeps `activation` and `side` |
-| `/adjustability panel reset` | Puts them all back to the defaults |
+| `/adjustability panel profile <name>` | Applies a [profile](panel-styles.md#profiles): `magenta` (the defaults), `vanilla`, `minimal`, `high_contrast`, or one from `config/adjustability/panel_profiles`. Keeps `activation` and `side` |
+| `/adjustability panel save <name>` | Saves the current look as a profile file |
+| `/adjustability panel export` | Copies a share code for the current look to the clipboard |
+| `/adjustability panel import [code]` | Applies the look from a share code; without one, the code on the clipboard |
+| `/adjustability panel reset` | Puts them all back to the defaults, or to `default_profile` if it's set |

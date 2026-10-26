@@ -7,13 +7,14 @@ import io.github.safetimamovic.adjustability.client.AdjustClient;
 import io.github.safetimamovic.adjustability.client.AdjustKeys;
 import io.github.safetimamovic.adjustability.client.AdjustPanel;
 import io.github.safetimamovic.adjustability.client.ConfigScreens;
-import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelPreset;
+import io.github.safetimamovic.adjustability.config.PanelProfiles;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
@@ -41,12 +42,14 @@ import net.minecraft.world.level.GameType;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 
 /**
- * Pictures of the Adjust panel in every row mark, every preset and a few other settings, for the panel styles page:
+ * Pictures of the Adjust panel in every row mark, every built-in profile and a few other settings, for the panel
+ * styles page:
  * boots with two groups of conflicting enchantments, the panel pinned, the mouse on a dormant row. Each is cropped to
  * the slot and the panel and saved as {@code panel-*.png} next to the screenshots in
  * {@code fabric/versions/26.3/runs/clientgametest/screenshots}; copy them to {@code docs/public/screenshots}. Also
  * checks every built-in mark draws and leaves the panel open, and registers {@link DiamondMark} through the API, as
- * the docs show, and pictures it too. Last, opens the YACL config screen and checks the panel's sections are groups. Run with {@code ./gradlew :fabric:26.3:runClientGametest}.
+ * the docs show, and pictures it too. Then runs the profile commands as a player would (apply, save, reset, load,
+ * export, import), and last opens the YACL config screen and checks the panel's sections are groups. Run with {@code ./gradlew :fabric:26.3:runClientGametest}.
  */
 public class PanelStylesClientGameTest implements FabricClientGameTest
 {
@@ -95,10 +98,10 @@ public class PanelStylesClientGameTest implements FabricClientGameTest
                         }
                         set(context, "mark_style", DIAMOND);
                         picture(context, "panel-mark-api-diamond");
-                        for (PanelPreset preset : PanelPreset.values())
+                        for (String profile : PanelProfiles.BUILT_IN)
                         {
-                                context.runOnClient(minecraft -> PlayerConfig.applyPreset(preset));
-                                picture(context, "panel-preset-" + preset.name().toLowerCase(Locale.ROOT));
+                                command(context, "panel profile " + profile);
+                                picture(context, "panel-profile-" + profile);
                         }
                         Map<String, List<Object>> settings = Map.of(
                                 "panel-border-sprite", List.of("border_style", "SPRITE"),
@@ -113,8 +116,72 @@ public class PanelStylesClientGameTest implements FabricClientGameTest
                         context.runOnClient(minecraft -> PlayerConfig.resetPanel());
                         context.getInput().pressKey(options -> options.keyInventory);
                         context.waitForScreen(null);
+                        profileCommands(context);
                         yaclScreen(context);
                 }
+        }
+
+        /**
+         * A built-in profile applies; saved as a file it survives a reset and loads again; its code, exported and
+         * imported, gives the same look.
+         */
+        private static void profileCommands(ClientGameTestContext context)
+        {
+                command(context, "panel profile high_contrast");
+                Map<ConfigValue<?>, Object> highContrast = context.computeOnClient(minecraft ->
+                        PlayerConfig.currentLook());
+                if (!"adjustability:checkbox".equals(setting(highContrast, "mark_style")))
+                {
+                        throw new AssertionError("high_contrast should use checkboxes: " + highContrast);
+                }
+                command(context, "panel save adjustability_test");
+                command(context, "panel reset");
+                assertLook(context, false, highContrast, "after a reset");
+                command(context, "panel profile adjustability_test");
+                assertLook(context, true, highContrast, "after loading the saved profile");
+
+                // Export puts the code on the clipboard; import without a code reads it from there.
+                command(context, "panel export");
+                String code = context.computeOnClient(minecraft -> minecraft.keyboardHandler.getClipboard());
+                command(context, "panel reset");
+                command(context, "panel import");
+                assertLook(context, true, highContrast, "after importing its code " + code);
+
+                command(context, "panel reset");
+                context.runOnClient(minecraft ->
+                {
+                        try
+                        {
+                                Files.delete(PanelProfiles.folder().resolve("adjustability_test.json"));
+                        }
+                        catch (IOException exception)
+                        {
+                                throw new UncheckedIOException(exception);
+                        }
+                });
+        }
+
+        private static void assertLook(ClientGameTestContext context, boolean same, Map<ConfigValue<?>, Object> look,
+                String when)
+        {
+                Map<ConfigValue<?>, Object> current = context.computeOnClient(minecraft -> PlayerConfig.currentLook());
+                if (current.equals(look) != same)
+                {
+                        throw new AssertionError((same ? "The look should be " : "The look shouldn't be ") + look
+                                + " " + when + ", it's " + current);
+                }
+        }
+
+        private static Object setting(Map<ConfigValue<?>, Object> look, String name)
+        {
+                return look.get(PlayerConfig.lookSetting(name).orElseThrow());
+        }
+
+        /** Runs an {@code /adjustability} client command as if typed in chat. */
+        private static void command(ClientGameTestContext context, String arguments)
+        {
+                context.runOnClient(minecraft -> minecraft.player.connection.sendCommand("adjustability " + arguments));
+                context.waitTick();
         }
 
         /** The YACL screen builds, with a group for {@code [panel]} and each of its sections. */

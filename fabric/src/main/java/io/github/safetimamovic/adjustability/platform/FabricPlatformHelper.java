@@ -1,6 +1,7 @@
 package io.github.safetimamovic.adjustability.platform;
 
 import io.github.safetimamovic.adjustability.platform.services.IPlatformHelper;
+import java.nio.file.Path;
 import net.fabricmc.loader.api.FabricLoader;
 
 public class FabricPlatformHelper implements IPlatformHelper
@@ -24,5 +25,11 @@ public class FabricPlatformHelper implements IPlatformHelper
         {
 
                 return FabricLoader.getInstance().isDevelopmentEnvironment();
+        }
+
+        @Override
+        public Path configDirectory()
+        {
+                return FabricLoader.getInstance().getConfigDir();
         }
 }

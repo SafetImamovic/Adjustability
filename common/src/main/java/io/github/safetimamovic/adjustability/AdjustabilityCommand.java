@@ -8,7 +8,6 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import io.github.safetimamovic.adjustability.api.SwitchResult;
 import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
-import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.PanelPreset;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import io.github.safetimamovic.adjustability.core.ItemRules;
@@ -34,6 +33,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
+import org.jspecify.annotations.Nullable;
 
 /**
  * Server side of {@code /adjustability}, on the item in the player's main hand: {@code toggle <enchantment>} (every
@@ -109,7 +109,25 @@ public final class AdjustabilityCommand
                         }
 
                         @Override
-                        public int preset(CommandContext<CommandSourceStack> context, PanelPreset preset)
+                        public int profile(CommandContext<CommandSourceStack> context, String name)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
+                        public int save(CommandContext<CommandSourceStack> context, String name)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
+                        public int export(CommandContext<CommandSourceStack> context)
+                        {
+                                return clientOnly(context);
+                        }
+
+                        @Override
+                        public int importCode(CommandContext<CommandSourceStack> context, @Nullable String code)
                         {
                                 return clientOnly(context);
                         }
