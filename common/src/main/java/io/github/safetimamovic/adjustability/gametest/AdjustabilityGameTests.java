@@ -113,6 +113,7 @@ public final class AdjustabilityGameTests
                 test(registrar, "anvil_keeps_unknown", RemovedEnchantmentTests::anvilKeepsUnknown);
                 test(registrar, "grindstone_drops_unknown", RemovedEnchantmentTests::grindstoneDropsUnknown);
                 test(registrar, "flatten_drops_unknown", RemovedEnchantmentTests::flattenDropsUnknown);
+                test(registrar, "unknown_tooltip", RemovedEnchantmentTests::unknownTooltip);
                 test(registrar, "generated_docs", ReferenceDocs::generatedDocs);
                 test(registrar, "hand_written_docs", ReferenceDocs::handWrittenDocs);
         }

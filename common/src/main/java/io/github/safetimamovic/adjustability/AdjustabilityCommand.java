@@ -15,6 +15,7 @@ import io.github.safetimamovic.adjustability.core.Toggler;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import net.minecraft.ChatFormatting;
@@ -214,6 +215,15 @@ public final class AdjustabilityCommand
                         stack.getHoverName()).withStyle(ChatFormatting.GOLD), false);
                 source.sendSuccess(() -> line("adjustability.command.inspect.active", list(active)), false);
                 source.sendSuccess(() -> line("adjustability.command.inspect.dormant", list(dormant)), false);
+                Map<String, Integer> unknown = DormantEnchantments.unknown(stack, source.registryAccess());
+                if (!unknown.isEmpty())
+                {
+                        String entries = unknown.entrySet().stream()
+                                .map(entry -> entry.getKey() + " " + entry.getValue())
+                                .collect(Collectors.joining(", "));
+                        source.sendSuccess(() -> line("adjustability.command.inspect.unknown",
+                                Component.literal(entries)), false);
+                }
                 List<Set<Holder<Enchantment>>> components = split.graph().components();
                 for (Set<Holder<Enchantment>> component : components)
                 {

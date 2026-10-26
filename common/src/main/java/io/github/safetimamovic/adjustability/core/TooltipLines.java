@@ -13,6 +13,7 @@ import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import org.jspecify.annotations.Nullable;
@@ -80,8 +81,11 @@ public final class TooltipLines
                 });
         }
 
-        /** Vanilla is done: the dormant enchantments nothing active conflicts with, then the key hint. */
-        public static void addDormant(Item.TooltipContext context, Consumer<Component> consumer,
+        /**
+         * Vanilla is done: the dormant enchantments nothing active conflicts with, with advanced tooltips (F3+H) the
+         * dormant entries for enchantments that aren't registered, then the key hint.
+         */
+        public static void addDormant(Item.TooltipContext context, Consumer<Component> consumer, TooltipFlag flag,
                 DataComponentGetter components)
         {
                 Pending pending = PENDING.get();
@@ -96,6 +100,13 @@ public final class TooltipLines
                         {
                                 consumer.accept(line(enchantment, pending.dormant().getLevel(enchantment)));
                         }
+                }
+                if (flag.isAdvanced() && showDormant.getAsBoolean())
+                {
+                        DormantEnchantments.unknown(components, context.registries()).forEach((id, level) ->
+                                consumer.accept(Component.translatable("adjustability.tooltip.unknown", id,
+                                        Component.translatable("enchantment.level." + level))
+                                        .withStyle(ChatFormatting.DARK_GRAY)));
                 }
                 Component line = hint.get();
                 if (line != null)

@@ -26,7 +26,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AnvilMenu;
 import net.minecraft.world.inventory.GrindstoneMenu;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -234,6 +237,29 @@ final class RemovedEnchantmentTests
                 helper.assertFalse(DormantEnchantments.has(pickaxe), "flattened");
                 helper.assertValueEqual(Adjuster.activeOf(pickaxe).size(), 1, "Fortune stays");
                 helper.succeed();
+        }
+
+        /** With advanced tooltips (F3+H) an unknown entry gets a line; normal tooltips don't show it. */
+        static void unknownTooltip(GameTestHelper helper)
+        {
+                ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
+                pickaxe.enchant(enchantment(helper, Enchantments.FORTUNE), 3);
+                CompoundTag dormant = new CompoundTag();
+                dormant.putInt("minecraft:silk_touch", 1);
+                dormant.putInt(GONE, 3);
+                withDormant(pickaxe, dormant);
+                String line = "  ⇄ Unknown: " + GONE + " III";
+                helper.assertTrue(tooltip(helper, pickaxe, TooltipFlag.ADVANCED).contains(line),
+                        "advanced: " + tooltip(helper, pickaxe, TooltipFlag.ADVANCED));
+                List<String> normal = tooltip(helper, pickaxe, TooltipFlag.NORMAL);
+                helper.assertFalse(normal.stream().anyMatch(text -> text.contains(GONE)), "normal: " + normal);
+                helper.succeed();
+        }
+
+        private static List<String> tooltip(GameTestHelper helper, ItemStack stack, TooltipFlag flag)
+        {
+                return stack.getTooltipLines(Item.TooltipContext.of(helper.getLevel()), null, flag).stream()
+                        .map(Component::getString).toList();
         }
 
         private static AnvilMenu anvil(GameTestHelper helper)
