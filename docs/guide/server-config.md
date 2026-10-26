@@ -185,7 +185,7 @@ none_row = "LAST"
 ```
 
 The settings directly under `[panel]` are where 0.1.0 put them, so older files keep their values. The ones added
-later are in the `[panel.*]` sections.
+later are in the `[panel.*]` sections. [Panel styles](panel-styles.md) shows what the marks and presets look like.
 
 | Key | Default | What it does |
 |---|---|---|

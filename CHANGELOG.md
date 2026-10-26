@@ -5,6 +5,21 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Added
+
+- Adjust panel styles: the mark in front of each row can be a circle (as before), square, checkbox, toggle switch,
+  radio button or none, and animates when an enchantment switches. Every color and size the panel used to hard-code is
+  now a setting: title, row and cost-line colors, text shadow, padding, row height, the line between groups or a
+  heading with each group's name (like Mining), row order, where the None row goes, and the item's icon next to its
+  name. New `[panel.marks]`, `[panel.text]` and `[panel.layout]` sections; older files keep their values.
+- Border styles: `GRADIENT` (as before), `SOLID`, `NONE`, or `SPRITE`, a GUI sprite resource packs can replace.
+- Presets: `magenta` (the defaults), `vanilla`, `minimal` and `high_contrast`, with `/adjustability panel preset
+  <name>` or the YACL screen's Apply Preset buttons.
+- The YACL screen shows the panel's sections as their own groups, picks the row mark from a list, and its preview shows
+  two groups.
+- Java API: `AdjustabilityClientApi.registerRowMark` lets other mods add row marks (client side, experimental).
+- A [panel styles](https://safetimamovic.github.io/Adjustability/guide/panel-styles) docs page with a picture of each.
+
 ## [0.4.2] - 2026-10-25
 
 ### Fixed

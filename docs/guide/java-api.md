@@ -1,8 +1,9 @@
 # Java API
 
-For mod devs who want to read or change an item's active and dormant enchantments, switch from code, or veto
-switches and anvil results. Everything is in `io.github.safetimamovic.adjustability.api` and works the same on Fabric
-and NeoForge; call it from your common code.
+For mod devs who want to read or change an item's active and dormant enchantments, switch from code, veto switches
+and anvil results, or add a row mark to the Adjust panel. Everything is in `io.github.safetimamovic.adjustability.api`
+and works the same on Fabric and NeoForge; call it from your common code, except [row marks](#row-marks-client), which
+are client-only.
 
 > **Experimental until 1.0.** The API is marked `@ApiStatus.Experimental`: names may still change.
 
@@ -117,3 +118,56 @@ public class StaffItem extends Item implements AdjustableItem
         }
 }
 ```
+
+## Row marks (client)
+
+Players pick the mark in front of each row of the Adjust panel with `mark_style` (see
+[panel styles](panel-styles.md)). A mod can add its own with
+`io.github.safetimamovic.adjustability.api.client.AdjustabilityClientApi`, from client code only (a Fabric client
+entrypoint, NeoForge's `FMLClientSetupEvent`):
+
+| Method | What it does |
+|---|---|
+| `registerRowMark(id, mark)` | Adds a `RowMark` players can pick by its id; it shows up in the config screens and `/adjustability panel`. Use your mod's namespace |
+| `rowMarks()` | The ids of every row mark, Adjustability's own first |
+
+A `RowMark` draws into a box `width()` wide and `RowMark.HEIGHT` (7) tall, lined up with the row's text. Its
+`State` says how active the row is (`active()`, 0 to 1; in between while the panel animates a switch), whether the
+mouse is over it, whether it's a None row, and the player's two mark colors; `color()` fades between them. Draw with
+`fill` or sprites, not font glyphs, and keep no state: it's called every frame.
+
+```java
+/** A diamond outline, filled when active. */
+public final class DiamondMark implements RowMark
+{
+        @Override
+        public int width()
+        {
+                return 7;
+        }
+
+        @Override
+        public void draw(GuiGraphicsExtractor graphics, int x, int y, State state)
+        {
+                int outline = state.color();
+                int inside = State.withAlpha(state.activeColor(), state.active());
+                for (int row = 0; row < HEIGHT; row++)
+                {
+                        int half = 3 - Math.abs(3 - row);
+                        graphics.fill(x + 3 - half, y + row, x + 4 + half, y + row + 1, inside);
+                        graphics.fill(x + 3 - half, y + row, x + 4 - half, y + row + 1, outline);
+                        graphics.fill(x + 3 + half, y + row, x + 4 + half, y + row + 1, outline);
+                }
+        }
+}
+
+// In your client setup:
+AdjustabilityClientApi.registerRowMark(Identifier.fromNamespaceAndPath("examplemod", "diamond"), new DiamondMark());
+```
+
+On 1.21.1, `GuiGraphicsExtractor` is `GuiGraphics` and `Identifier` is `ResourceLocation`.
+
+![The Adjust panel with the diamond mark](/screenshots/panel-mark-api-diamond.png)
+
+If a player's `mark_style` names a mark no installed mod registers (say yours was removed), the panel uses
+`adjustability:circle` and logs it once.
