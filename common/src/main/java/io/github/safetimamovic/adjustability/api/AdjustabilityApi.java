@@ -84,7 +84,7 @@ public final class AdjustabilityApi
                 }
                 ItemEnchantments.Mutable extra = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                 extra.set(enchantment, level);
-                Adjuster.write(stack, Adjuster.add(stack, extra.toImmutable(), registries));
+                Adjuster.write(stack, Adjuster.add(stack, extra.toImmutable(), registries), registries);
                 return true;
         }
 

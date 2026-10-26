@@ -247,7 +247,7 @@ public final class AdjustabilityCommand
                 ItemEnchantments.Mutable extra = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                 extra.set(enchantment, level);
                 Adjuster.Split split = Adjuster.add(stack, extra.toImmutable(), source.registryAccess());
-                Adjuster.write(stack, split);
+                Adjuster.write(stack, split, source.registryAccess());
                 boolean dormant = split.dormant().getLevel(enchantment) > 0;
                 source.sendSuccess(() -> Component.translatable(dormant ? "adjustability.command.add.dormant"
                         : "adjustability.command.add.active", TooltipLines.name(enchantment, level)), true);

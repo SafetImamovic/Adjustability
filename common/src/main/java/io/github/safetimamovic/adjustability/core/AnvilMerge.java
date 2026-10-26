@@ -112,7 +112,7 @@ public final class AnvilMerge
                                 newlyDormantLevels += split.dormant().getLevel(enchantment);
                         }
                 }
-                Adjuster.write(result, split);
+                Adjuster.write(result, split, registries);
 
                 int price = (int) Math.min(Integer.MAX_VALUE,
                         (long) cost.get() + (long) newlyDormantLevels * config.dormantCostPerLevel());

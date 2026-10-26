@@ -97,8 +97,8 @@ public final class Toggler
                                 .filter(component -> component.contains(target)).findFirst();
                         if (group.isEmpty() || group.get().stream().noneMatch(before.active()::contains))
                         {
-                                return repairedOr(stack, current, broken ? SwitchResult.NOTHING_TO_SWITCH : null,
-                                        SwitchResult.NOTHING_TO_SWITCH);
+                                return repairedOr(stack, current, registries,
+                                        broken ? SwitchResult.NOTHING_TO_SWITCH : null, SwitchResult.NOTHING_TO_SWITCH);
                         }
                         next = graph.deactivate(before, group.get());
                 }
@@ -106,8 +106,9 @@ public final class Toggler
                 {
                         if (current.dormant().getLevel(target) == 0)
                         {
-                                return repairedOr(stack, current, broken && current.active().getLevel(target) > 0
-                                        ? SwitchResult.DONE : null, SwitchResult.NOT_DORMANT);
+                                return repairedOr(stack, current, registries,
+                                        broken && current.active().getLevel(target) > 0 ? SwitchResult.DONE : null,
+                                        SwitchResult.NOT_DORMANT);
                         }
                         next = graph.activate(before, target, config.autoFill());
                 }
@@ -136,7 +137,7 @@ public final class Toggler
 
                 ItemEnchantments.Mutable all = new ItemEnchantments.Mutable(current.active());
                 current.dormant().entrySet().forEach(entry -> all.set(entry.getKey(), entry.getIntValue()));
-                Adjuster.write(stack, Adjuster.split(graph, all.toImmutable(), next));
+                Adjuster.write(stack, Adjuster.split(graph, all.toImmutable(), next), registries);
                 LAST_SWITCH.put(player, now);
                 if (config.playSound())
                 {
@@ -152,12 +153,12 @@ public final class Toggler
          * When there's nothing to switch: still writes the repaired split if the item needed it ({@code repaired} not
          * null), and returns {@code repaired} then, else {@code otherwise}.
          */
-        private static SwitchResult repairedOr(ItemStack stack, Adjuster.Split current, @Nullable SwitchResult repaired,
-                SwitchResult otherwise)
+        private static SwitchResult repairedOr(ItemStack stack, Adjuster.Split current,
+                HolderLookup.Provider registries, @Nullable SwitchResult repaired, SwitchResult otherwise)
         {
                 if (repaired != null)
                 {
-                        Adjuster.write(stack, current);
+                        Adjuster.write(stack, current, registries);
                         return repaired;
                 }
                 return otherwise;

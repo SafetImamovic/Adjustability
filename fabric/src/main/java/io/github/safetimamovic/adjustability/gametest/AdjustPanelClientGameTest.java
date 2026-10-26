@@ -439,7 +439,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 ItemEnchantments.Mutable dormant = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                 dormant.set(enchantment(player, Enchantments.FIRE_PROTECTION), 4);
                 dormant.set(enchantment(player, Enchantments.FROST_WALKER), 2);
-                DormantEnchantments.set(boots, dormant.toImmutable());
+                DormantEnchantments.set(boots, dormant.toImmutable(), player.level().registryAccess());
                 return boots;
         }
 
@@ -482,7 +482,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 pickaxe.set(DataComponents.ENCHANTMENTS, active.toImmutable());
                 ItemEnchantments.Mutable dormant = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                 dormant.set(enchantment(player, Enchantments.SILK_TOUCH), 1);
-                DormantEnchantments.set(pickaxe, dormant.toImmutable());
+                DormantEnchantments.set(pickaxe, dormant.toImmutable(), player.level().registryAccess());
                 return pickaxe;
         }
 

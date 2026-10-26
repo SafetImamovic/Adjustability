@@ -107,6 +107,9 @@ public final class AdjustabilityGameTests
                 test(registrar, "advancements", AdjustabilityGameTests::advancements);
                 test(registrar, "tooltip_order", AdjustabilityGameTests::tooltipOrder);
                 test(registrar, "panel_profiles", PanelProfileTests::profilesAndCodes);
+                test(registrar, "unknown_dormant_kept", RemovedEnchantmentTests::unknownDormantKept);
+                test(registrar, "unknown_in_config", RemovedEnchantmentTests::unknownInConfig);
+                test(registrar, "unknown_active_partner", RemovedEnchantmentTests::unknownActivePartner);
                 test(registrar, "generated_docs", ReferenceDocs::generatedDocs);
                 test(registrar, "hand_written_docs", ReferenceDocs::handWrittenDocs);
         }
@@ -193,7 +196,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
                 AnvilMenu anvil = anvil(helper);
                 anvil.getSlot(AnvilMenu.INPUT_SLOT).set(pickaxe);
                 anvil.setItemName("Both");
@@ -211,7 +214,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
                 GrindstoneMenu grindstone = new GrindstoneMenu(0, survivalPlayer(helper).getInventory());
                 grindstone.getSlot(GrindstoneMenu.INPUT_SLOT).set(pickaxe);
 
@@ -228,7 +231,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
 
                 SwitchResult outcome = Toggler.activate(survivalServerPlayer(helper), pickaxe, silkTouch,
                         SwitchSource.API);
@@ -250,7 +253,7 @@ public final class AdjustabilityGameTests
                 ItemEnchantments.Mutable dormant = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                 dormant.set(loyalty, 3);
                 dormant.set(channeling, 1);
-                DormantEnchantments.set(trident, dormant.toImmutable());
+                setDormant(helper, trident, dormant.toImmutable());
 
                 Toggler.activate(survivalServerPlayer(helper), trident, loyalty, SwitchSource.API);
 
@@ -267,7 +270,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
 
                 helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), pickaxe, fortune,
                                 SwitchSource.API),
@@ -282,7 +285,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
                 ServerPlayer player = survivalServerPlayer(helper);
 
                 helper.assertValueEqual(Toggler.activate(player, pickaxe, silkTouch, SwitchSource.API),
@@ -302,7 +305,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ServerPlayer player = helper.makeMockServerPlayerInLevel();
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
                 player.getInventory().setItem(0, pickaxe);
                 int containerId = player.inventoryMenu.containerId;
                 ResourceKey<Enchantment> silkKey = silkTouch.unwrapKey().orElseThrow();
@@ -328,7 +331,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ServerPlayer player = helper.makeMockServerPlayerInLevel();
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
                 player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
 
                 ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
@@ -388,7 +391,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
                 pickaxe.set(DataComponents.REPAIR_COST, 7);
 
                 Toggler.activate(survivalServerPlayer(helper), pickaxe, silkTouch, SwitchSource.API);
@@ -403,7 +406,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, silkTouch, 1);
-                DormantEnchantments.set(pickaxe, single(fortune, 3));
+                setDormant(helper, pickaxe, single(fortune, 3));
                 AnvilMenu anvil = anvil(helper);
                 anvil.getSlot(AnvilMenu.INPUT_SLOT).set(pickaxe);
                 anvil.getSlot(AnvilMenu.ADDITIONAL_SLOT).set(book(fortune, 3));
@@ -420,7 +423,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
                 helper.assertValueEqual(GrindstoneRules.dormantExperience(pickaxe, helper.getLevel().registryAccess()),
                         silkTouch.value().getMinCost(1), "experience for dormant Silk Touch");
 
@@ -615,7 +618,7 @@ public final class AdjustabilityGameTests
                         ServerPlayer burning = survivalServerPlayer(helper);
                         burning.igniteForSeconds(5);
                         ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                        DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                        setDormant(helper, pickaxe, single(silkTouch, 1));
                         helper.assertValueEqual(AdjustabilityApi.activate(burning, pickaxe, silkTouch),
                                 SwitchResult.CANCELLED, "refused while burning");
                         helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(fortune), 3, "nothing changed");
@@ -676,7 +679,7 @@ public final class AdjustabilityGameTests
                 try
                 {
                         ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                        DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                        setDormant(helper, pickaxe, single(silkTouch, 1));
                         helper.assertValueEqual(AdjustabilityApi.activate(survivalServerPlayer(helper), pickaxe,
                                 silkTouch), SwitchResult.DONE, "switched anyway");
                 }
@@ -717,7 +720,7 @@ public final class AdjustabilityGameTests
                         Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                         Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                         ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                        DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                        setDormant(helper, pickaxe, single(silkTouch, 1));
 
                         helper.assertValueEqual(Toggler.deactivate(helper.makeMockServerPlayerInLevel(), pickaxe,
                                 silkTouch, SwitchSource.API), SwitchResult.DONE, "none");
@@ -738,7 +741,7 @@ public final class AdjustabilityGameTests
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
                 helper.assertValueEqual(Toggler.deactivate(survivalServerPlayer(helper), pickaxe, fortune,
                         SwitchSource.API), SwitchResult.NONE_NOT_ALLOWED, "refused");
                 helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(fortune), 3, "Fortune still active");
@@ -757,7 +760,7 @@ public final class AdjustabilityGameTests
                         ItemEnchantments.Mutable both = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
                         both.set(fortune, 3);
                         both.set(silkTouch, 1);
-                        DormantEnchantments.set(pickaxe, both.toImmutable());
+                        setDormant(helper, pickaxe, both.toImmutable());
                         AnvilMenu anvil = anvil(helper);
                         anvil.getSlot(AnvilMenu.INPUT_SLOT).set(pickaxe);
                         anvil.getSlot(AnvilMenu.ADDITIONAL_SLOT).set(book(efficiency, 5));
@@ -782,7 +785,7 @@ public final class AdjustabilityGameTests
                         Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
                         ServerPlayer player = helper.makeMockServerPlayerInLevel();
                         ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, silkTouch, 1);
-                        DormantEnchantments.set(pickaxe, single(fortune, 3));
+                        setDormant(helper, pickaxe, single(fortune, 3));
                         player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
 
                         ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
@@ -813,7 +816,7 @@ public final class AdjustabilityGameTests
 
                 ServerPlayer player = helper.makeMockServerPlayerInLevel();
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                DormantEnchantments.set(pickaxe, single(silkTouch, 1));
+                setDormant(helper, pickaxe, single(silkTouch, 1));
                 player.getInventory().setItem(0, pickaxe);
                 player.inventoryMenu.broadcastChanges();
                 helper.assertTrue(done(player, manager, "root"), "root: holding a dormant enchantment");
@@ -837,7 +840,7 @@ public final class AdjustabilityGameTests
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, enchantment(helper, Enchantments.FORTUNE), 3);
                 pickaxe.enchant(enchantment(helper, Enchantments.EFFICIENCY), 5);
                 pickaxe.enchant(enchantment(helper, Enchantments.UNBREAKING), 3);
-                DormantEnchantments.set(pickaxe, single(enchantment(helper, Enchantments.SILK_TOUCH), 1));
+                setDormant(helper, pickaxe, single(enchantment(helper, Enchantments.SILK_TOUCH), 1));
                 List<String> lines = tooltip(helper, pickaxe);
                 int fortune = lines.indexOf("Fortune III");
                 helper.assertTrue(fortune >= 0 && lines.size() > fortune + 1, "Fortune listed: " + lines);
@@ -847,7 +850,7 @@ public final class AdjustabilityGameTests
 
                 ItemStack boots = enchanted(Items.DIAMOND_BOOTS, enchantment(helper, Enchantments.PROTECTION), 4);
                 boots.enchant(enchantment(helper, Enchantments.FEATHER_FALLING), 4);
-                DormantEnchantments.set(boots, single(enchantment(helper, Enchantments.FIRE_PROTECTION), 4));
+                setDormant(helper, boots, single(enchantment(helper, Enchantments.FIRE_PROTECTION), 4));
                 lines = tooltip(helper, boots);
                 int protection = lines.indexOf("Protection IV");
                 helper.assertTrue(protection >= 0, "Protection listed: " + lines);
@@ -855,7 +858,7 @@ public final class AdjustabilityGameTests
 
                 ItemStack book = new ItemStack(Items.ENCHANTED_BOOK);
                 book.set(DataComponents.STORED_ENCHANTMENTS, single(enchantment(helper, Enchantments.FORTUNE), 3));
-                DormantEnchantments.set(book, single(enchantment(helper, Enchantments.SILK_TOUCH), 1));
+                setDormant(helper, book, single(enchantment(helper, Enchantments.SILK_TOUCH), 1));
                 lines = tooltip(helper, book);
                 helper.assertValueEqual(lines.stream().filter(line -> line.contains("Silk Touch")).count(), 1L,
                         "book lists Silk Touch once: " + lines);
@@ -921,6 +924,11 @@ public final class AdjustabilityGameTests
         private static ItemEnchantments dormant(GameTestHelper helper, ItemStack stack)
         {
                 return DormantEnchantments.get(stack, helper.getLevel().registryAccess());
+        }
+
+        private static void setDormant(GameTestHelper helper, ItemStack stack, ItemEnchantments dormant)
+        {
+                DormantEnchantments.set(stack, dormant, helper.getLevel().registryAccess());
         }
 
         private static ItemEnchantments single(Holder<Enchantment> enchantment, int level)

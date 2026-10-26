@@ -168,11 +168,11 @@ public final class Adjuster
                 return split(all.toImmutable(), active.keySet(), enchantment -> extra.getLevel(enchantment) > 0);
         }
 
-        /** Writes a split to the item. */
-        public static void write(ItemStack stack, Split split)
+        /** Writes a split to the item. Dormant entries for enchantments that aren't registered stay. */
+        public static void write(ItemStack stack, Split split, HolderLookup.Provider registries)
         {
                 EnchantmentHelper.setEnchantments(stack, split.active());
-                DormantEnchantments.set(stack, split.dormant());
+                DormantEnchantments.set(stack, split.dormant(), registries);
         }
 
         /**
