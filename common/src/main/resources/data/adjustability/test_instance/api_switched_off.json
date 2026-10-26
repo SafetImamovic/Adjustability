@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:function",
+  "environment": "minecraft:default",
+  "function": "adjustability:api_switched_off",
+  "max_ticks": 20,
+  "structure": "minecraft:empty"
+}

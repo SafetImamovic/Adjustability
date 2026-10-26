@@ -174,6 +174,25 @@ final class SwitchOffTests
                 helper.succeed();
         }
 
+        /** The API keeps "dormant" (waiting behind a conflict) and "switched off" apart. */
+        static void apiSwitchedOff(GameTestHelper helper)
+        {
+                HolderLookup.Provider registries = helper.getLevel().registryAccess();
+                Holder<Enchantment> unbreaking = enchantment(helper, Enchantments.UNBREAKING);
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                ItemStack pickaxe = pickaxe(helper);
+                helper.assertValueEqual(AdjustabilityApi.deactivateGroup(player(helper), pickaxe, unbreaking),
+                        SwitchResult.DONE, "switched off through the API");
+                ItemEnchantments off = AdjustabilityApi.switchedOffEnchantments(pickaxe, registries);
+                helper.assertValueEqual(off.getLevel(unbreaking), 3, "listed as switched off");
+                helper.assertValueEqual(AdjustabilityApi.dormantEnchantments(pickaxe, registries).keySet(),
+                        Set.of(silkTouch), "dormant is only what waits behind a conflict");
+                helper.assertValueEqual(AdjustabilityApi.activate(player(helper), pickaxe, unbreaking),
+                        SwitchResult.DONE, "switched on through the API");
+                helper.assertTrue(AdjustabilityApi.switchedOffEnchantments(pickaxe, registries).isEmpty(), "none off");
+                helper.succeed();
+        }
+
         private static void assertOff(GameTestHelper helper, ItemStack stack, Holder<Enchantment> enchantment,
                 String when)
         {

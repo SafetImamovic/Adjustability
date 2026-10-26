@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
+import io.github.safetimamovic.adjustability.api.AdjustabilityApi;
 import io.github.safetimamovic.adjustability.api.SwitchResult;
 import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
@@ -162,9 +163,14 @@ public final class AdjustabilityCommand
         {
                 ServerPlayer player = context.getSource().getPlayerOrException();
                 Holder<Enchantment> enchantment = ResourceArgument.getEnchantment(context, "enchantment");
-                SwitchResult outcome = Toggler.activate(player, player.getMainHandItem(), enchantment,
-                        SwitchSource.COMMAND);
-                Toggler.report(player, outcome, enchantment, player.getMainHandItem());
+                ItemStack stack = player.getMainHandItem();
+                // An active enchantment that conflicts with nothing switches off; anything else switches on.
+                boolean off = Adjuster.activeOf(stack).getLevel(enchantment) > 0
+                        && Adjuster.normalize(stack, player.level().registryAccess()).graph().singles()
+                                .contains(enchantment);
+                SwitchResult outcome = off ? Toggler.deactivate(player, stack, enchantment, SwitchSource.COMMAND)
+                        : Toggler.activate(player, stack, enchantment, SwitchSource.COMMAND);
+                Toggler.report(player, outcome, enchantment, stack, off);
                 return outcome == SwitchResult.DONE ? 1 : 0;
         }
 
@@ -212,10 +218,16 @@ public final class AdjustabilityCommand
                 Adjuster.Split split = Adjuster.normalize(stack, source.registryAccess());
                 ItemEnchantments active = Adjuster.activeOf(stack);
                 ItemEnchantments dormant = Adjuster.dormantOf(stack, source.registryAccess());
+                ItemEnchantments waiting = AdjustabilityApi.dormantEnchantments(stack, source.registryAccess());
+                ItemEnchantments off = AdjustabilityApi.switchedOffEnchantments(stack, source.registryAccess());
                 source.sendSuccess(() -> Component.translatable("adjustability.command.inspect.header",
                         stack.getHoverName()).withStyle(ChatFormatting.GOLD), false);
                 source.sendSuccess(() -> line("adjustability.command.inspect.active", list(active)), false);
-                source.sendSuccess(() -> line("adjustability.command.inspect.dormant", list(dormant)), false);
+                source.sendSuccess(() -> line("adjustability.command.inspect.dormant", list(waiting)), false);
+                if (!off.isEmpty())
+                {
+                        source.sendSuccess(() -> line("adjustability.command.inspect.off", list(off)), false);
+                }
                 Map<String, Integer> unknown = DormantEnchantments.unknown(stack, source.registryAccess());
                 if (!unknown.isEmpty())
                 {

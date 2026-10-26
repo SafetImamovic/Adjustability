@@ -245,7 +245,9 @@ public final class Toggler
                 ToggleConfig config = AdjustabilityConfig.toggle();
                 Component message = switch (outcome)
                 {
-                        case DONE -> none ? Component.translatable("adjustability.toggle.none",
+                        case DONE -> none ? Component.translatable(
+                                DormantEnchantments.off(stack, player.level().registryAccess()).contains(target)
+                                        ? "adjustability.toggle.off" : "adjustability.toggle.none",
                                 TooltipLines.name(Objects.requireNonNull(target), 1))
                                 : Component.translatable("adjustability.toggle.done",
                                 TooltipLines.name(Objects.requireNonNull(target), 1)

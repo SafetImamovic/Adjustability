@@ -6,6 +6,7 @@ import io.github.safetimamovic.adjustability.core.Exclusivity;
 import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.Listeners;
 import io.github.safetimamovic.adjustability.core.Toggler;
+import java.util.Set;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,13 +40,31 @@ public final class AdjustabilityApi
                 return Adjuster.activeOf(stack);
         }
 
-        /** The item's dormant enchantments; empty for most items. */
+        /**
+         * The item's dormant enchantments: the ones waiting behind an active enchantment they conflict with. Empty for
+         * most items. Not the ones the player switched off; see {@link #switchedOffEnchantments}.
+         */
         public static ItemEnchantments dormantEnchantments(ItemStack stack, HolderLookup.Provider registries)
         {
-                return Adjuster.dormantOf(stack, registries);
+                Set<Holder<Enchantment>> off = DormantEnchantments.off(stack, registries);
+                ItemEnchantments.Mutable result = new ItemEnchantments.Mutable(Adjuster.dormantOf(stack, registries));
+                result.removeIf(off::contains);
+                return result.toImmutable();
         }
 
-        /** Whether the item has any dormant enchantments. Cheap; no registries needed. */
+        /**
+         * The enchantments the player switched off: ones that conflict with nothing, so nothing but the player keeps
+         * them from being active. Empty for most items.
+         */
+        public static ItemEnchantments switchedOffEnchantments(ItemStack stack, HolderLookup.Provider registries)
+        {
+                Set<Holder<Enchantment>> off = DormantEnchantments.off(stack, registries);
+                ItemEnchantments.Mutable result = new ItemEnchantments.Mutable(Adjuster.dormantOf(stack, registries));
+                result.removeIf(enchantment -> !off.contains(enchantment));
+                return result.toImmutable();
+        }
+
+        /** Whether the item has any dormant or switched-off enchantments. Cheap; no registries needed. */
         public static boolean hasDormant(ItemStack stack)
         {
                 return DormantEnchantments.has(stack);
@@ -102,7 +121,9 @@ public final class AdjustabilityApi
         /**
          * Leaves the group of conflicting enchantments that {@code anyInGroup} belongs to with nothing active, as if
          * the player had clicked None in the Adjust panel. Only when the server allows it
-         * ({@code [toggle] allow_none}); otherwise {@link SwitchResult#NONE_NOT_ALLOWED}.
+         * ({@code [toggle] allow_none}); otherwise {@link SwitchResult#NONE_NOT_ALLOWED}. On an enchantment that
+         * conflicts with nothing, this switches it off ({@code [toggle] allow_switch_off}, else
+         * {@link SwitchResult#SWITCH_OFF_NOT_ALLOWED}); {@link #activate} switches it on again.
          */
         public static SwitchResult deactivateGroup(ServerPlayer player, ItemStack stack, Holder<Enchantment> anyInGroup)
         {
