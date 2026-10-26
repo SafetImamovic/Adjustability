@@ -24,8 +24,21 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 - Java API: `AdjustabilityClientApi.registerRowMark` lets other mods add row marks (client side, experimental).
 - A [panel styles](https://safetimamovic.github.io/Adjustability/guide/panel-styles) docs page with a picture of each.
 
+- Switch off any enchantment that conflicts with nothing (Knockback, Fire Aspect, a lone Silk Touch) and back on: the
+  Adjust panel opens on any enchanted item and lists them under **Other enchantments**, one on/off row each, in a
+  section that folds. Off stays off through anvils and repairs; the tooltip says `(off)`. Server setting
+  `allow_switch_off` (on by default), player setting `singles`. Curses never.
+- API: `switchedOffEnchantments`, `flatten(stack, registries)` (turns switched-off ones back on);
+  `SwitchResult.SWITCH_OFF_NOT_ALLOWED`. `/adjustability toggle` and `inspect` know switched-off enchantments.
+
+### Changed
+
+- `AdjustabilityApi.dormantEnchantments` no longer includes switched-off enchantments; `flatten(stack)` is deprecated.
+- `/adjustability flatten` switches switched-off enchantments back on instead of removing them.
+
 ### Fixed
 
+- Left Alt didn't close the Adjust panel when the cursor was over an empty slot (the panel often covers one).
 - A dormant enchantment whose mod or datapack was removed is kept on the item instead of being dropped by the next
   switch, anvil use or repair; it works again if the enchantment comes back. Ignored until then, listed by
   `/adjustability inspect` and in advanced tooltips (F3+H), removed by the grindstone and flatten.

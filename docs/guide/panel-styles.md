@@ -87,6 +87,10 @@ first enchantment's name. With different costs per group, the cost goes on the h
 `row_order` sorts the rows in a group (`REGISTRY`, `ALPHABETICAL` or `ACTIVE_FIRST`), and `none_row` puts the None row
 `FIRST` or `LAST` when the server allows switching a group off.
 
+Enchantments that conflict with nothing get their own section after the groups, **Other enchantments**, with a heading
+that's always shown (it folds the section). `singles` sets how it starts: `EXPANDED` (the default), `COLLAPSED`, or
+`HIDDEN` to leave it out.
+
 ## Border and resource packs
 
 `border_style` in `[panel]` is `GRADIENT` (the default, like a tooltip), `SOLID`, `NONE`, or `SPRITE`. `SPRITE` draws

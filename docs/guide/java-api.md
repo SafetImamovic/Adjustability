@@ -32,14 +32,16 @@ Players install Adjustability themselves; don't bundle it.
 | Method | What it does |
 |---|---|
 | `activeEnchantments(stack)` | The active enchantments (vanilla's component) |
-| `dormantEnchantments(stack, registries)` | The dormant ones; empty for most items |
+| `dormantEnchantments(stack, registries)` | The dormant ones, waiting behind an active enchantment they conflict with; empty for most items |
+| `switchedOffEnchantments(stack, registries)` | The ones the player switched off (they conflict with nothing) |
 | `hasDormant(stack)` | Cheap check, no registries needed |
 | `conflict(a, b)` | Whether two enchantments conflict for Adjustability: vanilla's `exclusive_set` plus the server's `[exclusivity]` rules |
 | `canHoldDormant(stack)` | Tags, `[items] mode` and `AdjustableItem` together |
 | `addEnchantment(stack, enchantment, level, registries)` | Adds it: active if it conflicts with nothing active, dormant otherwise. Ignores costs, limits and listeners |
 | `activate(player, stack, enchantment)` | Switches as if the player clicked it in the Adjust panel: cooldown, cost, curses and listeners all apply. Returns a `SwitchResult` and tells the player nothing |
-| `deactivateGroup(player, stack, anyInGroup)` | The None choice: leaves that enchantment's group with nothing active. Only if the server has `allow_none`, else `SwitchResult.NONE_NOT_ALLOWED` |
-| `flatten(stack)` | Removes the dormant enchantments; active ones stay |
+| `deactivateGroup(player, stack, anyInGroup)` | The None choice: leaves that enchantment's group with nothing active. Only if the server has `allow_none`, else `SwitchResult.NONE_NOT_ALLOWED`. On an enchantment that conflicts with nothing it switches it off (`allow_switch_off`, else `SWITCH_OFF_NOT_ALLOWED`); `activate` switches it on |
+| `flatten(stack, registries)` | What `/adjustability flatten` does: switched-off enchantments become active again, the other dormant ones are removed |
+| `flatten(stack)` | Deprecated: removes every dormant enchantment, switched-off ones included |
 | `addListener(listener)` / `removeListener(listener)` | See below |
 
 `registries` is the world's, e.g. `level.registryAccess()`. Methods change the stack in place.

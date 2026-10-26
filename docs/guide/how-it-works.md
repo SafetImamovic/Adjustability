@@ -56,6 +56,21 @@ over the survival limit of 39 levels.
 Switching has a cooldown (1 second by default) and can cost XP, an item or durability; the server decides. Creative
 players switch for free and without a cooldown. A curse is never switched off.
 
+### Switching an enchantment off
+
+An enchantment that conflicts with nothing on the item can be switched **off** and back on: Knockback on a sword you
+use to herd animals, Fire Aspect that would burn the drops, Frost Walker near water, Silk Touch on a pickaxe without
+Fortune when you want cobblestone. The Adjust panel opens on any enchanted item for this, and lists these
+enchantments under **Other enchantments** after the groups, one on/off row each; click the heading to fold the section
+(`singles` in the [player settings](server-config.md#player-settings) sets how it starts). The tooltip shows a
+switched-off one as `Unbreaking III (off)`, and `/adjustability toggle` switches it either way.
+
+A switched-off enchantment stays off through anvils and repairs until you switch it on; it costs the same as any
+switch and never counts toward `max_dormant_per_item`. Curses can't be switched off. Servers can turn this off with
+`allow_switch_off`. The Cycle key leaves these alone and only steps through groups of conflicting enchantments.
+
+### None
+
 Some servers also allow **none** (`allow_none`): the panel then has a **None** row for each group, and choosing it
 leaves every enchantment of that group dormant, e.g. a pickaxe mining with neither Fortune nor Silk Touch. The Cycle
 key goes Fortune → Silk Touch → none → Fortune.

@@ -347,7 +347,8 @@ Invariants, checked after every write (and by GameTests):
 
 1. Active set is pairwise compatible (an independent set in the conflict graph, §7).
 2. Active ∩ dormant = ∅ (an enchantment is in exactly one place; levels are not split).
-3. Every dormant enchantment conflicts with at least one active one (otherwise it should be active; see `auto_fill`).
+3. Every dormant enchantment conflicts with at least one active one (otherwise it should be active; see `auto_fill`),
+   unless the player switched it off (M12) or `allow_none` is on.
 4. Enchantments in `#adjustability:never_dormant` (curses by default) are always active.
 5. An item with an empty dormant set has **no** dormant component at all (stacks stay equal to vanilla ones, so they
    still stack, compare and match recipes like vanilla).
@@ -1266,6 +1267,11 @@ stored state.
 
 Commits: `singles()` → storage, Adjuster, Toggler, config and tests → anvil limit and flatten → API → panel, tooltip
 and client test → docs.
+
+State (2026-10-26): done as planned on `feat/m12-switch-off`. Details settled on the way: an anvil keeps only the left
+item's off flags (the right item's choices don't count, as for active ones); `AdjustabilityApi.flatten(stack)` is
+deprecated for `flatten(stack, registries)`, since turning switched-off enchantments back on needs the registries. The
+taller panel exposed an old bug, fixed separately: Left Alt didn't close the panel with the cursor over an empty slot.
 
 ### M13 plan (discoverability, 2026-10-26)
 

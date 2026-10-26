@@ -23,6 +23,19 @@ minecraft:custom_data={
 }
 ```
 
+Enchantments the player [switched off](how-it-works.md#switching-an-enchantment-off) are dormant too, and their ids are
+also listed under `adjustability:off`, so nothing turns them back on by itself:
+
+```snbt
+minecraft:custom_data={
+    "adjustability:dormant": {"minecraft:knockback": 2},
+    "adjustability:off": ["minecraft:knockback"]
+}
+```
+
+An id in `adjustability:off` that isn't in `adjustability:dormant` is dropped at the next write. Older versions of
+Adjustability ignore the list and switch such an enchantment back on.
+
 A Fortune III pickaxe with a dormant Silk Touch, as a `/give` command:
 
 ```

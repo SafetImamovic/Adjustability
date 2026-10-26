@@ -25,6 +25,7 @@ back, and flattening then removes them.
 
 `/adjustability flatten [<targets>]` (operators) removes the dormant enchantments from every item in the targets'
 **inventories and ender chests**, and says how many items it changed. Without targets it flattens your own.
+Enchantments a player switched off conflict with nothing, so flatten switches them back on instead of removing them.
 
 1. Get every player online (offline players can't be reached).
 2. Run `/adjustability flatten @a`.
