@@ -79,6 +79,9 @@ public final class AdjustabilityGameTests
                 test(registrar, "anvil_book_with_conflicts_splits", AdjustabilityGameTests::anvilBookWithConflictsSplits);
                 test(registrar, "anvil_rename_keeps_dormant", AdjustabilityGameTests::anvilRenameKeepsDormant);
                 test(registrar, "grindstone_removes_dormant", AdjustabilityGameTests::grindstoneRemovesDormant);
+                test(registrar, "grindstone_all_disabled", DormantGrindstoneTests::allDisabled);
+                test(registrar, "grindstone_dormant_policy", DormantGrindstoneTests::policy);
+                test(registrar, "grindstone_dormant_input", DormantGrindstoneTests::inputSlots);
                 test(registrar, "toggle_switches_active", AdjustabilityGameTests::toggleSwitchesActive);
                 test(registrar, "toggle_trident_auto_fill", AdjustabilityGameTests::toggleTridentAutoFill);
                 test(registrar, "toggle_refuses_active", AdjustabilityGameTests::toggleRefusesActive);

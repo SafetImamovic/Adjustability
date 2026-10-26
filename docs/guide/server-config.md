@@ -138,7 +138,7 @@ remove_dormant = true
 
 | Key | Default | What it does |
 |---|---|---|
-| `remove_dormant` | `true` | A grindstone removes dormant enchantments too, and gives experience for them like for active ones. Off: they stay (and give no experience), and become active once nothing active conflicts with them. |
+| `remove_dormant` | `true` | A grindstone removes dormant and switched-off enchantments even when nothing is active, and gives experience for registered non-curse enchantments. Off: dormant enchantments stay and give no experience; a dormant-only item produces no removal result. |
 
 ## Player settings
 

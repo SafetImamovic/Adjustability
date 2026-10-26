@@ -112,8 +112,9 @@ public final class CreatorConfig
                 builder.pop();
 
                 builder.comment("Grindstones.").push("grindstone");
-                REMOVE_DORMANT = builder.comment("A grindstone removes dormant enchantments too. Off: they stay on the",
-                                "item while the active ones are removed, and become active again when nothing",
+                REMOVE_DORMANT = builder.comment("A grindstone removes dormant and switched-off enchantments, even if",
+                                "nothing is active. Off: they stay on the item while the active ones are removed,",
+                                "and become active again when nothing",
                                 "conflicts with them any more.")
                         .define("remove_dormant", true);
                 builder.pop();

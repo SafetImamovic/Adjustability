@@ -47,7 +47,7 @@ Grindstones.
 
 | Key | Default | Allowed | Description |
 |---|---|---|---|
-| `remove_dormant` | `true` | `true`, `false` | A grindstone removes dormant enchantments too. Off: they stay on the item while the active ones are removed, and become active again when nothing conflicts with them any more. |
+| `remove_dormant` | `true` | `true`, `false` | A grindstone removes dormant and switched-off enchantments, even if nothing is active. Off: they stay on the item while the active ones are removed, and become active again when nothing conflicts with them any more. |
 
 ### [toggle]
 

@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_${java_version}",
   "mixins": [
     "AnvilMenuMixin",
+    "GrindstoneInputSlotMixin",
     "GrindstoneMenuMixin",
     "GrindstoneResultSlotMixin",
     "ItemEnchantmentsMixin",
