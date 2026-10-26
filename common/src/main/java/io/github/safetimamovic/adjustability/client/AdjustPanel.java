@@ -15,6 +15,7 @@ import io.github.safetimamovic.adjustability.core.Exclusivity;
 import io.github.safetimamovic.adjustability.core.Toggler;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
 import io.github.safetimamovic.adjustability.graph.ConflictGraph;
+import io.github.safetimamovic.adjustability.network.DeactivateEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.tags.ModTags;
 import java.util.ArrayList;
@@ -32,6 +33,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 //? if >=1.21.5 {
@@ -132,7 +134,7 @@ public final class AdjustPanel
                 // What the server will treat as active: the stored split, repaired if it conflicts (see Toggler).
                 ItemEnchantments shownActive = Adjuster.normalize(stack, minecraft.level.registryAccess()).active();
                 ToggleConfig toggle = AdjustabilityConfig.toggle();
-                boolean allowNone = toggle.allowNone();
+                boolean allowNone = toggle.allowNone() && style.layout().exclusiveNone();
                 List<Set<Holder<Enchantment>>> components = graph.components();
                 // Enchantments that conflict with nothing, if the server lets them be switched off; curses can't be.
                 SinglesSection section = style.layout().singles();
@@ -308,8 +310,8 @@ public final class AdjustPanel
         }
 
         /**
-         * A left click inside the panel: on a dormant row, asks the server to make it active; on a single enchantment,
-         * to switch it on or off; on the singles' heading, folds or unfolds the section.
+         * A left click inside the panel switches a row, or folds the singles' section. With Exclusive None off,
+         * an active group member can be switched off without changing its compatible partners.
          */
         void click(double mouseX, double mouseY)
         {
@@ -320,8 +322,10 @@ public final class AdjustPanel
                 }
                 this.rowAt(mouseX, mouseY).filter(this::clickable)
                         .flatMap(row -> Optional.ofNullable(row.enchantment()).flatMap(Holder::unwrapKey)
-                                .map(key -> new ToggleEnchantmentPayload(this.serverContainerId, this.serverSlot, key,
-                                        row.none() || this.single(row) && row.active())))
+                                .<CustomPacketPayload>map(key -> row.active() && !this.single(row) && !row.none()
+                                        ? new DeactivateEnchantmentPayload(this.serverContainerId, this.serverSlot, key)
+                                        : new ToggleEnchantmentPayload(this.serverContainerId, this.serverSlot, key,
+                                                row.none() || this.single(row) && row.active())))
                         .ifPresent(AdjustClient::send);
         }
 
@@ -330,10 +334,11 @@ public final class AdjustPanel
                 return row.group() == this.singlesGroup;
         }
 
-        /** Dormant rows switch on; single enchantments switch either way. */
+        /** Dormant rows switch on; active rows switch off when their mode and the server permit it. */
         private boolean clickable(Row row)
         {
-                return !row.active() || this.single(row);
+                return !row.active() || this.single(row) || !row.none() && AdjustabilityConfig.toggle().allowNone()
+                        && !AdjustabilityConfig.player().panel().layout().exclusiveNone();
         }
 
         private Optional<Header> sectionHeaderAt(double mouseX, double mouseY)

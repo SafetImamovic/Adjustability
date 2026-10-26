@@ -60,8 +60,9 @@ final class PanelPreview implements ImageRenderer
                 ToggleConfig toggle = AdjustabilityConfig.toggle();
                 Component footer = AdjustPanel.footer(toggle.defaultCost(), toggle.cooldownTicks());
                 Content content = PanelLayout.layout(font, style, this.item.getHoverName(), this.item,
-                        groups(toggle.allowNone(), toggle.allowSwitchOff() ? style.layout().singles()
-                                : SinglesSection.HIDDEN), List.of(), footer);
+                        groups(toggle.allowNone() && style.layout().exclusiveNone(),
+                                toggle.allowSwitchOff() ? style.layout().singles()
+                                        : SinglesSection.HIDDEN), List.of(), footer);
 
                 // Just room for the slot and the panel, the slot on the side the panel doesn't open to.
                 int sceneWidth = 2 * MARGIN + 16 + PanelLayout.GAP_FROM_SLOT + content.width()

@@ -351,19 +351,22 @@ public final class AdjustabilityGameTests
         @SuppressWarnings("removal")
         private static void cycleStepsHeldItem(GameTestHelper helper)
         {
-                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
-                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
-                ServerPlayer player = helper.makeMockServerPlayerInLevel();
-                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                setDormant(helper, pickaxe, single(silkTouch, 1));
-                player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
+                withAllowNone(false, () ->
+                {
+                        Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                        Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                        ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                        setDormant(helper, pickaxe, single(silkTouch, 1));
+                        player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
 
-                ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
-                helper.assertValueEqual(Adjuster.activeOf(player.getMainHandItem()).getLevel(silkTouch), 1,
-                        "first press: Silk Touch");
-                ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
-                helper.assertValueEqual(Adjuster.activeOf(player.getMainHandItem()).getLevel(fortune), 3,
-                        "second press: back to Fortune");
+                        ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
+                        helper.assertValueEqual(Adjuster.activeOf(player.getMainHandItem()).getLevel(silkTouch), 1,
+                                "first press: Silk Touch");
+                        ToggleNetwork.onCycle(player, new CycleEnchantmentPayload(0));
+                        helper.assertValueEqual(Adjuster.activeOf(player.getMainHandItem()).getLevel(fortune), 3,
+                                "second press: back to Fortune");
+                });
                 helper.succeed();
         }
 
@@ -759,16 +762,20 @@ public final class AdjustabilityGameTests
                 helper.succeed();
         }
 
-        /** Without allow_none (the default), none is refused. */
+        /** Without allow_none, none is refused. */
         private static void noneNotAllowed(GameTestHelper helper)
         {
-                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
-                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
-                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
-                setDormant(helper, pickaxe, single(silkTouch, 1));
-                helper.assertValueEqual(Toggler.deactivate(survivalServerPlayer(helper), pickaxe, fortune,
-                        SwitchSource.API), SwitchResult.NONE_NOT_ALLOWED, "refused");
-                helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(fortune), 3, "Fortune still active");
+                withAllowNone(false, () ->
+                {
+                        Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                        Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                        ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                        setDormant(helper, pickaxe, single(silkTouch, 1));
+                        helper.assertValueEqual(Toggler.deactivate(survivalServerPlayer(helper), pickaxe, fortune,
+                                SwitchSource.API), SwitchResult.NONE_NOT_ALLOWED, "refused");
+                        helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(fortune), 3,
+                                "Fortune still active");
+                });
                 helper.succeed();
         }
 
@@ -901,13 +908,18 @@ public final class AdjustabilityGameTests
         }
 
         /** Runs {@code body} with {@code [toggle] allow_none} on, as an admin would set it, and resets it after. */
-        @SuppressWarnings("unchecked")
         private static void withAllowNone(Runnable body)
+        {
+                withAllowNone(true, body);
+        }
+
+        @SuppressWarnings("unchecked")
+        private static void withAllowNone(boolean enabled, Runnable body)
         {
                 ConfigValue<Boolean> allowNone = (ConfigValue<Boolean>) CreatorConfig.SPEC.getValues()
                         .get("toggle.allow_none");
                 boolean before = allowNone.get();
-                allowNone.set(true);
+                allowNone.set(enabled);
                 try
                 {
                         body.run();

@@ -5,6 +5,7 @@ import io.github.safetimamovic.adjustability.client.AdjustClient;
 import io.github.safetimamovic.adjustability.client.AdjustKeys;
 import io.github.safetimamovic.adjustability.client.AdjustPanel;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ServerPanelActivation;
+import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.TutorialStep;
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
@@ -196,7 +197,129 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                         cycleKey(context, world);
                         groupCosts(world, List.of());
                         creativeInventory(context, world);
+                        individualToggles(context, world);
                 }
+        }
+
+        /** Both None modes use real clicks and server updates; compatible members stay independently active. */
+        private static void individualToggles(ClientGameTestContext context, TestSingleplayerContext world)
+        {
+                command(context, "panel reset");
+                context.runOnClient(minecraft ->
+                {
+                        if (!setting("mark_style").equals("adjustability:toggle")
+                                || !setting("show_item_icon").equals(true)
+                                || !setting("group_style").toString().equals("HEADER")
+                                || !setting("exclusive_none").equals(false))
+                        {
+                                throw new AssertionError("Reset must use toggle marks, icon, headers and inline off");
+                        }
+                });
+                serverSetting(world, "toggle.allow_none", true);
+                serverSetting(world, "toggle.cooldown_ticks", 0);
+                world.getServer().runOnServer(server ->
+                {
+                        ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                        player.setGameMode(GameType.SURVIVAL);
+                        player.getInventory().setItem(0, pickaxe(player));
+                });
+                world.getConnection().waitForClientboundPackets();
+                context.getInput().pressKey(options -> options.keyInventory);
+                context.waitForScreen(InventoryScreen.class);
+                hoverSlot(context, HOTBAR_0);
+                context.waitTick();
+                context.getInput().pressKey(AdjustKeys.ADJUST);
+                context.waitTick();
+                assertNoneRow(context, false);
+                cleanScreen(context);
+                context.takeScreenshot("individual_1_defaults");
+                context.runOnClient(minecraft -> PlayerConfig.tutorial(TutorialStep.SWITCH));
+                clickRow(context, world, Enchantments.FORTUNE);
+                assertMining(world, false, false);
+                context.runOnClient(minecraft ->
+                {
+                        if (PlayerConfig.tutorial() != TutorialStep.DONE)
+                        {
+                                throw new AssertionError("An individual off switch must complete the tutorial");
+                        }
+                });
+                cleanScreen(context);
+                context.takeScreenshot("individual_2_both_off");
+                clickRow(context, world, Enchantments.SILK_TOUCH);
+                assertMining(world, false, true);
+                clickRow(context, world, Enchantments.FORTUNE);
+                assertMining(world, true, false);
+
+                command(context, "panel exclusive_none true");
+                assertNoneRow(context, true);
+                clickRow(context, world, Enchantments.FORTUNE);
+                assertMining(world, true, false);
+                int[] none = context.computeOnClient(minecraft -> AdjustClient
+                        .panel((AbstractContainerScreen<?>) minecraft.gui.screen()).noneRowCentre(minecraft.level
+                                .registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                                .getOrThrow(Enchantments.FORTUNE)).orElseThrow());
+                moveTo(context, none[0], none[1]);
+                context.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
+                world.getConnection().waitForServerboundPackets();
+                world.getConnection().waitForClientboundPackets();
+                context.waitTicks(2);
+                assertMining(world, false, false);
+                cleanScreen(context);
+                context.takeScreenshot("individual_3_exclusive_none");
+
+                command(context, "panel exclusive_none false");
+                assertNoneRow(context, false);
+                clickRow(context, world, Enchantments.FORTUNE);
+                serverSetting(world, "toggle.allow_none", false);
+                context.waitTicks(2);
+                clickRow(context, world, Enchantments.FORTUNE);
+                assertMining(world, true, false);
+                assertNoneRow(context, false);
+                context.getInput().pressKey(options -> options.keyInventory);
+                context.waitForScreen(null);
+                serverSetting(world, "toggle.allow_none", true);
+        }
+
+        private static void assertNoneRow(ClientGameTestContext context, boolean expected)
+        {
+                boolean present = context.computeOnClient(minecraft -> AdjustClient
+                        .panel((AbstractContainerScreen<?>) minecraft.gui.screen()).noneRowCentre(minecraft.level
+                                .registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                                .getOrThrow(Enchantments.FORTUNE)).isPresent());
+                if (present != expected)
+                {
+                        throw new AssertionError("None row present: " + present + ", expected " + expected);
+                }
+        }
+
+        private static void clickRow(ClientGameTestContext context, TestSingleplayerContext world,
+                ResourceKey<Enchantment> enchantment)
+        {
+                int[] row = context.computeOnClient(minecraft -> AdjustClient
+                        .panel((AbstractContainerScreen<?>) minecraft.gui.screen()).rowCentre(minecraft.level
+                                .registryAccess().lookupOrThrow(Registries.ENCHANTMENT).getOrThrow(enchantment))
+                        .orElseThrow());
+                moveTo(context, row[0], row[1]);
+                context.waitTick();
+                context.getInput().pressMouse(InputConstants.MOUSE_BUTTON_LEFT);
+                world.getConnection().waitForServerboundPackets();
+                world.getConnection().waitForClientboundPackets();
+                context.waitTicks(2);
+        }
+
+        private static void assertMining(TestSingleplayerContext world, boolean fortune, boolean silkTouch)
+        {
+                world.getServer().runOnServer(server ->
+                {
+                        ServerPlayer player = server.getPlayerList().getPlayers().getFirst();
+                        ItemEnchantments active = Adjuster.activeOf(player.getInventory().getItem(0));
+                        if ((active.getLevel(enchantment(player, Enchantments.FORTUNE)) > 0) != fortune
+                                || (active.getLevel(enchantment(player, Enchantments.SILK_TOUCH)) > 0) != silkTouch)
+                        {
+                                throw new AssertionError("Expected Fortune=" + fortune + ", Silk Touch=" + silkTouch
+                                        + ", got " + active);
+                        }
+                });
         }
 
         private static void hint(ClientGameTestContext context)
@@ -338,6 +461,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
          */
         private static void noneAndServerActivation(ClientGameTestContext context, TestSingleplayerContext world)
         {
+                command(context, "panel exclusive_none true");
                 serverSetting(world, "toggle.allow_none", true);
                 world.getServer().runOnServer(server -> server.getPlayerList().getPlayers().getFirst().getInventory()
                         .setItem(0, pickaxe(server.getPlayerList().getPlayers().getFirst())));
@@ -386,6 +510,7 @@ public class AdjustPanelClientGameTest implements FabricClientGameTest
                 }
                 serverSetting(world, "toggle.panel_activation", ServerPanelActivation.PLAYER);
                 serverSetting(world, "toggle.allow_none", false);
+                command(context, "panel exclusive_none false");
                 context.getInput().pressKey(options -> options.keyInventory);
                 context.waitForScreen(null);
         }

@@ -81,13 +81,14 @@ public final class PlayerConfig
         private static final ConfigValue<String> SEPARATOR_COLOR;
         private static final EnumValue<RowOrder> ROW_ORDER;
         private static final EnumValue<NonePosition> NONE_ROW;
+        private static final BooleanValue EXCLUSIVE_NONE;
         private static final EnumValue<SinglesSection> SINGLES;
 
         /** The row mark drawn when {@code mark_style} names none (say the mod that added it was removed). */
-        public static final String DEFAULT_MARK_STYLE = "adjustability:circle";
+        public static final String DEFAULT_MARK_STYLE = "adjustability:toggle";
 
         /** Adjustability's own row marks; the client adds the ones other mods register. */
-        public static final List<String> BUILT_IN_MARK_STYLES = List.of(DEFAULT_MARK_STYLE, "adjustability:square",
+        public static final List<String> BUILT_IN_MARK_STYLES = List.of("adjustability:circle", "adjustability:square",
                 "adjustability:checkbox", "adjustability:toggle", "adjustability:radio", "adjustability:text_only");
 
         private static Supplier<Collection<String>> markStyles = () -> BUILT_IN_MARK_STYLES;
@@ -185,7 +186,7 @@ public final class PlayerConfig
                         "The cost line, each group's cost and the group headings.");
                 TEXT_SHADOW = builder.comment("Draw the title and the rows with a shadow.").define("text_shadow", true);
                 SHOW_TITLE = builder.comment("Show the item's name at the top.").define("show_title", true);
-                SHOW_ITEM_ICON = builder.comment("Show the item in front of its name.").define("show_item_icon", false);
+                SHOW_ITEM_ICON = builder.comment("Show the item in front of its name.").define("show_item_icon", true);
                 builder.pop();
 
                 builder.comment("Spacing, and how the groups of conflicting enchantments are told apart.")
@@ -196,13 +197,17 @@ public final class PlayerConfig
                         .defineInRange("row_height", 11, 9, 24);
                 GROUP_STYLE = builder.comment("Between groups: LINE (a gap with a thin line), GAP, NONE, or HEADER",
                                 "(the group's name above it, like Mining).")
-                        .defineEnum("group_style", GroupStyle.LINE);
+                        .defineEnum("group_style", GroupStyle.HEADER);
                 SEPARATOR_COLOR = color(builder, "separator_color", "#30FF00FF", "The line between groups.");
                 ROW_ORDER = builder.comment("Order of the rows in a group: REGISTRY (the game's), ALPHABETICAL or",
                                 "ACTIVE_FIRST.")
                         .defineEnum("row_order", RowOrder.REGISTRY);
-                NONE_ROW = builder.comment("Where the None row goes when the server allows switching a group off:",
-                                "LAST or FIRST.")
+                EXCLUSIVE_NONE = builder.comment("Use a separate None row to switch a whole group off. Off: click an",
+                                "active enchantment to switch only it off, keeping compatible members active. Both",
+                                "modes require the server's toggle.allow_none setting.")
+                        .define("exclusive_none", false);
+                NONE_ROW = builder.comment("Where the None row goes with exclusive_none on and the server allowing",
+                                "switching a group off: LAST or FIRST.")
                         .defineEnum("none_row", NonePosition.LAST);
                 SINGLES = builder.comment("The section for enchantments that conflict with nothing, which the server",
                                 "may let you switch off one by one: EXPANDED or COLLAPSED (how it starts; click its",
@@ -216,7 +221,7 @@ public final class PlayerConfig
                         SHOW_BRACKETS, BRACKET_COLOR, BRACKET_LENGTH, HIGHLIGHT_COLOR, ACTIVE_COLOR, SHOW_COST,
                         BORDER_STYLE, MARK_STYLE, DORMANT_MARK_COLOR, ANIMATE_MARKS, TITLE_COLOR, ACTIVE_TEXT_COLOR,
                         DORMANT_TEXT_COLOR, FOOTER_TEXT_COLOR, TEXT_SHADOW, SHOW_TITLE, SHOW_ITEM_ICON, PADDING,
-                        ROW_HEIGHT, GROUP_STYLE, SEPARATOR_COLOR, ROW_ORDER, NONE_ROW, SINGLES);
+                        ROW_HEIGHT, GROUP_STYLE, SEPARATOR_COLOR, ROW_ORDER, EXCLUSIVE_NONE, NONE_ROW, SINGLES);
                 COLORS = Set.of(BACKGROUND_COLOR, BORDER_TOP_COLOR, BORDER_BOTTOM_COLOR, BRACKET_COLOR, HIGHLIGHT_COLOR,
                         ACTIVE_COLOR, DORMANT_MARK_COLOR, TITLE_COLOR, ACTIVE_TEXT_COLOR, DORMANT_TEXT_COLOR,
                         FOOTER_TEXT_COLOR, SEPARATOR_COLOR, SLOT_MARKER_COLOR);
@@ -292,6 +297,7 @@ public final class PlayerConfig
                                 argb(SEPARATOR_COLOR, pending),
                                 get(ROW_ORDER, pending),
                                 get(NONE_ROW, pending),
+                                get(EXCLUSIVE_NONE, pending),
                                 get(SINGLES, pending)));
         }
 

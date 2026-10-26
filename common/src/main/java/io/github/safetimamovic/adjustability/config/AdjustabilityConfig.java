@@ -182,6 +182,7 @@ public final class AdjustabilityConfig
                 int separator,
                 RowOrder order,
                 NonePosition none,
+                boolean exclusiveNone,
                 SinglesSection singles)
         {
         }

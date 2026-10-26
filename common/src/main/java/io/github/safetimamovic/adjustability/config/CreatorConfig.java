@@ -150,9 +150,10 @@ public final class CreatorConfig
                         .defineListAllowEmpty("group_costs", List.of(),
                                 () -> "#minecraft:exclusive_set/mining = XP_LEVELS 3", Exclusivity::isValidCost);
                 ALLOW_NONE = builder.comment("A group of conflicting enchantments may have none of them active: the",
-                                "Adjust panel gets a None row per group and the Cycle key steps through none. Off: one",
-                                "of each group is always active (items left on none are fixed by their next switch).")
-                        .define("allow_none", false);
+                                "Adjust panel lets players switch them off and the Cycle key steps through none.",
+                                "Off: one of each group is always active (items left on none are fixed by their next",
+                                "switch).")
+                        .define("allow_none", true);
                 ALLOW_SWITCH_OFF = builder.comment("Enchantments that conflict with nothing can be switched off",
                                 "(and on again) in the Adjust panel, e.g. Knockback or a lone Silk Touch. Curses never.",
                                 "A switched-off enchantment stays off through anvils and repairs until it's switched",
