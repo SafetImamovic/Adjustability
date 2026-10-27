@@ -5,7 +5,7 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
-## [0.6.0] - 2026-10-27
+## [0.6.1] - 2026-10-27
 
 ### Added
 

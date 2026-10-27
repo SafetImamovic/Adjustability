@@ -8,6 +8,7 @@ import io.github.safetimamovic.adjustability.api.AdjustabilityApi;
 import io.github.safetimamovic.adjustability.api.SwitchResult;
 import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ExclusivityConfig;
+import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.core.Adjuster;
 import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import io.github.safetimamovic.adjustability.core.Exclusivity;
@@ -36,6 +37,7 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.GameType;
+import net.neoforged.neoforge.common.ModConfigSpec.BooleanValue;
 
 /**
  * Dormant enchantments that are no longer registered, because the datapack or mod that added them was removed. The
@@ -133,8 +135,8 @@ final class RemovedEnchantmentTests
         /**
          * The active enchantment a dormant one waited behind isn't registered any more. Vanilla can't decode such an
          * item at all, so it's lost when it loads: nothing for Adjustability to do. Should vanilla start keeping the
-         * item without that entry, this fails, and the dormant partner, which then conflicts with nothing, has to
-         * take over; the second half checks it does.
+         * item without that entry, this fails. The second half checks that the dormant partner follows the server's
+         * None policy when nothing conflicts with it any more.
          */
         static void unknownActivePartner(GameTestHelper helper)
         {
@@ -151,16 +153,34 @@ final class RemovedEnchantmentTests
                 helper.assertTrue(parsed.result().isEmpty() && parsed.error().isPresent(),
                         "vanilla now loads an item with an unregistered active enchantment: " + parsed);
 
-                // The same item with the entry dropped: Silk Touch conflicts with nothing left and becomes active.
+                // Without the entry, Silk Touch takes over only when the server requires an active choice.
                 ItemStack pickaxe = new ItemStack(Items.DIAMOND_PICKAXE);
                 pickaxe.enchant(enchantment(helper, Enchantments.EFFICIENCY), 5);
                 CompoundTag dormant = new CompoundTag();
                 dormant.putInt("minecraft:silk_touch", 1);
                 withDormant(pickaxe, dormant);
-                Adjuster.Split split = Adjuster.normalize(pickaxe, registries);
-                helper.assertValueEqual(split.active().getLevel(enchantment(helper, Enchantments.SILK_TOUCH)), 1,
-                        "Silk Touch takes over");
-                helper.assertTrue(split.dormant().isEmpty(), "nothing dormant");
+                BooleanValue allowNone = (BooleanValue) CreatorConfig.SPEC.getValues().get("toggle.allow_none");
+                boolean previous = allowNone.get();
+                try
+                {
+                        for (boolean allowed : List.of(false, true))
+                        {
+                                allowNone.set(allowed);
+                                Adjuster.Split split = Adjuster.normalize(pickaxe, registries);
+                                Holder<Enchantment> silk = enchantment(helper, Enchantments.SILK_TOUCH);
+                                helper.assertValueEqual(split.active().getLevel(silk), allowed ? 0 : 1,
+                                        "Silk Touch activation follows allow_none=" + allowed);
+                                helper.assertValueEqual(split.dormant().getLevel(silk), allowed ? 1 : 0,
+                                        "Silk Touch is retained with allow_none=" + allowed);
+                                helper.assertValueEqual(split.active()
+                                                .getLevel(enchantment(helper, Enchantments.EFFICIENCY)), 5,
+                                        "compatible active enchantment preserved");
+                        }
+                }
+                finally
+                {
+                        allowNone.set(previous);
+                }
                 helper.succeed();
         }
 
