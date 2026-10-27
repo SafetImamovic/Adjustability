@@ -5,6 +5,8 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-27
+
 ### Added
 
 - Player setting **Exclusive None** (`panel.layout.exclusive_none`): off by default, so active enchantments can be
