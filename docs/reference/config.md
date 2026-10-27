@@ -38,7 +38,7 @@ Combining conflicting enchantments in an anvil. Which enchantments conflict come
 | `combine_books` | `true` | `true`, `false` | Two enchanted books with conflicting enchantments make one book that holds them all. Putting that book on an item splits them into active and dormant. |
 | `dormant_cost_per_level` | `1` | `0` – `100` | Extra anvil levels per level of each enchantment that becomes dormant, on top of vanilla's price. |
 | `allow_too_expensive` | `false` | `true`, `false` | The extra cost may take the price past vanilla's survival limit of 39 levels. |
-| `max_dormant_per_item` | `4` | `0` – `255` | Most dormant enchantments one item can hold. 0: no limit. |
+| `max_dormant_per_item` | `4` | `0` – `255` | Most conflicting dormant enchantments on one item. None choices and switched-off single enchantments do not consume extra allowance. 0: no limit. |
 | `max_conflicts_per_component` | `0` | `0` – `255` | Most enchantments in one group of conflicting enchantments on an item (2 = at most two Protections on one armor piece). 0: no limit. |
 
 ### [grindstone]
@@ -47,7 +47,7 @@ Grindstones.
 
 | Key | Default | Allowed | Description |
 |---|---|---|---|
-| `remove_dormant` | `true` | `true`, `false` | A grindstone removes dormant enchantments too. Off: they stay on the item while the active ones are removed, and become active again when nothing conflicts with them any more. |
+| `remove_dormant` | `true` | `true`, `false` | A grindstone removes dormant and switched-off enchantments, even if nothing is active. Off: they stay on the item while the active ones are removed, and become active again when nothing conflicts with them any more. |
 
 ### [toggle]
 
@@ -64,7 +64,7 @@ Switching which enchantments are active.
 | `allow_in_world_cycle` | `true` | `true`, `false` | The Cycle key works outside the inventory, on the held item. |
 | `allow_command` | `true` | `true`, `false` | Every player can use /adjustability toggle &lt;enchantment&gt;. |
 | `group_costs` | `[]` |  | Own costs for switching within particular groups, instead of cost_type / cost_amount / cost_item: "&lt;ids and #tags&gt; = &lt;cost&gt;", where &lt;cost&gt; is NONE, XP_LEVELS &lt;n&gt;, XP_POINTS &lt;n&gt;, DURABILITY &lt;n&gt; or ITEM &lt;n&gt; &lt;item id&gt;. E.g. ["#minecraft:exclusive_set/mining = ITEM 2 minecraft:lapis_lazuli", "minecraft:riptide = XP_LEVELS 5", "#minecraft:exclusive_set/armor = NONE"]. An entry covers a group if any of the group's enchantments matches; the first entry that covers it wins. Creative players still switch for free. |
-| `allow_none` | `false` | `true`, `false` | A group of conflicting enchantments may have none of them active: the Adjust panel gets a None row per group and the Cycle key steps through none. Off: one of each group is always active (items left on none are fixed by their next switch). |
+| `allow_none` | `true` | `true`, `false` | A group of conflicting enchantments may have none of them active: the Adjust panel lets players switch them off and the Cycle key steps through none. Off: one of each group is always active (items left on none are fixed by their next switch). |
 | `allow_switch_off` | `true` | `true`, `false` | Enchantments that conflict with nothing can be switched off (and on again) in the Adjust panel, e.g. Knockback or a lone Silk Touch. Curses never. A switched-off enchantment stays off through anvils and repairs until it's switched on. |
 | `panel_activation` | `PLAYER` | `PLAYER`, `TOGGLE`, `HOLD` | How the Adjust key works for everyone on this server. PLAYER: each player's own choice ([panel] activation in their client file). TOGGLE or HOLD: that, for everyone. |
 | `play_sound` | `true` | `true`, `false` | Play a sound on a switch (adjustability:item.switch, for the player and anyone nearby). Players can turn it down with their Players volume. |
@@ -118,7 +118,7 @@ The mark in front of each row; active_color above colors the active one.
 
 | Key | Default | Allowed | Description |
 |---|---|---|---|
-| `mark_style` | `adjustability:circle` |  | adjustability:circle, square, checkbox, toggle (a switch), radio or text_only (no mark, only the text color). Other mods can add their own. |
+| `mark_style` | `adjustability:toggle` |  | adjustability:circle, square, checkbox, toggle (a switch), radio or text_only (no mark, only the text color). Other mods can add their own. |
 | `dormant_mark_color` | `#FFAAAAAA` |  | The mark in front of dormant enchantments. |
 | `animate_marks` | `true` | `true`, `false` | Animate a mark when its enchantment switches (a toggle's knob slides). |
 
@@ -134,7 +134,7 @@ The item's name at the top, the rows and the cost line.
 | `footer_text_color` | `#FF808080` |  | The cost line, each group's cost and the group headings. |
 | `text_shadow` | `true` | `true`, `false` | Draw the title and the rows with a shadow. |
 | `show_title` | `true` | `true`, `false` | Show the item's name at the top. |
-| `show_item_icon` | `false` | `true`, `false` | Show the item in front of its name. |
+| `show_item_icon` | `true` | `true`, `false` | Show the item in front of its name. |
 
 ### [panel.layout]
 
@@ -144,8 +144,9 @@ Spacing, and how the groups of conflicting enchantments are told apart.
 |---|---|---|---|
 | `padding` | `5` | `2` – `16` | Space between the border and the text, in GUI pixels. |
 | `row_height` | `11` | `9` – `24` | Height of each row, in GUI pixels. |
-| `group_style` | `LINE` | `LINE`, `GAP`, `NONE`, `HEADER` | Between groups: LINE (a gap with a thin line), GAP, NONE, or HEADER (the group's name above it, like Mining). |
+| `group_style` | `HEADER` | `LINE`, `GAP`, `NONE`, `HEADER` | Between groups: LINE (a gap with a thin line), GAP, NONE, or HEADER (the group's name above it, like Mining). |
 | `separator_color` | `#30FF00FF` |  | The line between groups. |
 | `row_order` | `REGISTRY` | `REGISTRY`, `ALPHABETICAL`, `ACTIVE_FIRST` | Order of the rows in a group: REGISTRY (the game's), ALPHABETICAL or ACTIVE_FIRST. |
-| `none_row` | `LAST` | `LAST`, `FIRST` | Where the None row goes when the server allows switching a group off: LAST or FIRST. |
+| `exclusive_none` | `false` | `true`, `false` | Use a separate None row to switch a whole group off. Off: click an active enchantment to switch only it off, keeping compatible members active. Both modes require the server's toggle.allow_none setting. |
+| `none_row` | `LAST` | `LAST`, `FIRST` | Where the None row goes with exclusive_none on and the server allowing switching a group off: LAST or FIRST. |
 | `singles` | `EXPANDED` | `EXPANDED`, `COLLAPSED`, `HIDDEN` | The section for enchantments that conflict with nothing, which the server may let you switch off one by one: EXPANDED or COLLAPSED (how it starts; click its heading to fold it) or HIDDEN. |

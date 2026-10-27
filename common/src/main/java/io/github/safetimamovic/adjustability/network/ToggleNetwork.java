@@ -27,6 +27,18 @@ public final class ToggleNetwork
 
         public static void onToggle(ServerPlayer player, ToggleEnchantmentPayload payload)
         {
+                onToggle(player, payload, false);
+        }
+
+        /** Individual and whole-group requests use the same menu, slot and enchantment validation. */
+        public static void onDeactivate(ServerPlayer player, DeactivateEnchantmentPayload payload)
+        {
+                onToggle(player, new ToggleEnchantmentPayload(payload.containerId(), payload.slot(), payload.target(),
+                        true), true);
+        }
+
+        private static void onToggle(ServerPlayer player, ToggleEnchantmentPayload payload, boolean individual)
+        {
                 AbstractContainerMenu menu = player.containerMenu;
                 if (menu.containerId != payload.containerId() || payload.slot() < 0
                         || payload.slot() >= menu.slots.size())
@@ -47,7 +59,9 @@ public final class ToggleNetwork
                         return;
                 }
                 ItemStack stack = slot.getItem();
-                SwitchResult outcome = payload.none()
+                SwitchResult outcome = individual
+                        ? Toggler.deactivateEnchantment(player, stack, target.get(), SwitchSource.PANEL)
+                        : payload.none()
                         ? Toggler.deactivate(player, stack, target.get(), SwitchSource.PANEL)
                         : Toggler.activate(player, stack, target.get(), SwitchSource.PANEL);
                 if (outcome == SwitchResult.DONE)
@@ -55,7 +69,14 @@ public final class ToggleNetwork
                         slot.setChanged();
                         menu.broadcastChanges();
                 }
-                Toggler.report(player, outcome, target.get(), stack, payload.none());
+                if (individual)
+                {
+                        Toggler.reportIndividual(player, outcome, target.get(), stack);
+                }
+                else
+                {
+                        Toggler.report(player, outcome, target.get(), stack, payload.none());
+                }
         }
 
         public static void onCycle(ServerPlayer player, CycleEnchantmentPayload payload)

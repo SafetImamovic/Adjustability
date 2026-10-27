@@ -42,6 +42,13 @@ public final class Toggler
         /** Server tick of each player's last switch. Weak: player objects go away on logout and respawn. */
         private static final Map<ServerPlayer, Integer> LAST_SWITCH = new WeakHashMap<>();
 
+        private enum Action
+        {
+                ACTIVATE,
+                DEACTIVATE_GROUP,
+                DEACTIVATE_ENCHANTMENT
+        }
+
         private Toggler()
         {
         }
@@ -53,7 +60,7 @@ public final class Toggler
         public static SwitchResult activate(ServerPlayer player, ItemStack stack, Holder<Enchantment> target,
                 SwitchSource source)
         {
-                return change(player, stack, target, source, false);
+                return change(player, stack, target, source, Action.ACTIVATE);
         }
 
         /**
@@ -64,11 +71,18 @@ public final class Toggler
         public static SwitchResult deactivate(ServerPlayer player, ItemStack stack, Holder<Enchantment> anyInGroup,
                 SwitchSource source)
         {
-                return change(player, stack, anyInGroup, source, true);
+                return change(player, stack, anyInGroup, source, Action.DEACTIVATE_GROUP);
+        }
+
+        /** Switches off only {@code target}, leaving compatible active enchantments in its group alone. */
+        public static SwitchResult deactivateEnchantment(ServerPlayer player, ItemStack stack,
+                Holder<Enchantment> target, SwitchSource source)
+        {
+                return change(player, stack, target, source, Action.DEACTIVATE_ENCHANTMENT);
         }
 
         private static SwitchResult change(ServerPlayer player, ItemStack stack, Holder<Enchantment> target,
-                SwitchSource source, boolean none)
+                SwitchSource source, Action action)
         {
                 ToggleConfig config = AdjustabilityConfig.toggle();
                 if (!config.enabled())
@@ -90,7 +104,10 @@ public final class Toggler
                         current.dormant().keySet());
                 Selection<Holder<Enchantment>> next;
                 Set<Holder<Enchantment>> off = new LinkedHashSet<>(current.off());
-                if (none)
+                boolean deactivating = action != Action.ACTIVATE;
+                boolean individual = action == Action.DEACTIVATE_ENCHANTMENT;
+                boolean none = false;
+                if (deactivating)
                 {
                         // An enchantment that conflicts with nothing is a group of one: its "none" switches it off.
                         boolean single = graph.singles().contains(target);
@@ -101,12 +118,14 @@ public final class Toggler
                         Optional<Set<Holder<Enchantment>>> group = single ? Optional.of(Set.of(target))
                                 : graph.components().stream().filter(component -> component.contains(target))
                                         .findFirst();
-                        if (group.isEmpty() || group.get().stream().noneMatch(before.active()::contains))
+                        if (group.isEmpty() || (individual ? !before.active().contains(target)
+                                : group.get().stream().noneMatch(before.active()::contains)))
                         {
                                 return repairedOr(stack, current, registries,
                                         broken ? SwitchResult.NOTHING_TO_SWITCH : null, SwitchResult.NOTHING_TO_SWITCH);
                         }
-                        next = graph.deactivate(before, group.get());
+                        next = graph.deactivate(before, individual ? Set.of(target) : group.get());
+                        none = group.get().stream().noneMatch(next.active()::contains);
                         if (single)
                         {
                                 off.add(target);
@@ -136,7 +155,7 @@ public final class Toggler
                         return SwitchResult.COOLDOWN;
                 }
                 SwitchEvent event = new SwitchEvent(player, stack, target, source, current.active(),
-                        current.dormant(), none);
+                        current.dormant(), none, individual);
                 if (!Listeners.allowSwitch(event))
                 {
                         return SwitchResult.CANCELLED;
@@ -153,7 +172,7 @@ public final class Toggler
                 if (config.playSound())
                 {
                         player.level().playSound(null, player.getX(), player.getY(), player.getZ(), ModSounds.SWITCH,
-                                SoundSource.PLAYERS, 0.6F, none ? 0.8F : 1.3F);
+                                SoundSource.PLAYERS, 0.6F, deactivating ? 0.8F : 1.3F);
                 }
                 ModTriggers.SWITCHED.trigger(player, none, ModStats.countSwitch(player), all.toImmutable());
                 Listeners.onSwitched(event);
@@ -242,11 +261,25 @@ public final class Toggler
         public static void report(ServerPlayer player, SwitchResult outcome, @Nullable Holder<Enchantment> target,
                 ItemStack stack, boolean none)
         {
+                report(player, outcome, target, stack, none, false);
+        }
+
+        /** Reports a request to switch off one enchantment, including when its group still has active members. */
+        public static void reportIndividual(ServerPlayer player, SwitchResult outcome, Holder<Enchantment> target,
+                ItemStack stack)
+        {
+                report(player, outcome, target, stack, true, true);
+        }
+
+        private static void report(ServerPlayer player, SwitchResult outcome, @Nullable Holder<Enchantment> target,
+                ItemStack stack, boolean none, boolean individual)
+        {
                 ToggleConfig config = AdjustabilityConfig.toggle();
                 Component message = switch (outcome)
                 {
                         case DONE -> none ? Component.translatable(
-                                DormantEnchantments.off(stack, player.level().registryAccess()).contains(target)
+                                individual || DormantEnchantments.off(stack, player.level().registryAccess())
+                                        .contains(target)
                                         ? "adjustability.toggle.off" : "adjustability.toggle.none",
                                 TooltipLines.name(Objects.requireNonNull(target), 1))
                                 : Component.translatable("adjustability.toggle.done",

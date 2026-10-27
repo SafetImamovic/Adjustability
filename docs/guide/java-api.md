@@ -76,6 +76,10 @@ is any enchantment of the group), what asked for it (`SwitchSource`: `PANEL`,
 both inputs, vanilla's result and the proposed active and dormant split. A listener that throws is logged and counts
 as allowing.
 
+For an individual row switched off, `deactivatesOnlyTarget()` is true. `none()` is true only if that switch leaves
+the whole group inactive; compatible group members can remain active. The original `SwitchEvent` constructor is
+still available for activation and whole-group None events.
+
 ```java
 /** No switching while on fire. */
 static final AdjustabilityListener NO_SWITCHING_WHILE_BURNING = new AdjustabilityListener()
@@ -172,4 +176,4 @@ On 1.21.1, `GuiGraphicsExtractor` is `GuiGraphics` and `Identifier` is `Resource
 ![The Adjust panel with the diamond mark](/screenshots/panel-mark-api-diamond.png)
 
 If a player's `mark_style` names a mark no installed mod registers (say yours was removed), the panel uses
-`adjustability:circle` and logs it once.
+`adjustability:toggle` and logs it once.

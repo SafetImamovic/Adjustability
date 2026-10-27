@@ -1,6 +1,8 @@
 package io.github.safetimamovic.adjustability.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
+import com.llamalad7.mixinextras.injector.wrapoperation.WrapOperation;
 import io.github.safetimamovic.adjustability.core.GrindstoneRules;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
@@ -13,7 +15,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** Every grindstone result goes through {@code removeNonCursesFrom}; dormant enchantments are handled there too. */
+/** Dormant-only items pass the result check; {@code removeNonCursesFrom} handles their removal. */
 @Mixin(GrindstoneMenu.class)
 abstract class GrindstoneMenuMixin
 {
@@ -27,6 +29,14 @@ abstract class GrindstoneMenuMixin
                 CallbackInfo ci)
         {
                 this.adjustability$player = inventory.player;
+        }
+
+        @WrapOperation(method = "computeResult", at = @At(value = "INVOKE",
+                target = "Lnet/minecraft/world/item/enchantment/EnchantmentHelper;"
+                        + "hasAnyEnchantments(Lnet/minecraft/world/item/ItemStack;)Z"))
+        private boolean adjustability$acceptDormant(ItemStack item, Operation<Boolean> original)
+        {
+                return original.call(item) || GrindstoneRules.canRemoveDormant(item);
         }
 
         @ModifyReturnValue(method = "removeNonCursesFrom", at = @At("RETURN"))

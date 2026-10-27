@@ -1,6 +1,7 @@
 package io.github.safetimamovic.adjustability.gametest;
 
 import com.google.gson.JsonObject;
+import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.PanelProfiles;
 import io.github.safetimamovic.adjustability.config.PanelProfiles.Look;
 import io.github.safetimamovic.adjustability.config.PanelProfiles.ProfileException;
@@ -18,8 +19,8 @@ import net.minecraft.network.chat.contents.TranslatableContents;
 import net.neoforged.neoforge.common.ModConfigSpec.ConfigValue;
 
 /**
- * Panel profiles and share codes, without a client: the player file isn't loaded on a server, so every setting reads
- * as its default, which is all these need.
+ * Panel profiles and share codes, without a client. Explicit defaults keep existing saved player preferences out
+ * of the fixtures.
  */
 final class PanelProfileTests
 {
@@ -43,14 +44,19 @@ final class PanelProfileTests
                         helper.assertValueEqual(PanelProfiles.load("magenta").values(), Map.of(),
                                 "magenta is the defaults");
 
-                        Map<ConfigValue<?>, Object> look = new LinkedHashMap<>(PlayerConfig.currentLook());
+                        helper.assertValueEqual(((ConfigValue<?>) CreatorConfig.SPEC.getValues()
+                                .get("toggle.allow_none")).getDefault(), true, "None is allowed by default");
+                        Map<ConfigValue<?>, Object> defaults = new LinkedHashMap<>();
+                        PlayerConfig.LOOK_SETTINGS.forEach(value -> defaults.put(value, value.getDefault()));
+                        Map<ConfigValue<?>, Object> look = new LinkedHashMap<>(defaults);
                         look.putAll(PanelProfiles.load("high_contrast").values());
                         String code = PanelProfiles.encode(look);
                         helper.assertTrue(code.startsWith("ADJ-" + Services.PLATFORM.modVersion() + ":"),
                                 "a code with this version: " + code);
-                        helper.assertValueEqual(PanelProfiles.decode(code).values(),
-                                PanelProfiles.load("high_contrast").values(), "the code's look");
-                        helper.assertValueEqual(PanelProfiles.decode(PanelProfiles.encode(PlayerConfig.currentLook()))
+                        Map<ConfigValue<?>, Object> decoded = new LinkedHashMap<>(defaults);
+                        decoded.putAll(PanelProfiles.decode(code).values());
+                        helper.assertValueEqual(decoded, look, "the code's complete look");
+                        helper.assertValueEqual(PanelProfiles.decode(PanelProfiles.encode(defaults))
                                 .values(), Map.of(), "the defaults' code holds nothing");
 
                         JsonObject json = new JsonObject();

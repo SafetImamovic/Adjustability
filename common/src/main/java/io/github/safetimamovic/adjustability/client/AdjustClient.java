@@ -8,6 +8,7 @@ import io.github.safetimamovic.adjustability.core.DormantEnchantments;
 import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.TooltipLines;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
+import io.github.safetimamovic.adjustability.network.DeactivateEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import java.util.List;
 import java.util.Set;
@@ -69,6 +70,11 @@ public final class AdjustClient
                 if (payload instanceof ToggleEnchantmentPayload toggle)
                 {
                         AdjustTutorial.requestedSwitch(toggle);
+                }
+                else if (payload instanceof DeactivateEnchantmentPayload off)
+                {
+                        AdjustTutorial.requestedSwitch(new ToggleEnchantmentPayload(off.containerId(), off.slot(),
+                                off.target(), true));
                 }
                 sender.accept(payload);
         }

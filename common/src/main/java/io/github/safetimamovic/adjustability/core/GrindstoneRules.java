@@ -16,6 +16,13 @@ public final class GrindstoneRules
         {
         }
 
+        /** Whether the server allows a grindstone to remove this stack's dormant or switched-off enchantments. */
+        public static boolean canRemoveDormant(ItemStack item)
+        {
+                return !item.isEmpty() && AdjustabilityConfig.grindstone().removeDormant()
+                        && DormantEnchantments.has(item);
+        }
+
         /**
          * After vanilla removed the active non-curse enchantments from {@code item}: removes the dormant ones too, or,
          * with {@code remove_dormant} off, makes the ones that no longer conflict with anything active again.

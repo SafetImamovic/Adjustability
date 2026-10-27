@@ -103,7 +103,8 @@ public final class CreatorConfig
                 ALLOW_TOO_EXPENSIVE = builder.comment("The extra cost may take the price past vanilla's survival limit",
                                 "of 39 levels.")
                         .define("allow_too_expensive", false);
-                MAX_DORMANT_PER_ITEM = builder.comment("Most dormant enchantments one item can hold. 0: no limit.")
+                MAX_DORMANT_PER_ITEM = builder.comment("Most conflicting dormant enchantments on one item. None choices",
+                                "and switched-off single enchantments do not consume extra allowance. 0: no limit.")
                         .defineInRange("max_dormant_per_item", 4, 0, 255);
                 MAX_CONFLICTS_PER_COMPONENT = builder.comment("Most enchantments in one group of conflicting enchantments",
                                 "on an item (2 = at most two Protections on one armor piece). 0: no limit.")
@@ -111,8 +112,9 @@ public final class CreatorConfig
                 builder.pop();
 
                 builder.comment("Grindstones.").push("grindstone");
-                REMOVE_DORMANT = builder.comment("A grindstone removes dormant enchantments too. Off: they stay on the",
-                                "item while the active ones are removed, and become active again when nothing",
+                REMOVE_DORMANT = builder.comment("A grindstone removes dormant and switched-off enchantments, even if",
+                                "nothing is active. Off: they stay on the item while the active ones are removed,",
+                                "and become active again when nothing",
                                 "conflicts with them any more.")
                         .define("remove_dormant", true);
                 builder.pop();
@@ -148,9 +150,10 @@ public final class CreatorConfig
                         .defineListAllowEmpty("group_costs", List.of(),
                                 () -> "#minecraft:exclusive_set/mining = XP_LEVELS 3", Exclusivity::isValidCost);
                 ALLOW_NONE = builder.comment("A group of conflicting enchantments may have none of them active: the",
-                                "Adjust panel gets a None row per group and the Cycle key steps through none. Off: one",
-                                "of each group is always active (items left on none are fixed by their next switch).")
-                        .define("allow_none", false);
+                                "Adjust panel lets players switch them off and the Cycle key steps through none.",
+                                "Off: one of each group is always active (items left on none are fixed by their next",
+                                "switch).")
+                        .define("allow_none", true);
                 ALLOW_SWITCH_OFF = builder.comment("Enchantments that conflict with nothing can be switched off",
                                 "(and on again) in the Adjust panel, e.g. Knockback or a lone Silk Touch. Curses never.",
                                 "A switched-off enchantment stays off through anvils and repairs until it's switched",

@@ -76,7 +76,7 @@ max_conflicts_per_component = 0
 | `combine_books` | `true` | Two books with conflicting enchantments make one book that holds them all. |
 | `dormant_cost_per_level` | `1` | Extra anvil levels per level of each enchantment that becomes dormant. |
 | `allow_too_expensive` | `false` | Lets the extra cost take the price past the survival limit of 39 levels. |
-| `max_dormant_per_item` | `4` | Most dormant enchantments one item can hold; the anvil gives no result past it. `0`: no limit. |
+| `max_dormant_per_item` | `4` | Most conflicting dormant alternatives one item can hold; the anvil gives no result past it. Selecting None does not consume extra allowance, and switched-off single enchantments do not count. `0`: no limit. |
 | `max_conflicts_per_component` | `0` | Most enchantments in one group of conflicting ones (e.g. `2` = at most two Protections on one piece); the anvil gives no result past it. `0`: no limit. |
 
 ## Switching
@@ -92,7 +92,7 @@ cost_item = "minecraft:lapis_lazuli"
 allow_in_world_cycle = true
 allow_command = true
 group_costs = []
-allow_none = false
+allow_none = true
 allow_switch_off = true
 panel_activation = "PLAYER"
 ```
@@ -108,7 +108,7 @@ panel_activation = "PLAYER"
 | `allow_in_world_cycle` | `true` | The Cycle key works outside the inventory. |
 | `allow_command` | `true` | Players can use `/adjustability toggle`. |
 | `group_costs` | `[]` | Own costs for particular groups, instead of `cost_type` / `cost_amount` / `cost_item`. See below. |
-| `allow_none` | `false` | A group may have **none** of its enchantments active: the Adjust panel gets a **None** row per group, and the Cycle key steps through none after the last choice. Switching to none costs the same as any switch in that group. Turned back off, items left on none get one of the group active again at their next switch or anvil use. |
+| `allow_none` | `true` | A group may have **none** of its enchantments active. Players can switch off individual members or use a separate **None** row with `exclusive_none`. The Cycle key steps through none after the last choice. Switching off costs the same as any switch in that group. Turned back off, items left on none get one of the group active again at their next switch or anvil use. |
 | `allow_switch_off` | `true` | An enchantment that conflicts with nothing on the item can be switched **off** and on again in the Adjust panel (Knockback, Fire Aspect, a lone Silk Touch). Curses never. Same cost and cooldown as any switch; a `group_costs` entry naming the enchantment applies. It stays off through anvils and repairs until it's switched on. |
 | `panel_activation` | `PLAYER` | How the Adjust key works for everyone: `PLAYER` (each player's own `activation` setting), `TOGGLE` or `HOLD`. |
 | `play_sound` | `true` | A sound on each switch (`adjustability:item.switch`, an enchanting table sound by default; resource packs can replace it). The player and anyone nearby hear it. |
@@ -138,7 +138,7 @@ remove_dormant = true
 
 | Key | Default | What it does |
 |---|---|---|
-| `remove_dormant` | `true` | A grindstone removes dormant enchantments too, and gives experience for them like for active ones. Off: they stay (and give no experience), and become active once nothing active conflicts with them. |
+| `remove_dormant` | `true` | A grindstone removes dormant and switched-off enchantments even when nothing is active, and gives experience for registered non-curse enchantments. Off: dormant enchantments stay and give no experience; a dormant-only item produces no removal result. |
 
 ## Player settings
 
@@ -170,7 +170,7 @@ border_style = "GRADIENT"
 default_profile = ""
 
 [panel.marks]
-mark_style = "adjustability:circle"
+mark_style = "adjustability:toggle"
 dormant_mark_color = "#FFAAAAAA"
 animate_marks = true
 
@@ -181,20 +181,25 @@ dormant_text_color = "#FFAAAAAA"
 footer_text_color = "#FF808080"
 text_shadow = true
 show_title = true
-show_item_icon = false
+show_item_icon = true
 
 [panel.layout]
 padding = 5
 row_height = 11
-group_style = "LINE"
+group_style = "HEADER"
 separator_color = "#30FF00FF"
 row_order = "REGISTRY"
+exclusive_none = false
 none_row = "LAST"
 singles = "EXPANDED"
 ```
 
 The settings directly under `[panel]` are where 0.1.0 put them, so older files keep their values. The ones added
 later are in the `[panel.*]` sections. [Panel styles](panel-styles.md) shows what the marks and profiles look like.
+
+New defaults apply to new files and panel resets. Existing saved preferences keep their values. Use
+`/adjustability panel reset` to apply the current panel defaults (or the modpack's configured `default_profile`), and
+set `[toggle] allow_none = true` in an existing server file to allow groups with nothing active.
 
 | Key | Default | What it does |
 |---|---|---|
@@ -216,7 +221,7 @@ later are in the `[panel.*]` sections. [Panel styles](panel-styles.md) shows wha
 | `show_cost` | `true` | The cost and cooldown line at the bottom. |
 | `border_style` | `GRADIENT` | `GRADIENT` (fades from `border_top_color` to `border_bottom_color`, like a tooltip), `SOLID` (`border_top_color` all around), `NONE`, or `SPRITE`: the `adjustability:panel` GUI sprite, which resource packs can replace. The sprite includes the background, so the background and border colors aren't used with it. |
 | `default_profile` | `` | A [panel profile](panel-styles.md#profiles) that `/adjustability panel reset` goes back to, instead of the defaults: a built-in one or a file's name. Empty: the defaults. For modpacks. |
-| `mark_style` | `adjustability:circle` | The mark in front of each row: `adjustability:circle`, `square`, `checkbox`, `toggle` (a switch), `radio` or `text_only` (no mark). Other mods can add their own. |
+| `mark_style` | `adjustability:toggle` | The mark in front of each row: `adjustability:circle`, `square`, `checkbox`, `toggle` (a switch), `radio` or `text_only` (no mark). Other mods can add their own. |
 | `dormant_mark_color` | `#FFAAAAAA` | The mark in front of dormant enchantments. |
 | `animate_marks` | `true` | Animate a mark when its enchantment switches; a toggle's knob slides across. |
 | `title_color` | `#FFFFFFFF` | The item's name at the top. |
@@ -225,13 +230,14 @@ later are in the `[panel.*]` sections. [Panel styles](panel-styles.md) shows wha
 | `footer_text_color` | `#FF808080` | The cost line, each group's cost and the group headings. |
 | `text_shadow` | `true` | Draw the title and the rows with a shadow. |
 | `show_title` | `true` | Show the item's name at the top. |
-| `show_item_icon` | `false` | Show the item in front of its name. |
+| `show_item_icon` | `true` | Show the item in front of its name. |
 | `padding` | `5` | Space between the border and the text, 2 to 16 GUI pixels. |
 | `row_height` | `11` | Height of each row, 9 to 24 GUI pixels. |
-| `group_style` | `LINE` | Between groups of conflicting enchantments: `LINE` (a gap with a thin line), `GAP`, `NONE`, or `HEADER` (the group's name above it, like Mining). |
+| `group_style` | `HEADER` | Between groups of conflicting enchantments: `LINE` (a gap with a thin line), `GAP`, `NONE`, or `HEADER` (the group's name above it, like Mining). |
 | `separator_color` | `#30FF00FF` | The line between groups. |
 | `row_order` | `REGISTRY` | Order of the rows in a group: `REGISTRY` (the game's), `ALPHABETICAL` or `ACTIVE_FIRST`. |
-| `none_row` | `LAST` | Where the None row goes when the server allows switching a group off: `LAST` or `FIRST`. |
+| `exclusive_none` | `false` | Off: click an active enchantment to switch it off, keeping compatible group members active. Conflicting enchantments still exclude each other. On: use a separate **None** row to switch the whole group off. Both modes require the server's `allow_none`. |
+| `none_row` | `LAST` | Where the None row goes with `exclusive_none` on and the server allowing switching a group off: `LAST` or `FIRST`. |
 | `singles` | `EXPANDED` | The section for enchantments that conflict with nothing, which the server may let you switch off one by one: `EXPANDED` or `COLLAPSED` (how it starts; click its heading to fold it) or `HIDDEN`. |
 
 Colors are `#RRGGBB` or `#AARRGGBB`, where `AA` is the opacity (`FF` solid, `00` invisible).

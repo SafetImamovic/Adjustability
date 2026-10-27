@@ -28,7 +28,7 @@ public final class RowMarks
 
         static
         {
-                MARKS.put(PlayerConfig.DEFAULT_MARK_STYLE, mark(7, RowMarks::circle));
+                MARKS.put("adjustability:circle", mark(7, RowMarks::circle));
                 MARKS.put("adjustability:square", mark(7, RowMarks::square));
                 MARKS.put("adjustability:checkbox", mark(7, RowMarks::checkbox));
                 MARKS.put("adjustability:toggle", mark(13, RowMarks::toggle));
@@ -61,7 +61,7 @@ public final class RowMarks
                 return Collections.unmodifiableSet(MARKS.keySet());
         }
 
-        /** The mark with this id, or the circle if no mod registered it. */
+        /** The mark with this id, or the default if no mod registered it. */
         static RowMark get(String id)
         {
                 RowMark mark = MARKS.get(id);
