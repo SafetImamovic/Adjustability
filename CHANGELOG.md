@@ -5,6 +5,12 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Fixed
+
+- With YACL installed, the config screen didn't open from Mod Menu or the mod list before a world had been joined on
+  26.x; Mod Menu showed a red "!" instead. `/adjustability config` was unaffected. If the YACL screen ever fails to
+  build, the stock config screen now opens instead.
+
 ## [0.6.1] - 2026-10-27
 
 ### Added

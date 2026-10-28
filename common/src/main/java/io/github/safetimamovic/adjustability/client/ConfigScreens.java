@@ -31,9 +31,10 @@ public final class ConfigScreens
                         {
                                 return YaclConfigScreen.create(parent);
                         }
-                        catch (LinkageError e)
+                        catch (LinkageError | RuntimeException e)
                         {
-                                // A YACL version whose API changed: still better to have a screen.
+                                // A YACL version whose API changed, or a bug in building it: still better to have a
+                                // screen than Mod Menu's red "!".
                                 Constants.LOG.warn("Couldn't build the YACL config screen, opening the stock one", e);
                                 return stock.apply(parent);
                         }
