@@ -44,12 +44,12 @@ final class PanelPreview implements ImageRenderer
 
         /** A setting's value on the screen, or {@code null} for the saved one. */
         private final Function<ConfigValue<?>, @Nullable Object> pending;
-        private final ItemStack item = new ItemStack(Items.DIAMOND_BOOTS);
+        /** Made on first draw that can: see {@link #item()}. */
+        private @Nullable ItemStack item;
 
         PanelPreview(Function<ConfigValue<?>, @Nullable Object> pending)
         {
                 this.pending = pending;
-                this.item.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
         }
 
         @Override
@@ -59,7 +59,10 @@ final class PanelPreview implements ImageRenderer
                 PanelStyle style = PlayerConfig.panel(this.pending);
                 ToggleConfig toggle = AdjustabilityConfig.toggle();
                 Component footer = AdjustPanel.footer(toggle.defaultCost(), toggle.cooldownTicks());
-                Content content = PanelLayout.layout(font, style, this.item.getHoverName(), this.item,
+                ItemStack item = item();
+                Component title = item.isEmpty() ? Component.translatable(Items.DIAMOND_BOOTS.getDescriptionId())
+                        : item.getHoverName();
+                Content content = PanelLayout.layout(font, style, title, item,
                         groups(toggle.allowNone() && style.layout().exclusiveNone(),
                                 toggle.allowSwitchOff() ? style.layout().singles()
                                         : SinglesSection.HIDDEN), List.of(), footer);
@@ -90,9 +93,9 @@ final class PanelPreview implements ImageRenderer
                 graphics.fill(slotLeft - 1, slotTop - 1, slotLeft + 16, slotTop + 16, SLOT_SHADOW);
                 graphics.fill(slotLeft, slotTop, slotLeft + 16, slotTop + 16, SLOT);
                 //? if >=26.1 {
-                graphics.fakeItem(this.item, slotLeft, slotTop);
+                graphics.fakeItem(item, slotLeft, slotTop);
                 //?} else
-                /*graphics.renderFakeItem(this.item, slotLeft, slotTop);*/
+                /*graphics.renderFakeItem(item, slotLeft, slotTop);*/
                 Row hovered = content.rows().stream().filter(row -> !row.active() && !row.none()).findFirst()
                         .orElse(null);
                 PanelRenderer.draw(graphics, font, style, panelX, panelY, content, hovered, null,
@@ -102,6 +105,24 @@ final class PanelPreview implements ImageRenderer
                 //?} else
                 /*graphics.pose().popPose();*/
                 return height;
+        }
+
+        /**
+         * The glinting boots, or an empty stack (an empty slot, the title without an icon) while it can't be made:
+         * from 26.1 an item's components are only bound once a world's registries load, so not on the title screen
+         * before a world has been joined.
+         */
+        private ItemStack item()
+        {
+                //? if >=26.1 {
+                if (this.item == null && Items.DIAMOND_BOOTS.builtInRegistryHolder().areComponentsBound())
+                //?} else
+                /*if (this.item == null)*/
+                {
+                        this.item = new ItemStack(Items.DIAMOND_BOOTS);
+                        this.item.set(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true);
+                }
+                return this.item == null ? ItemStack.EMPTY : this.item;
         }
 
         /**
