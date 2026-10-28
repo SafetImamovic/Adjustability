@@ -5,6 +5,8 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-10-28
+
 ### Fixed
 
 - With YACL installed, the config screen didn't open from Mod Menu or the mod list before a world had been joined on
