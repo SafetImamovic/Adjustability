@@ -5,6 +5,13 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+## [0.6.3] - 2026-10-29
+
+### Fixed
+
+- Mod list artwork: package the banner, use the supported logo field on older NeoForge, and provide Catalogue with
+  the square icon separately from the banner.
+
 ## [0.6.2] - 2026-10-28
 
 ### Fixed
