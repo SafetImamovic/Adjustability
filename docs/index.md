@@ -10,8 +10,11 @@ hero:
     alt: A netherite pickaxe
   actions:
     - theme: brand
-      text: Download
+      text: Download on CurseForge
       link: https://www.curseforge.com/minecraft/mc-mods/adjustability
+    - theme: alt
+      text: Download on Modrinth
+      link: https://modrinth.com/mod/adjustability
     - theme: alt
       text: Read the guide
       link: /guide/
