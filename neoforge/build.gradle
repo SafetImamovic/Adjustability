@@ -62,6 +62,16 @@ dependencies {
     // Optional config screen.
     compileOnly("maven.modrinth:yacl:${yacl_version}-neoforge")
     localRuntime("maven.modrinth:yacl:${yacl_version}-neoforge")
+
+    // Compat testing only: ./gradlew :neoforge:1.21.1:runGameTestServer -Papotheosis
+    if (project.hasProperty('apotheosis')) {
+        localRuntime('maven.modrinth:apotheosis:1.21.1-8.9.0')
+        localRuntime('maven.modrinth:apothic-enchanting:1.21.1-1.6.4')
+        localRuntime('maven.modrinth:apothic-attributes:1.21.1-2.11.0')
+        localRuntime('maven.modrinth:apothic-spawners:1.21.1-1.4.0')
+        localRuntime('maven.modrinth:placebo:1.21.1-9.9.4')
+        localRuntime('maven.modrinth:patchouli:1.21.1-93-neoforge')
+    }
 }
 
 // Implement mcgradleconventions loader attribute
