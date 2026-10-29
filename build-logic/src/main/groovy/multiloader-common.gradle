@@ -126,6 +126,15 @@ processResources {
         expand expandProps
     }
 
+    // Older NeoForge uses logoFile for its banner; separate icon/banner fields came in 26.1.
+    if (stonecutter.eval(stonecutter.current.version, '<26.1')) {
+        filesMatching('META-INF/neoforge.mods.toml') {
+            filter { String line ->
+                line.startsWith('iconFile=') ? null : line.replace('bannerFile=', 'logoFile=')
+            }
+        }
+    }
+
     filesMatching(['pack.mcmeta', 'fabric.mod.json', '*.mixins.json']) {
         expand jsonExpandProps
     }
