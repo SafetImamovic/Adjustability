@@ -5,6 +5,13 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Added
+
+- Minecraft 26.1.2, on Fabric and NeoForge (26.1.2.125 or newer), with the same features as 26.3. Its server config is
+  per world, as on 1.21.1.
+- Minecraft 26.2, on Fabric and NeoForge (26.2.0.93 or newer), with the same features as 26.3. Its server config is
+  per world, as on 1.21.1.
+
 ## [0.6.3] - 2026-10-29
 
 ### Fixed

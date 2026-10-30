@@ -269,7 +269,7 @@ final class SwitchOffTests
 
         private static ServerPlayer player(GameTestHelper helper)
         {
-                return (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+                return AdjustabilityGameTests.survivalServerPlayer(helper);
         }
 
         private static Holder<Enchantment> enchantment(GameTestHelper helper, ResourceKey<Enchantment> key)

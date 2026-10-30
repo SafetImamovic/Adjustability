@@ -8,12 +8,22 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
-//? if >=26.1 {
+//? if >=26.3 {
 import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.codec.RegistryCodecs;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
-//?} else {
+//?} else if >=26.2 {
+/*import net.minecraft.advancements.predicates.ContextAwarePredicate;
+import net.minecraft.advancements.predicates.entity.EntityPredicate;
+import net.minecraft.advancements.triggers.SimpleCriterionTrigger;
+import net.minecraft.core.RegistryCodecs;
+*///?} else if >=26.1 {
+/*import net.minecraft.advancements.criterion.ContextAwarePredicate;
+import net.minecraft.advancements.criterion.EntityPredicate;
+import net.minecraft.advancements.criterion.SimpleCriterionTrigger;
+import net.minecraft.core.RegistryCodecs;
+*///?} else {
 /*import net.minecraft.advancements.critereon.ContextAwarePredicate;
 import net.minecraft.advancements.critereon.EntityPredicate;
 import net.minecraft.advancements.critereon.SimpleCriterionTrigger;
@@ -41,7 +51,7 @@ public class SwitchedTrigger extends SimpleCriterionTrigger<SwitchedTrigger.Trig
         }
 
         public record TriggerInstance(
-                //? if >=26.1 {
+                //? if >=26.3 {
                 Optional<Holder<LootItemCondition>> player,
                 //?} else
                 /*Optional<ContextAwarePredicate> player,*/
@@ -49,14 +59,14 @@ public class SwitchedTrigger extends SimpleCriterionTrigger<SwitchedTrigger.Trig
                 implements SimpleCriterionTrigger.SimpleInstance
         {
                 public static final Codec<TriggerInstance> CODEC = RecordCodecBuilder.create(instance -> instance.group(
-                        //? if >=26.1 {
+                        //? if >=26.3 {
                         LootItemCondition.CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player),
                         //?} else
                         /*EntityPredicate.ADVANCEMENT_CODEC.optionalFieldOf("player").forGetter(TriggerInstance::player),*/
                         Codec.BOOL.optionalFieldOf("none").forGetter(TriggerInstance::none),
                         Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("min_switches")
                                 .forGetter(TriggerInstance::minSwitches),
-                        //? if >=26.1 {
+                        //? if >=26.3 {
                         RegistryCodecs.holderSet(Registries.ENCHANTMENT).optionalFieldOf("holds")
                         //?} else
                         /*RegistryCodecs.homogeneousList(Registries.ENCHANTMENT).optionalFieldOf("holds")*/

@@ -930,9 +930,29 @@ public final class AdjustabilityGameTests
                 }
         }
 
-        private static ServerPlayer survivalServerPlayer(GameTestHelper helper)
+        static ServerPlayer survivalServerPlayer(GameTestHelper helper)
         {
+                //? if >=26.2 {
                 return (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+                //?} else {
+                /*var cookie = net.minecraft.server.network.CommonListenerCookie.createInitial(
+                        new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "test-mock-player"), false);
+                ServerPlayer player = new ServerPlayer(helper.getLevel().getServer(), helper.getLevel(),
+                        cookie.gameProfile(), cookie.clientInformation())
+                {
+                        @Override
+                        public GameType gameMode()
+                        {
+                                return GameType.SURVIVAL;
+                        }
+                };
+                var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND);
+                new io.netty.channel.embedded.EmbeddedChannel(connection);
+                helper.getLevel().getServer().getPlayerList().placeNewPlayer(connection, player, cookie);
+                // Joining gives the server's default game mode, which the GameTest server sets to creative.
+                player.setGameMode(GameType.SURVIVAL);
+                return player;
+                *///?}
         }
 
         private static void test(ModRegistries.Registrar registrar, String name, Consumer<GameTestHelper> function)

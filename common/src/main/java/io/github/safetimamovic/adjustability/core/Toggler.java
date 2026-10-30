@@ -370,7 +370,7 @@ public final class Toggler
                         {
                                 var inventory = player.getInventory();
                                 var crafting = player.inventoryMenu.getCraftSlots();
-                                //? if >=26.1 {
+                                //? if >=26.3 {
                                 Item item = BuiltInRegistries.ITEM.getValue(cost.item());
                                 if (inventory.clearOrCountMatchingItems(candidate -> candidate.is(item), true, amount,
                                         crafting) < amount)
@@ -379,7 +379,16 @@ public final class Toggler
                                 }
                                 inventory.clearOrCountMatchingItems(candidate -> candidate.is(item), false, amount,
                                         crafting);
-                                //?} else {
+                                //?} else if >=26.1 {
+                                /*Item item = BuiltInRegistries.ITEM.getValue(cost.item());
+                                // A count of 0 only counts.
+                                if (inventory.clearOrCountMatchingItems(candidate -> candidate.is(item), 0, crafting)
+                                        < amount)
+                                {
+                                        return false;
+                                }
+                                inventory.clearOrCountMatchingItems(candidate -> candidate.is(item), amount, crafting);
+                                *///?} else {
                                 /*Item item = BuiltInRegistries.ITEM.get(cost.item());
                                 // A count of 0 only counts.
                                 if (inventory.clearOrCountMatchingItems(candidate -> candidate.is(item), 0, crafting)
