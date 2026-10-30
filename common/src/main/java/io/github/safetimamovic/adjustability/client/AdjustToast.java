@@ -98,9 +98,11 @@ public final class AdjustToast implements Toast
 
         static void add(Minecraft minecraft, AdjustToast toast)
         {
-                //? if >=26.1 {
+                //? if >=26.2 {
                 minecraft.gui.toastManager().addToast(toast);
-                //?} else
+                //?} else if >=26.1 {
+                /*minecraft.getToastManager().addToast(toast);
+                *///?} else
                 /*minecraft.getToasts().addToast(toast);*/
         }
 }

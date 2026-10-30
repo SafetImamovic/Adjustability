@@ -22,6 +22,11 @@ stonecutter.parameters {
         string(eval(current.version, '<1.21.5')) {
             replace('DataComponentGetter', 'DataComponentHolder')
         }
+        // SoundEvent and ResourceKey were still location() until 26.3.
+        string(eval(current.version, '<26.3')) {
+            replace('SWITCH.identifier()', 'SWITCH.location()')
+            replace('best.identifier()', 'best.location()')
+        }
         // GUI drawing before 26.1: GuiGraphics, and drawString for text.
         string(eval(current.version, '<26.1')) {
             replace('GuiGraphicsExtractor', 'GuiGraphics')

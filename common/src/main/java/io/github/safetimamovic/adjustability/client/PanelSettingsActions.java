@@ -196,9 +196,11 @@ final class PanelSettingsActions<S> implements PanelCommand.Actions<S>
 
         private static void chat(Component message)
         {
-                //? if >=26.1 {
+                //? if >=26.2 {
                 Minecraft.getInstance().gui.hud.getChat().addClientSystemMessage(message);
-                //?} else
+                //?} else if >=26.1 {
+                /*Minecraft.getInstance().gui.getChat().addClientSystemMessage(message);
+                *///?} else
                 /*Minecraft.getInstance().gui.getChat().addMessage(message);*/
         }
 }

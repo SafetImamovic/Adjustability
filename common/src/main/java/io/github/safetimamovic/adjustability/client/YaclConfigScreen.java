@@ -262,10 +262,13 @@ final class YaclConfigScreen
         private static void toast(ProfileException exception)
         {
                 Minecraft minecraft = Minecraft.getInstance();
-                //? if >=26.1 {
+                //? if >=26.2 {
                 SystemToast.addOrUpdate(minecraft.gui.toastManager(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
                         Component.translatable("adjustability.yacl.profile_failed"), exception.message());
-                //?} else {
+                //?} else if >=26.1 {
+                /*SystemToast.addOrUpdate(minecraft.getToastManager(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
+                        Component.translatable("adjustability.yacl.profile_failed"), exception.message());
+                *///?} else {
                 /*SystemToast.addOrUpdate(minecraft.getToasts(), SystemToast.SystemToastId.PERIODIC_NOTIFICATION,
                         Component.translatable("adjustability.yacl.profile_failed"), exception.message());
                 *///?}

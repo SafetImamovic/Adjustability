@@ -75,7 +75,7 @@ final class RemovedEnchantmentTests
                 helper.assertValueEqual(DormantEnchantments.get(pickaxe, registries).size(), 1, "only Silk Touch read");
                 helper.assertValueEqual(DormantEnchantments.unknown(pickaxe, registries), Map.of(GONE, 3), "unknown");
 
-                ServerPlayer player = (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
+                ServerPlayer player = AdjustabilityGameTests.survivalServerPlayer(helper);
                 helper.assertValueEqual(Toggler.activate(player, pickaxe, silkTouch, SwitchSource.COMMAND),
                         SwitchResult.DONE, "switch");
                 helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(silkTouch), 1, "Silk Touch active");

@@ -89,7 +89,7 @@ public final class AdjustClient
                 AdjustTutorial.tick(minecraft);
                 while (AdjustKeys.CYCLE.consumeClick())
                 {
-                        //? if >=26.1 {
+                        //? if >=26.2 {
                         if (minecraft.player == null || minecraft.level == null || minecraft.gui.screen() != null)
                         //?} else
                         /*if (minecraft.player == null || minecraft.level == null || minecraft.screen != null)*/
@@ -105,7 +105,7 @@ public final class AdjustClient
                         if (minecraft.player.isShiftKeyDown())
                         {
                                 cycleGroup = (cycleGroup + 1) % groups.size();
-                                //? if >=26.1 {
+                                //? if >=26.2 {
                                 minecraft.gui.hud.setOverlayMessage(Component.translatable("adjustability.cycle.group",
                                 //?} else
                                 /*minecraft.gui.setOverlayMessage(Component.translatable("adjustability.cycle.group",*/

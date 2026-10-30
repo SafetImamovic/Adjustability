@@ -8,8 +8,8 @@ def obfuscated = stonecutter.eval(stonecutter.current.version, '<26.1')
 apply plugin: obfuscated ? 'net.fabricmc.fabric-loom-remap' : 'net.fabricmc.fabric-loom'
 def mod = { String configuration -> obfuscated ? "mod${configuration.capitalize()}" : configuration }
 
-// The client GameTests use the test framework of 26.1 and later; older versions are tested by hand.
-if (obfuscated) {
+// The client GameTests are written for the test framework of 26.3; older versions are tested by hand.
+if (stonecutter.eval(stonecutter.current.version, '<26.3')) {
     sourceSets.main.java.exclude('io/github/safetimamovic/adjustability/gametest/**')
 }
 

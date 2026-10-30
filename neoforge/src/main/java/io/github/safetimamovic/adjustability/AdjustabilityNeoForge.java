@@ -26,9 +26,9 @@ public class AdjustabilityNeoForge
         public AdjustabilityNeoForge(IEventBus modEventBus, ModContainer container)
         {
                 Adjustability.init();
-                // SYNCED: NeoForge's synced-to-clients config (called SERVER on Fabric's port, and before 26.1, where
+                // SYNCED: NeoForge's synced-to-clients config (called SERVER on Fabric's port, and before 26.3, where
                 // the file is per world, in serverconfig/); same file names on both.
-                //? if >=26.1 {
+                //? if >=26.3 {
                 container.registerConfig(ModConfig.Type.SYNCED, CreatorConfig.SPEC, CreatorConfig.FILE_NAME);
                 //?} else
                 /*container.registerConfig(ModConfig.Type.SERVER, CreatorConfig.SPEC, CreatorConfig.FILE_NAME);*/
