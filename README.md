@@ -28,7 +28,7 @@
   <a href="https://ko-fi.com/safetimamovic"><b>Support on Ko-fi</b></a>
 </p>
 
-Minecraft Java **1.21.1** and **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
+Minecraft Java **1.21.1**, **26.1**, **26.2** and **26.3** · **Fabric** + **NeoForge** · MIT · **Beta**
 
 <p align="center">
   <img src="docs/public/screenshots/showcase.gif" alt="A netherite pickaxe gets Silk Touch from a book in an anvil and keeps Fortune; switched to Fortune in the Adjust panel it mines diamonds, switched to Silk Touch it mines the ore blocks" width="640">
@@ -38,11 +38,11 @@ Minecraft Java **1.21.1** and **26.3** · **Fabric** + **NeoForge** · MIT · **
 
 Install on both the client and the server. Optional mods are client only.
 
-| | Minecraft 1.21.1 | Minecraft 26.3 |
-|---|---|---|
-| **Fabric, required** | [Fabric Loader](https://fabricmc.net/use/) 0.16.0+<br>[Fabric API](https://modrinth.com/mod/fabric-api) 0.102.0+<br>[Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) 21.1.0+ | [Fabric Loader](https://fabricmc.net/use/) 0.19.5+<br>[Fabric API](https://modrinth.com/mod/fabric-api)<br>[Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) 26.3.1+ |
-| **NeoForge, required** | [NeoForge](https://neoforged.net/) 21.1.1+ | [NeoForge](https://neoforged.net/) 26.3.0.95+ |
-| **Optional** (both loaders) | [JEI](https://modrinth.com/mod/jei): info pages on the anvils and the grindstone<br>[YACL](https://modrinth.com/mod/yacl) 3.8.2+: a nicer settings screen | [JEI](https://modrinth.com/mod/jei): info pages on the anvils and the grindstone<br>[YACL](https://modrinth.com/mod/yacl) 3.9.7+: a nicer settings screen |
+| | Minecraft 1.21.1 | Minecraft 26.1 | Minecraft 26.2 | Minecraft 26.3 |
+|---|---|---|---|---|
+| **Fabric, required** | [Fabric Loader](https://fabricmc.net/use/) 0.16.0+<br>[Fabric API](https://modrinth.com/mod/fabric-api) 0.102.0+<br>[Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) 21.1.0+ | [Fabric Loader](https://fabricmc.net/use/) 0.19.5+<br>[Fabric API](https://modrinth.com/mod/fabric-api)<br>[Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) 26.1.5+ | [Fabric Loader](https://fabricmc.net/use/) 0.19.5+<br>[Fabric API](https://modrinth.com/mod/fabric-api)<br>[Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) 26.2.1+ | [Fabric Loader](https://fabricmc.net/use/) 0.19.5+<br>[Fabric API](https://modrinth.com/mod/fabric-api)<br>[Forge Config API Port](https://modrinth.com/mod/forge-config-api-port) 26.3.1+ |
+| **NeoForge, required** | [NeoForge](https://neoforged.net/) 21.1.1+ | [NeoForge](https://neoforged.net/) 26.1.2.125+ | [NeoForge](https://neoforged.net/) 26.2.0.93+ | [NeoForge](https://neoforged.net/) 26.3.0.95+ |
+| **Optional** (both loaders) | [JEI](https://modrinth.com/mod/jei): info pages on the anvils and the grindstone<br>[YACL](https://modrinth.com/mod/yacl) 3.8.2+: a nicer settings screen | [JEI](https://modrinth.com/mod/jei): info pages on the anvils and the grindstone<br>[YACL](https://modrinth.com/mod/yacl) 3.9.7+: a nicer settings screen | [JEI](https://modrinth.com/mod/jei): info pages on the anvils and the grindstone<br>[YACL](https://modrinth.com/mod/yacl) 3.9.7+: a nicer settings screen | [JEI](https://modrinth.com/mod/jei): info pages on the anvils and the grindstone<br>[YACL](https://modrinth.com/mod/yacl) 3.9.7+: a nicer settings screen |
 
 ### Tested with
 

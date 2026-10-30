@@ -1,7 +1,7 @@
 # Compatibility
 
-Adjustability works on Minecraft **1.21.1** and **26.3** with **Fabric** (Fabric API, Forge Config API Port) and
-**NeoForge** (21.1.1 or newer for 1.21.1, 26.3.0.95 or newer for 26.3), on both the client and the server. Both
+Adjustability works on Minecraft **1.21.1**, **26.1**, **26.2** and **26.3** with **Fabric** (Fabric API, Forge Config API Port) and
+**NeoForge** (21.1.1 or newer for 1.21.1, 26.1.2.125 or newer for 26.1, 26.2.0.93 or newer for 26.2, 26.3.0.95 or newer for 26.3), on both the client and the server. Both
 versions have the same features.
 
 ## Tested with
