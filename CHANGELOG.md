@@ -5,6 +5,11 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Fixed
+
+- With Apothic Enchanting installed, dormant enchantments no longer showed on item tooltips: it replaces vanilla's
+  enchantment lines, which is where they were added. They're now added to the finished tooltip when that happens.
+
 ## [0.7.0] - 2026-10-30
 
 ### Added
