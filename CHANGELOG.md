@@ -5,6 +5,8 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-11-03
+
 ### Added
 
 - With Enchancement installed, Adjustability says what it does to vanilla enchantments, in the log at startup and in
