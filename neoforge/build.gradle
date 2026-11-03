@@ -63,14 +63,20 @@ dependencies {
     compileOnly("maven.modrinth:yacl:${yacl_version}-neoforge")
     localRuntime("maven.modrinth:yacl:${yacl_version}-neoforge")
 
-    // Compat testing only: ./gradlew :neoforge:1.21.1:runGameTestServer -Papotheosis
-    if (project.hasProperty('apotheosis')) {
-        localRuntime('maven.modrinth:apotheosis:1.21.1-8.9.0')
-        localRuntime('maven.modrinth:apothic-enchanting:1.21.1-1.6.4')
-        localRuntime('maven.modrinth:apothic-attributes:1.21.1-2.11.0')
-        localRuntime('maven.modrinth:apothic-spawners:1.21.1-1.4.0')
-        localRuntime('maven.modrinth:placebo:1.21.1-9.9.4')
-        localRuntime('maven.modrinth:patchouli:1.21.1-93-neoforge')
+    // Compat testing only, never published: mods that add enchantments and change the anvil and enchanting table.
+    //   ./gradlew :neoforge:26.1:runGameTestServer -Pcompat=enchants
+    // The GameTests only exist from 26.1 (see ModRegistries), and Apotheosis has no 26.2 or 26.3 build yet.
+    if (project.findProperty('compat') == 'enchants') {
+        if (minecraft_version == '26.1.2') {
+            localRuntime('maven.modrinth:apotheosis:26.1.2-9.1.0')
+            localRuntime('maven.modrinth:apothic-enchanting:26.1.2-2.1.0')
+            localRuntime('maven.modrinth:apothic-attributes:26.1.2-3.1.0')
+            localRuntime('maven.modrinth:apothic-spawners:26.1.2-2.0.1')
+            localRuntime('maven.modrinth:placebo:26.1.2-10.0.2')
+            localRuntime('maven.modrinth:patchouli:26.1-94-beta')
+        } else {
+            logger.warn("-Pcompat=enchants has no NeoForge mods for Minecraft ${minecraft_version}")
+        }
     }
 }
 

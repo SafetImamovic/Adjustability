@@ -25,6 +25,16 @@ dependencies {
     // Optional config screen.
     "${mod('compileOnly')}"("maven.modrinth:yacl:${yacl_version}-fabric")
     "${mod('localRuntime')}"("maven.modrinth:yacl:${yacl_version}-fabric")
+    // Compat testing only, never published: a mod that adds enchantments with their own exclusive sets.
+    //   ./gradlew :fabric:26.3:runGametest -Pcompat=enchants
+    if (project.findProperty('compat') == 'enchants') {
+        if (minecraft_version == '26.3') {
+            "${mod('localRuntime')}"("maven.modrinth:enchancement:26.3-r4")
+            "${mod('localRuntime')}"("maven.modrinth:strawberrylib:26.3-r1")
+        } else {
+            logger.warn("-Pcompat=enchants has no Fabric mods for Minecraft ${minecraft_version}")
+        }
+    }
     if (obfuscated) {
         // Remapping drops YACL's list of bundled libraries, so the dev run needs them on its own.
         localRuntime('org.quiltmc.parsers:json:0.2.1')
