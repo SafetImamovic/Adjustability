@@ -5,7 +5,7 @@ how to change its rules. It's written next to the code, so it matches the curren
 [docs site](https://safetimamovic.github.io/Adjustability/guide/) or here on GitHub.
 
 > **Beta (0.1.0).** Everything described here is in the mod and covered by its tests; settings may still change before
-> 1.0. Design notes and the roadmap: [ADJUSTABILITY.md](https://github.com/SafetImamovic/Adjustability/blob/master/ADJUSTABILITY.md).
+> 1.0.
 
 | Page | For | What's in it |
 |---|---|---|

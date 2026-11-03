@@ -58,6 +58,8 @@ public final class CreatorConfig
         private static final EnumValue<ServerPanelActivation> PANEL_ACTIVATION;
         private static final BooleanValue PLAY_SOUND;
 
+        private static final BooleanValue COMPAT_NOTICES;
+
         static
         {
                 ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -168,6 +170,14 @@ public final class CreatorConfig
                         .define("play_sound", true);
                 builder.pop();
 
+                builder.comment("Other mods.").push("compat");
+                COMPAT_NOTICES = builder.comment("Say so, in the log at startup and in chat to operators when they join, when",
+                                "another mod changes what enchantments can do in a way that affects Adjustability",
+                                "(Enchancement disallows vanilla enchantments by default). A notice only reports; it",
+                                "changes nothing.")
+                        .define("notices", true);
+                builder.pop();
+
                 SPEC = builder.build();
         }
 
@@ -217,6 +227,11 @@ public final class CreatorConfig
                         get(ALLOW_SWITCH_OFF),
                         get(PANEL_ACTIVATION),
                         get(PLAY_SOUND));
+        }
+
+        static boolean readCompatNotices()
+        {
+                return get(COMPAT_NOTICES);
         }
 
         private static <T> T get(ConfigValue<T> value)

@@ -2,6 +2,7 @@ package io.github.safetimamovic.adjustability;
 
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
+import io.github.safetimamovic.adjustability.core.EnchancementNotice;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.DeactivateEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
@@ -17,6 +18,8 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.registries.RegisterEvent;
 
@@ -52,5 +55,14 @@ public class AdjustabilityNeoForge
                                 (payload, context) -> ToggleNetwork.onCycle((ServerPlayer) context.player(), payload)));
                 NeoForge.EVENT_BUS.addListener((RegisterCommandsEvent event) -> AdjustabilityCommand.register(
                         event.getDispatcher(), event.getBuildContext()));
+                NeoForge.EVENT_BUS.addListener((ServerStartedEvent event) ->
+                        EnchancementNotice.onServerStarted(event.getServer()));
+                NeoForge.EVENT_BUS.addListener((PlayerEvent.PlayerLoggedInEvent event) ->
+                {
+                        if (event.getEntity() instanceof ServerPlayer player)
+                        {
+                                EnchancementNotice.onJoin(player);
+                        }
+                });
         }
 }

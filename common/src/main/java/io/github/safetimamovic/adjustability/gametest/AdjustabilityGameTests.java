@@ -11,6 +11,7 @@ import io.github.safetimamovic.adjustability.api.SwitchResult;
 import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.ModRegistries;
 import io.github.safetimamovic.adjustability.core.Adjuster;
+import io.github.safetimamovic.adjustability.core.EnchancementNotice;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Cost;
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ExclusivityConfig;
@@ -21,6 +22,7 @@ import io.github.safetimamovic.adjustability.core.Exclusivity;
 import io.github.safetimamovic.adjustability.core.GrindstoneRules;
 import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.Toggler;
+import io.github.safetimamovic.adjustability.core.TooltipLines;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleNetwork;
@@ -28,6 +30,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
@@ -118,6 +121,9 @@ public final class AdjustabilityGameTests
                 test(registrar, "cycle_through_none", AdjustabilityGameTests::cycleThroughNone);
                 test(registrar, "advancements", AdjustabilityGameTests::advancements);
                 test(registrar, "tooltip_order", AdjustabilityGameTests::tooltipOrder);
+                test(registrar, "tooltip_fallback", AdjustabilityGameTests::tooltipFallback);
+                test(registrar, "modded_exclusivity", AdjustabilityGameTests::moddedExclusivity);
+                test(registrar, "enchancement_notice", AdjustabilityGameTests::enchancementNotice);
                 test(registrar, "panel_profiles", PanelProfileTests::profilesAndCodes);
                 test(registrar, "unknown_dormant_kept", RemovedEnchantmentTests::unknownDormantKept);
                 test(registrar, "unknown_in_config", RemovedEnchantmentTests::unknownInConfig);
@@ -327,7 +333,7 @@ public final class AdjustabilityGameTests
         {
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
-                ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                ServerPlayer player = mockServerPlayerInLevel(helper);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                 setDormant(helper, pickaxe, single(silkTouch, 1));
                 player.getInventory().setItem(0, pickaxe);
@@ -355,7 +361,7 @@ public final class AdjustabilityGameTests
                 {
                         Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                         Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
-                        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                        ServerPlayer player = mockServerPlayerInLevel(helper);
                         ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                         setDormant(helper, pickaxe, single(silkTouch, 1));
                         player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
@@ -749,12 +755,12 @@ public final class AdjustabilityGameTests
                         ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                         setDormant(helper, pickaxe, single(silkTouch, 1));
 
-                        helper.assertValueEqual(Toggler.deactivate(helper.makeMockServerPlayerInLevel(), pickaxe,
+                        helper.assertValueEqual(Toggler.deactivate(mockServerPlayerInLevel(helper), pickaxe,
                                 silkTouch, SwitchSource.API), SwitchResult.DONE, "none");
                         helper.assertTrue(Adjuster.activeOf(pickaxe).isEmpty(), "nothing active");
                         helper.assertValueEqual(dormant(helper, pickaxe).size(), 2, "both kept, dormant");
 
-                        helper.assertValueEqual(Toggler.activate(helper.makeMockServerPlayerInLevel(), pickaxe,
+                        helper.assertValueEqual(Toggler.activate(mockServerPlayerInLevel(helper), pickaxe,
                                 silkTouch, SwitchSource.API), SwitchResult.DONE, "back on");
                         helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(silkTouch), 1, "Silk Touch");
                         helper.assertValueEqual(dormant(helper, pickaxe).getLevel(fortune), 3, "Fortune dormant");
@@ -814,7 +820,7 @@ public final class AdjustabilityGameTests
                 {
                         Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                         Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
-                        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                        ServerPlayer player = mockServerPlayerInLevel(helper);
                         ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, silkTouch, 1);
                         setDormant(helper, pickaxe, single(fortune, 3));
                         player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
@@ -845,7 +851,7 @@ public final class AdjustabilityGameTests
                         helper.assertTrue(manager.get(Constants.id(name)) != null, "advancement " + name + " loads");
                 }
 
-                ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                ServerPlayer player = mockServerPlayerInLevel(helper);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                 setDormant(helper, pickaxe, single(silkTouch, 1));
                 player.getInventory().setItem(0, pickaxe);
@@ -896,6 +902,185 @@ public final class AdjustabilityGameTests
                 helper.succeed();
         }
 
+        /**
+         * A mod that writes enchantment tooltips itself and cancels vanilla's (Apothic Enchanting) leaves a finished
+         * tooltip without the dormant lines, since the hooks inside vanilla's never ran. They're added to the finished
+         * list instead; a tooltip that already has them, or shows no active enchantment, is left alone.
+         */
+        private static void tooltipFallback(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> efficiency = enchantment(helper, Enchantments.EFFICIENCY);
+                Holder<Enchantment> unbreaking = enchantment(helper, Enchantments.UNBREAKING);
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                pickaxe.enchant(efficiency, 5);
+                pickaxe.enchant(unbreaking, 3);
+                setDormant(helper, pickaxe, single(enchantment(helper, Enchantments.SILK_TOUCH), 1));
+                Item.TooltipContext context = Item.TooltipContext.of(helper.getLevel());
+                List<Component> written = List.of(Component.literal("Diamond Pickaxe"),
+                        Enchantment.getFullname(fortune, 3), Enchantment.getFullname(efficiency, 5),
+                        Enchantment.getFullname(unbreaking, 3), Component.literal(""),
+                        Component.literal("When in Main Hand:"));
+
+                TooltipLines.tooltipStarted();
+                List<Component> fixed = TooltipLines.tooltipFinished(context, pickaxe, TooltipFlag.NORMAL, written);
+                List<String> lines = fixed.stream().map(Component::getString).toList();
+                int fortuneAt = lines.indexOf("Fortune III");
+                helper.assertTrue(fortuneAt >= 0 && lines.size() > fortuneAt + 1, "Fortune listed: " + lines);
+                helper.assertValueEqual(lines.get(fortuneAt + 1), "  ⇄ Silk Touch", "under Fortune: " + lines);
+                helper.assertValueEqual(lines.size(), written.size() + 1, "only that one line added: " + lines);
+                helper.assertValueEqual(written.size(), 6, "the list it was given is not changed");
+
+                TooltipLines.tooltipStarted();
+                TooltipLines.addDormant(context, line ->
+                {
+                }, TooltipFlag.NORMAL, pickaxe);
+                helper.assertTrue(TooltipLines.tooltipFinished(context, pickaxe, TooltipFlag.NORMAL, written) == written,
+                        "already listed by the normal path: untouched");
+
+                TooltipLines.tooltipStarted();
+                List<Component> hidden = List.of(Component.literal("Diamond Pickaxe"));
+                helper.assertTrue(TooltipLines.tooltipFinished(context, pickaxe, TooltipFlag.NORMAL, hidden) == hidden,
+                        "no active enchantment shown: untouched");
+
+                // Nothing active at all: nothing to follow, so the dormant line goes right after the item's name.
+                TooltipLines.tooltipStarted();
+                ItemStack sword = new ItemStack(Items.DIAMOND_SWORD);
+                setDormant(helper, sword, single(enchantment(helper, Enchantments.KNOCKBACK), 2));
+                List<Component> swordWritten = List.of(Component.literal("Diamond Sword"),
+                        Component.literal("When in Main Hand:"));
+                List<String> swordLines = TooltipLines.tooltipFinished(context, sword, TooltipFlag.NORMAL, swordWritten)
+                        .stream().map(Component::getString).toList();
+                helper.assertValueEqual(swordLines, List.of("Diamond Sword", "  ⇄ Knockback II", "When in Main Hand:"),
+                        "dormant only: after the name");
+
+                TooltipLines.tooltipStarted();
+                ItemStack plain = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                helper.assertTrue(TooltipLines.tooltipFinished(context, plain, TooltipFlag.NORMAL, written) == written,
+                        "no dormant enchantments: untouched");
+                helper.succeed();
+        }
+
+        /**
+         * Enchancement's own enchantments, when it's loaded ({@code -Pcompat=enchants} on Fabric 26.3; otherwise this
+         * passes without checking anything). Their conflicts come from {@code exclusive_set} tags it ships, and are
+         * one-sided against vanilla: Extracting lists Silk Touch, Silk Touch doesn't list it. They must still be
+         * treated as conflicts both ways, be made dormant, and switch.
+         */
+        private static void moddedExclusivity(GameTestHelper helper)
+        {
+                if (modded(helper, "extracting").isEmpty())
+                {
+                        helper.succeed();
+                        return;
+                }
+                Holder<Enchantment> extracting = moddedOrFail(helper, "extracting");
+                Holder<Enchantment> frostbite = moddedOrFail(helper, "frostbite");
+                Holder<Enchantment> bouncy = moddedOrFail(helper, "bouncy");
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                Holder<Enchantment> fireAspect = enchantment(helper, Enchantments.FIRE_ASPECT);
+                Holder<Enchantment> featherFalling = enchantment(helper, Enchantments.FEATHER_FALLING);
+                helper.assertTrue(Adjuster.conflict(extracting, silkTouch) && Adjuster.conflict(silkTouch, extracting),
+                        "Extracting / Silk Touch conflict both ways");
+                helper.assertTrue(Adjuster.conflict(frostbite, fireAspect) && Adjuster.conflict(fireAspect, frostbite),
+                        "Frostbite / Fire Aspect conflict both ways");
+                helper.assertTrue(Adjuster.conflict(bouncy, featherFalling) && Adjuster.conflict(featherFalling, bouncy),
+                        "Bouncy / Feather Falling conflict both ways");
+                helper.assertFalse(Adjuster.conflict(extracting, enchantment(helper, Enchantments.FORTUNE)),
+                        "Extracting doesn't conflict with Fortune");
+
+                var registries = helper.getLevel().registryAccess();
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, extracting, 1);
+                helper.assertTrue(AdjustabilityApi.addEnchantment(pickaxe, silkTouch, 1, registries),
+                        "Silk Touch added next to Extracting");
+                helper.assertValueEqual(AdjustabilityApi.dormantEnchantments(pickaxe, registries).getLevel(silkTouch), 1,
+                        "Silk Touch dormant");
+                helper.assertValueEqual(AdjustabilityApi.activeEnchantments(pickaxe).getLevel(extracting), 1,
+                        "Extracting still active");
+
+                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), pickaxe, silkTouch,
+                        SwitchSource.API), SwitchResult.DONE, "switched to Silk Touch");
+                helper.assertValueEqual(AdjustabilityApi.activeEnchantments(pickaxe).getLevel(silkTouch), 1,
+                        "Silk Touch active");
+                helper.assertValueEqual(AdjustabilityApi.activeEnchantments(pickaxe).getLevel(extracting), 0,
+                        "Extracting off: its effect isn't running");
+                helper.assertValueEqual(AdjustabilityApi.dormantEnchantments(pickaxe, registries).getLevel(extracting), 1,
+                        "Extracting dormant, level kept");
+                helper.succeed();
+        }
+
+        /**
+         * The Enchancement notice: nothing to say when it changes nothing; otherwise one line each for the disallowed
+         * vanilla enchantments (the first few named, then "and N more"), the limit and the levels, and the footer. And,
+         * when Enchancement is loaded, that its settings can be read (a different version would break the reflection).
+         */
+        private static void enchancementNotice(GameTestHelper helper)
+        {
+                List<Identifier> eight = Stream.of("fortune", "efficiency", "mending", "unbreaking", "sharpness",
+                        "protection", "looting", "power").map(Identifier::withDefaultNamespace).toList();
+                helper.assertTrue(EnchancementNotice.lines(new EnchancementNotice.Settings(List.of(), 0, false)).isEmpty(),
+                        "nothing changed: no notice");
+
+                List<String> lines = EnchancementNotice.lines(new EnchancementNotice.Settings(eight, 1, true))
+                        .stream().map(Component::getString).toList();
+                helper.assertValueEqual(lines.size(), 6, "header, disallowed, limit, levels, fix, footer: " + lines);
+                helper.assertTrue(lines.get(1).contains("8 vanilla enchantments are disallowed"), "count: " + lines.get(1));
+                helper.assertTrue(lines.get(1).contains("Fortune, Efficiency, Mending, Unbreaking, Sharpness, Protection"),
+                        "the first six, in order: " + lines.get(1));
+                helper.assertTrue(lines.get(1).endsWith(", and 2 more"), "the rest counted: " + lines.get(1));
+                helper.assertTrue(lines.get(2).contains("at most 1 enchantment"), "limit: " + lines.get(2));
+                helper.assertTrue(lines.get(3).contains("no levels"), "levels: " + lines.get(3));
+                helper.assertTrue(lines.get(4).startsWith("Suggested fix")
+                                && lines.get(4).contains("\"disallowedEnchantments\"")
+                                && lines.get(4).contains(" and set \"enchantmentLimit\" to 0"),
+                        "both fixes: " + lines.get(4));
+                helper.assertTrue(lines.get(5).contains("[compat] notices"), "how to turn it off: " + lines.get(5));
+
+                List<String> onlyLimit = EnchancementNotice.lines(new EnchancementNotice.Settings(List.of(), 2, false)).stream()
+                        .map(Component::getString).toList();
+                helper.assertValueEqual(onlyLimit.size(), 4, "header, limit, fix, footer: " + onlyLimit);
+                helper.assertTrue(onlyLimit.get(2).contains("set \"enchantmentLimit\" to 0")
+                        && !onlyLimit.get(2).contains("disallowedEnchantments"), "only the limit fix: " + onlyLimit.get(2));
+
+                List<String> onlyDisallowed = EnchancementNotice.lines(new EnchancementNotice.Settings(eight.subList(0, 1), 0, false)).stream()
+                        .map(Component::getString).toList();
+                helper.assertTrue(onlyDisallowed.get(2).contains("disallowedEnchantments")
+                        && !onlyDisallowed.get(2).contains("enchantmentLimit"), "only the list fix: " + onlyDisallowed);
+
+                List<String> onlyLevels = EnchancementNotice.lines(new EnchancementNotice.Settings(List.of(), 0, true)).stream()
+                        .map(Component::getString).toList();
+                helper.assertValueEqual(onlyLevels.size(), 3, "levels alone need no fix: " + onlyLevels);
+
+                // Not from the registry: Enchancement hides what it disallows from the registry's listings.
+                List<Identifier> vanilla = EnchancementNotice.vanillaEnchantments();
+                helper.assertTrue(vanilla.size() >= 36, "the vanilla list is complete: " + vanilla.size());
+                for (String name : List.of("fortune", "silk_touch", "mending", "unbreaking", "sharpness"))
+                {
+                        helper.assertTrue(vanilla.contains(Identifier.withDefaultNamespace(name)), name + " is in the vanilla list");
+                }
+
+                if (modded(helper, "extracting").isPresent())
+                {
+                        helper.assertTrue(EnchancementNotice.read().isPresent(),
+                                "Enchancement's settings can be read");
+                }
+                helper.succeed();
+        }
+
+        private static Optional<Holder<Enchantment>> modded(GameTestHelper helper, String name)
+        {
+                return helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .get(ResourceKey.create(Registries.ENCHANTMENT, Identifier.fromNamespaceAndPath("enchancement", name)))
+                        .map(holder -> (Holder<Enchantment>) holder);
+        }
+
+        private static Holder<Enchantment> moddedOrFail(GameTestHelper helper, String name)
+        {
+                Optional<Holder<Enchantment>> holder = modded(helper, name);
+                helper.assertTrue(holder.isPresent(), "enchancement:" + name + " is registered");
+                return holder.orElseThrow();
+        }
+
         private static List<String> tooltip(GameTestHelper helper, ItemStack stack)
         {
                 return stack.getTooltipLines(Item.TooltipContext.of(helper.getLevel()), null, TooltipFlag.NORMAL).stream()
@@ -935,24 +1120,45 @@ public final class AdjustabilityGameTests
                 //? if >=26.2 {
                 return (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
                 //?} else {
-                /*var cookie = net.minecraft.server.network.CommonListenerCookie.createInitial(
+                /*return mockServerPlayer(helper, GameType.SURVIVAL);
+                *///?}
+        }
+
+        /** Vanilla's {@code makeMockServerPlayerInLevel} gives a creative player; so does this. */
+        static ServerPlayer mockServerPlayerInLevel(GameTestHelper helper)
+        {
+                return mockServerPlayer(helper, GameType.CREATIVE);
+        }
+
+        /**
+         * A server player with a connection, like vanilla's {@code makeMockServerPlayerInLevel}, but one that never
+         * joins the server. Vanilla runs {@code PlayerList.placeNewPlayer}, which fires every mod's login handler, and
+         * those assume a real client: Apothic Spawners sends a payload the mock connection can't take, and Enchancement
+         * kicks a client that lacks its handshake. What these tests need (packets sent to the player, its inventory,
+         * advancements and level) doesn't depend on joining.
+         */
+        static ServerPlayer mockServerPlayer(GameTestHelper helper, GameType gameType)
+        {
+                var server = helper.getLevel().getServer();
+                var cookie = net.minecraft.server.network.CommonListenerCookie.createInitial(
                         new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "test-mock-player"), false);
-                ServerPlayer player = new ServerPlayer(helper.getLevel().getServer(), helper.getLevel(),
-                        cookie.gameProfile(), cookie.clientInformation())
+                ServerPlayer player = new ServerPlayer(server, helper.getLevel(), cookie.gameProfile(),
+                        cookie.clientInformation())
                 {
                         @Override
                         public GameType gameMode()
                         {
-                                return GameType.SURVIVAL;
+                                return gameType;
                         }
                 };
+                gameType.updatePlayerAbilities(player.getAbilities());
                 var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND);
                 new io.netty.channel.embedded.EmbeddedChannel(connection);
-                helper.getLevel().getServer().getPlayerList().placeNewPlayer(connection, player, cookie);
-                // Joining gives the server's default game mode, which the GameTest server sets to creative.
-                player.setGameMode(GameType.SURVIVAL);
+                // The constructor attaches itself to the player as its connection; nothing else joins.
+                new net.minecraft.server.network.ServerGamePacketListenerImpl(server, connection, player, cookie);
+                // Joining also does this: the listener on the inventory that advancement triggers hang off.
+                player.initInventoryMenu();
                 return player;
-                *///?}
         }
 
         private static void test(ModRegistries.Registrar registrar, String name, Consumer<GameTestHelper> function)

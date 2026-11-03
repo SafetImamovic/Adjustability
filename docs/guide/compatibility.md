@@ -21,6 +21,20 @@ panel, the Cycle key, hold mode and the None row in a real game client.
 
 On NeoForge, only the server-side tests ran with these mods; NeoForge has no client test framework.
 
+## Mods that add enchantments or change the anvil
+
+Adjustability reads conflicts from the game's `exclusive_set` tags, so what a mod changes there is followed, not
+fought. These ran the server-side test suite (anvil, grindstone, switching, tooltips) and were also played through by
+hand in a real client (tooltips, the Adjust panel, the anvil, mining, rejoining a world). 1.21.1 has no automated
+tests; there, Apotheosis 8.9.0 (with Apothic Enchanting 1.6.4) on NeoForge and Enchancement 1.21-r14 on Fabric were
+played through by hand only, including the Enchancement notice and the dormant tooltip lines.
+
+| Mod | Version | Loader | Result |
+|---|---|---|---|
+| Apotheosis (+ Apothic Enchanting, Attributes, Spawners, Placebo, Patchouli) | 9.1.0 (2.1.0, 3.1.0, 2.0.1, 10.0.2, 94) | NeoForge 26.1.2 | Works, with one fix after 0.7.0: Apothic Enchanting writes enchantment tooltips itself, which hid the dormant lines; they are now added to the finished tooltip. It also removes Protection from `exclusive_set/armor` and Sharpness from `exclusive_set/damage`, so those stop conflicting and are not made dormant. 63 of 66 tests pass; the other three assume vanilla's conflicts or a vanilla enchantment list |
+| Enchancement (+ StrawberryLib) | 26.3-r4 | Fabric 26.3 | Works: all 66 tests pass, including its own enchantments with one-sided conflicts against vanilla (Extracting / Silk Touch, Frostbite / Fire Aspect, Bouncy / Feather Falling). Tested with its defaults relaxed: as shipped it disallows 36 vanilla enchantments (Fortune among them) and limits items to one enchantment, which is its own rule |
+| Enchancement (+ StrawberryLib, Forgified Fabric API, Launchpad) | 26.1-r25 | NeoForge 26.1.2 | The notice and its own enchantments' conflicts work (all 36 disallowed vanilla enchantments are reported with its defaults; Extracting / Silk Touch and the others conflict both ways). On this build Unbreaking is removed from items even with its config relaxed and `isEnchantmentAllowed` saying it is allowed (a plain `ItemStack.enchant` leaves it at level 0), so 13 of our tests that use Unbreaking can't run there; the other 53 pass |
+
 ![The Adjust panel next to a pickaxe, with JEI's item list on the right](/screenshots/adjust-panel-jei.png)
 
 ## Known limits

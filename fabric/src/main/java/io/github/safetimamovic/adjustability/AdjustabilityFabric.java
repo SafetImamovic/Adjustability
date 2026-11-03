@@ -6,13 +6,16 @@ import fuzs.forgeconfigapiport.fabric.api.v5.ConfigRegistry;
 /*import fuzs.forgeconfigapiport.fabric.api.neoforge.v4.NeoForgeConfigRegistry;*/
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.PlayerConfig;
+import io.github.safetimamovic.adjustability.core.EnchancementNotice;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.DeactivateEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleNetwork;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
+import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import java.util.function.Supplier;
 import net.minecraft.core.Registry;
@@ -69,5 +72,8 @@ public class AdjustabilityFabric implements ModInitializer
                 CommandRegistrationCallback.EVENT.register(
                         (dispatcher, buildContext, environment) -> AdjustabilityCommand.register(dispatcher,
                                 buildContext));
+                ServerLifecycleEvents.SERVER_STARTED.register(EnchancementNotice::onServerStarted);
+                ServerPlayConnectionEvents.JOIN.register((handler, sender, server) ->
+                        EnchancementNotice.onJoin(handler.getPlayer()));
         }
 }

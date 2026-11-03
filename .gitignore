@@ -38,3 +38,6 @@ replay_*.log
 node_modules/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
+
+# Private working roadmap: local only, never committed
+/ADJUSTABILITY.md

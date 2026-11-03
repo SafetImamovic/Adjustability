@@ -2,7 +2,7 @@
 
 Thanks for wanting to help! This document explains how we work. Please read it before opening an issue or pull request.
 
-For the design, the math, the Java API and the roadmap, see [ADJUSTABILITY.md](ADJUSTABILITY.md).
+For the Java API, the configuration and how the mod works, see the [docs site](https://safetimamovic.github.io/Adjustability/).
 
 ## Table of contents
 

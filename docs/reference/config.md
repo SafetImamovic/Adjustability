@@ -69,6 +69,14 @@ Switching which enchantments are active.
 | `panel_activation` | `PLAYER` | `PLAYER`, `TOGGLE`, `HOLD` | How the Adjust key works for everyone on this server. PLAYER: each player's own choice ([panel] activation in their client file). TOGGLE or HOLD: that, for everyone. |
 | `play_sound` | `true` | `true`, `false` | Play a sound on a switch (adjustability:item.switch, for the player and anyone nearby). Players can turn it down with their Players volume. |
 
+### [compat]
+
+Other mods.
+
+| Key | Default | Allowed | Description |
+|---|---|---|---|
+| `notices` | `true` | `true`, `false` | Say so, in the log at startup and in chat to operators when they join, when another mod changes what enchantments can do in a way that affects Adjustability (Enchancement disallows vanilla enchantments by default). A notice only reports; it changes nothing. |
+
 ## adjustability-client.toml
 
 Player settings (`config/adjustability-client.toml`). Each player's own; also in game through the mod list or Mod Menu, and `/adjustability panel` for the panel.

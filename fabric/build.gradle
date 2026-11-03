@@ -25,6 +25,46 @@ dependencies {
     // Optional config screen.
     "${mod('compileOnly')}"("maven.modrinth:yacl:${yacl_version}-fabric")
     "${mod('localRuntime')}"("maven.modrinth:yacl:${yacl_version}-fabric")
+    // Compat testing only, never published: a mod that adds enchantments with their own exclusive sets.
+    //   ./gradlew :fabric:26.3:runGametest -Pcompat=enchants
+    if (project.findProperty('compat') == 'enchants') {
+        if (minecraft_version == '26.3') {
+            "${mod('localRuntime')}"("maven.modrinth:enchancement:26.3-r4")
+            "${mod('localRuntime')}"("maven.modrinth:strawberrylib:26.3-r1")
+            // Enchancement's defaults disallow 36 vanilla enchantments (Fortune among them), allow one enchantment per
+            // item and drop levels, so the vanilla-based tests would test nothing. This keeps the mod's own
+            // enchantments and exclusive sets and leaves the vanilla ones alone. Dev run directory only.
+            def writeEnchancementConfig = tasks.register('writeEnchancementCompatConfig') {
+                def target = file('runs/gametest/config/enchancement.json')
+                doLast {
+                    target.parentFile.mkdirs()
+                    target.text = '''{
+  "disallowedEnchantments": [],
+  "invertedList": false,
+  "overhaulEnchanting": "DISABLED",
+  "enchantedBookGrinding": false,
+  "levellessEnchantments": false,
+  "enchantmentLimit": 0,
+  "disableDurability": "NONE",
+  "enhanceMobs": false,
+  "rebalanceConsumables": false,
+  "rebalanceEffects": false,
+  "rebalanceEnchantments": false,
+  "rebalanceEquipment": false,
+  "rebalanceProjectiles": false,
+  "toggleablePassives": false,
+  "fixVanillaBugs": false,
+  "enchantmentDescriptions": false,
+  "coloredEnchantmentNames": false
+}
+'''
+                }
+            }
+            tasks.matching { it.name == 'runGametest' }.configureEach { dependsOn(writeEnchancementConfig) }
+        } else {
+            logger.warn("-Pcompat=enchants has no Fabric mods for Minecraft ${minecraft_version}")
+        }
+    }
     if (obfuscated) {
         // Remapping drops YACL's list of bundled libraries, so the dev run needs them on its own.
         localRuntime('org.quiltmc.parsers:json:0.2.1')

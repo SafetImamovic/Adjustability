@@ -63,14 +63,71 @@ dependencies {
     compileOnly("maven.modrinth:yacl:${yacl_version}-neoforge")
     localRuntime("maven.modrinth:yacl:${yacl_version}-neoforge")
 
-    // Compat testing only: ./gradlew :neoforge:1.21.1:runGameTestServer -Papotheosis
-    if (project.hasProperty('apotheosis')) {
-        localRuntime('maven.modrinth:apotheosis:1.21.1-8.9.0')
-        localRuntime('maven.modrinth:apothic-enchanting:1.21.1-1.6.4')
-        localRuntime('maven.modrinth:apothic-attributes:1.21.1-2.11.0')
-        localRuntime('maven.modrinth:apothic-spawners:1.21.1-1.4.0')
-        localRuntime('maven.modrinth:placebo:1.21.1-9.9.4')
-        localRuntime('maven.modrinth:patchouli:1.21.1-93-neoforge')
+    // Compat testing only, never published: mods that add enchantments and change the anvil and enchanting table.
+    //   ./gradlew :neoforge:26.1:runGameTestServer -Pcompat=enchants
+    // The GameTests only exist from 26.1 (see ModRegistries), and Apotheosis has no 26.2 or 26.3 build yet.
+    if (project.findProperty('compat') == 'enchants') {
+        if (minecraft_version == '26.1.2') {
+            localRuntime('maven.modrinth:apotheosis:26.1.2-9.1.0')
+            localRuntime('maven.modrinth:apothic-enchanting:26.1.2-2.1.0')
+            localRuntime('maven.modrinth:apothic-attributes:26.1.2-3.1.0')
+            localRuntime('maven.modrinth:apothic-spawners:26.1.2-2.0.1')
+            localRuntime('maven.modrinth:placebo:26.1.2-10.0.2')
+            localRuntime('maven.modrinth:patchouli:26.1-94-beta')
+        } else if (minecraft_version == '1.21.1') {
+            // By hand only: there are no GameTests on 1.21.1 (./gradlew :neoforge:1.21.1:runClient -Pcompat=enchants).
+            localRuntime('maven.modrinth:apotheosis:1.21.1-8.9.0')
+            localRuntime('maven.modrinth:apothic-enchanting:1.21.1-1.6.4')
+            localRuntime('maven.modrinth:apothic-attributes:1.21.1-2.11.0')
+            localRuntime('maven.modrinth:apothic-spawners:1.21.1-1.4.0')
+            localRuntime('maven.modrinth:placebo:1.21.1-9.9.4')
+            localRuntime('maven.modrinth:patchouli:1.21.1-93-neoforge')
+        } else {
+            logger.warn("-Pcompat=enchants has no NeoForge mods for Minecraft ${minecraft_version}")
+        }
+    }
+    // Enchancement instead of Apotheosis (rival overhauls, so a run of their own):
+    //   ./gradlew :neoforge:26.1:runGameTestServer -Pcompat=enchancement
+    // It runs on Forgified Fabric API; its builds for NeoForge are 26.1 and 26.2 only. Modrinth version IDs, not numbers:
+    // the Fabric and NeoForge builds share a version number, so the number alone resolves to the Fabric jar.
+    if (project.findProperty('compat') == 'enchancement') {
+        if (minecraft_version == '26.1.2') {
+            localRuntime('maven.modrinth:enchancement:hKDMxxRR')
+            localRuntime('maven.modrinth:strawberrylib:9cn8abyl')
+            localRuntime('maven.modrinth:forgified-fabric-api:bqnuKGQ4')
+            localRuntime('maven.modrinth:launchpad:isqNNLhL')
+            // Its defaults disallow 36 vanilla enchantments and limit items to one enchantment, so the vanilla-based
+            // tests would test nothing (as on Fabric). Dev run directory only; keeps its own enchantments.
+            def writeEnchancementConfig = tasks.register('writeEnchancementCompatConfig') {
+                def target = file('runs/gametest/config/enchancement.json')
+                doLast {
+                    target.parentFile.mkdirs()
+                    target.text = '''{
+  "disallowedEnchantments": [],
+  "invertedList": false,
+  "overhaulEnchanting": "DISABLED",
+  "enchantedBookGrinding": false,
+  "levellessEnchantments": false,
+  "enchantmentLimit": 0,
+  "disableDurability": "NONE",
+  "enhanceMobs": false,
+  "rebalanceConsumables": false,
+  "rebalanceEffects": false,
+  "rebalanceEnchantments": false,
+  "rebalanceEquipment": false,
+  "rebalanceProjectiles": false,
+  "toggleablePassives": false,
+  "fixVanillaBugs": false,
+  "enchantmentDescriptions": false,
+  "coloredEnchantmentNames": false
+}
+'''
+                }
+            }
+            tasks.matching { it.name == 'runGameTestServer' }.configureEach { dependsOn(writeEnchancementConfig) }
+        } else {
+            logger.warn("-Pcompat=enchancement has no NeoForge mods for Minecraft ${minecraft_version}")
+        }
     }
 }
 

@@ -5,6 +5,22 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Added
+
+- With Enchancement installed, Adjustability says what it does to vanilla enchantments, in the log at startup and in
+  chat to operators when they join. Its defaults disallow 36 of them (Fortune, Mending ...) and limit an item to one
+  enchantment, which leaves nothing to switch. The notice is read from the loaded mod, so it follows the player's own
+  Enchancement config, names the first few enchantments, and ends with a suggested fix. Turn it off with
+  `[compat] notices` in `adjustability-server.toml`.
+
+### Fixed
+
+- On Fabric, `/adjustability add`, `toggle`, `inspect` and `flatten` answered "Incorrect argument for command" and
+  never reached the server, because Fabric handles a command that half-matches a client command itself. They are now
+  passed on to the server. NeoForge was not affected.
+- With Apothic Enchanting installed, dormant enchantments no longer showed on item tooltips: it replaces vanilla's
+  enchantment lines, which is where they were added. They're now added to the finished tooltip when that happens.
+
 ## [0.7.0] - 2026-10-30
 
 ### Added

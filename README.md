@@ -46,7 +46,8 @@ Install on both the client and the server. Optional mods are client only.
 
 ### Tested with
 
-On Minecraft 26.3, with the full automated test suite (details:
+With the full automated test suite, on the Minecraft version in the row (26.3 unless noted); the two enchantment mods
+were also played through by hand (details:
 [compatibility](https://safetimamovic.github.io/Adjustability/guide/compatibility)):
 
 | Mod | Version | Loader | Result |
@@ -57,15 +58,19 @@ On Minecraft 26.3, with the full automated test suite (details:
 | [Enchantment Descriptions](https://modrinth.com/mod/enchantment-descriptions) | 26.3.0.2 | Fabric | Works |
 | [AppleSkin](https://modrinth.com/mod/appleskin) | 3.0.10 | Fabric | Works |
 | [Enchantment Switch](https://modrinth.com/mod/enchantment-switch) | 26.3.0 | Fabric | Works; its key is unbound by default, so Left Alt stays with Adjustability |
+| [Apotheosis](https://modrinth.com/mod/apotheosis) + [Apothic Enchanting](https://modrinth.com/mod/apothic-enchanting) | 9.1.0 + 2.1.0 (26.1.2) | NeoForge | Works. It writes enchantment tooltips itself, which hid the dormant lines until a fix after 0.7.0. It removes Protection from the armor exclusive set and Sharpness from the damage one, so those don't conflict and aren't made dormant |
+| [Enchancement](https://modrinth.com/mod/enchancement) | 26.3-r4 | Fabric | Works, including its own enchantments with one-sided conflicts against vanilla (Extracting / Silk Touch, Frostbite / Fire Aspect, Bouncy / Feather Falling). Tested with its config relaxed: as shipped it disallows Fortune and 35 other vanilla enchantments and limits items to one enchantment, which is its own rule. Adjustability tells operators (in the log and in chat on join) when this is the case, with a suggested fix |
+| [Enchancement](https://modrinth.com/mod/enchancement) | 26.1-r25 | NeoForge 26.1.2 | The notice and its own enchantments' conflicts work. This build removes Unbreaking from items whatever its config says, which is its own behavior |
 | [YACL](https://modrinth.com/mod/yacl) | 3.9.7 | Fabric, NeoForge | Works: the settings screen is YACL's. On NeoForge, a warning about YACL's `logoFile` shows at startup; that's YACL's own metadata ([fix pending](https://github.com/isXander/YetAnotherConfigLib/pull/359)), click Proceed |
 
-Not tested with other mods on 1.21.1 yet. Found a mod that doesn't work with it? Use the
+1.21.1 has no automated tests: there, Apotheosis 8.9.0 (NeoForge) and Enchancement 1.21-r14 (Fabric) were played
+through by hand, and other mods are untested. Found a mod that doesn't work with it? Use the
 [compat issue form](https://github.com/SafetImamovic/Adjustability/issues/new/choose).
 
 The 2024 prototype for Forge 1.20.6 is kept under the
 [`legacy-1.20.6-forge`](https://github.com/SafetImamovic/Adjustability/tree/legacy-1.20.6-forge) tag.
 
-Design, math, API and roadmap: [ADJUSTABILITY.md](ADJUSTABILITY.md).
+Java API, configuration and how it works: the [docs site](https://safetimamovic.github.io/Adjustability/).
 
 ## What it does
 
