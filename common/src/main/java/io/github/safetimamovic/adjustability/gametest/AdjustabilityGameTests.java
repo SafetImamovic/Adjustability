@@ -11,6 +11,7 @@ import io.github.safetimamovic.adjustability.api.SwitchResult;
 import io.github.safetimamovic.adjustability.api.SwitchSource;
 import io.github.safetimamovic.adjustability.ModRegistries;
 import io.github.safetimamovic.adjustability.core.Adjuster;
+import io.github.safetimamovic.adjustability.core.EnchancementNotice;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.Cost;
 import io.github.safetimamovic.adjustability.config.CreatorConfig;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig.ExclusivityConfig;
@@ -29,6 +30,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Stream;
 import net.minecraft.commands.CommandBuildContext;
 import net.minecraft.commands.arguments.item.ItemArgument;
 import net.minecraft.core.Holder;
@@ -121,6 +123,7 @@ public final class AdjustabilityGameTests
                 test(registrar, "tooltip_order", AdjustabilityGameTests::tooltipOrder);
                 test(registrar, "tooltip_fallback", AdjustabilityGameTests::tooltipFallback);
                 test(registrar, "modded_exclusivity", AdjustabilityGameTests::moddedExclusivity);
+                test(registrar, "enchancement_notice", AdjustabilityGameTests::enchancementNotice);
                 test(registrar, "panel_profiles", PanelProfileTests::profilesAndCodes);
                 test(registrar, "unknown_dormant_kept", RemovedEnchantmentTests::unknownDormantKept);
                 test(registrar, "unknown_in_config", RemovedEnchantmentTests::unknownInConfig);
@@ -1003,6 +1006,61 @@ public final class AdjustabilityGameTests
                         "Extracting off: its effect isn't running");
                 helper.assertValueEqual(AdjustabilityApi.dormantEnchantments(pickaxe, registries).getLevel(extracting), 1,
                         "Extracting dormant, level kept");
+                helper.succeed();
+        }
+
+        /**
+         * The Enchancement notice: nothing to say when it changes nothing; otherwise one line each for the disallowed
+         * vanilla enchantments (the first few named, then "and N more"), the limit and the levels, and the footer. And,
+         * when Enchancement is loaded, that its settings can be read (a different version would break the reflection).
+         */
+        private static void enchancementNotice(GameTestHelper helper)
+        {
+                var registries = helper.getLevel().registryAccess();
+                List<Identifier> eight = Stream.of("fortune", "efficiency", "mending", "unbreaking", "sharpness",
+                        "protection", "looting", "power").map(Identifier::withDefaultNamespace).toList();
+                helper.assertTrue(EnchancementNotice.lines(
+                        new EnchancementNotice.Settings(List.of(), 0, false), registries).isEmpty(),
+                        "nothing changed: no notice");
+
+                List<String> lines = EnchancementNotice.lines(new EnchancementNotice.Settings(eight, 1, true), registries)
+                        .stream().map(Component::getString).toList();
+                helper.assertValueEqual(lines.size(), 6, "header, disallowed, limit, levels, fix, footer: " + lines);
+                helper.assertTrue(lines.get(1).contains("8 vanilla enchantments are disallowed"), "count: " + lines.get(1));
+                helper.assertTrue(lines.get(1).contains("Fortune, Efficiency, Mending, Unbreaking, Sharpness, Protection"),
+                        "the first six, in order: " + lines.get(1));
+                helper.assertTrue(lines.get(1).endsWith(", and 2 more"), "the rest counted: " + lines.get(1));
+                helper.assertTrue(lines.get(2).contains("at most 1 enchantment"), "limit: " + lines.get(2));
+                helper.assertTrue(lines.get(3).contains("no levels"), "levels: " + lines.get(3));
+                helper.assertTrue(lines.get(4).startsWith("Suggested fix")
+                                && lines.get(4).contains("\"disallowedEnchantments\"")
+                                && lines.get(4).contains(" and set \"enchantmentLimit\" to 0"),
+                        "both fixes: " + lines.get(4));
+                helper.assertTrue(lines.get(5).contains("[compat] notices"), "how to turn it off: " + lines.get(5));
+
+                List<String> onlyLimit = EnchancementNotice.lines(
+                        new EnchancementNotice.Settings(List.of(), 2, false), registries).stream()
+                        .map(Component::getString).toList();
+                helper.assertValueEqual(onlyLimit.size(), 4, "header, limit, fix, footer: " + onlyLimit);
+                helper.assertTrue(onlyLimit.get(2).contains("set \"enchantmentLimit\" to 0")
+                        && !onlyLimit.get(2).contains("disallowedEnchantments"), "only the limit fix: " + onlyLimit.get(2));
+
+                List<String> onlyDisallowed = EnchancementNotice.lines(
+                        new EnchancementNotice.Settings(eight.subList(0, 1), 0, false), registries).stream()
+                        .map(Component::getString).toList();
+                helper.assertTrue(onlyDisallowed.get(2).contains("disallowedEnchantments")
+                        && !onlyDisallowed.get(2).contains("enchantmentLimit"), "only the list fix: " + onlyDisallowed);
+
+                List<String> onlyLevels = EnchancementNotice.lines(
+                        new EnchancementNotice.Settings(List.of(), 0, true), registries).stream()
+                        .map(Component::getString).toList();
+                helper.assertValueEqual(onlyLevels.size(), 3, "levels alone need no fix: " + onlyLevels);
+
+                if (modded(helper, "extracting").isPresent())
+                {
+                        helper.assertTrue(EnchancementNotice.read(registries).isPresent(),
+                                "Enchancement's settings can be read");
+                }
                 helper.succeed();
         }
 

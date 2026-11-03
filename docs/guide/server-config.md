@@ -140,6 +140,17 @@ remove_dormant = true
 |---|---|---|
 | `remove_dormant` | `true` | A grindstone removes dormant and switched-off enchantments even when nothing is active, and gives experience for registered non-curse enchantments. Off: dormant enchantments stay and give no experience; a dormant-only item produces no removal result. |
 
+## Other mods
+
+```toml
+[compat]
+notices = true
+```
+
+| Key | Default | What it does |
+|---|---|---|
+| `notices` | `true` | Say so, in the log at startup and in chat to operators when they join, when another mod changes what enchantments can do in a way that affects Adjustability. Today that is [Enchancement](https://modrinth.com/mod/enchancement), which by default disallows 36 vanilla enchantments (Fortune and Mending among them) and limits an item to one enchantment. The notice lists what it finds in the loaded mod, so it follows the player's own Enchancement config. It only reports and changes nothing. |
+
 ## Player settings
 
 `config/adjustability-client.toml`, each player's own.

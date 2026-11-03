@@ -20,6 +20,12 @@ public final class AdjustabilityConfig
                 return CreatorConfig.readAnvil();
         }
 
+        /** Whether to report what other mods do to enchantments ({@code [compat] notices}). */
+        public static boolean compatNotices()
+        {
+                return CreatorConfig.readCompatNotices();
+        }
+
         /** Current settings for switching enchantments. */
         public static ToggleConfig toggle()
         {

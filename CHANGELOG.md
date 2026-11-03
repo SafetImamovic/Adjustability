@@ -5,6 +5,14 @@ Changes per version that players, pack devs and mod devs will notice. Format:
 
 ## [Unreleased]
 
+### Added
+
+- With Enchancement installed, Adjustability says what it does to vanilla enchantments, in the log at startup and in
+  chat to operators when they join. Its defaults disallow 36 of them (Fortune, Mending ...) and limit an item to one
+  enchantment, which leaves nothing to switch. The notice is read from the loaded mod, so it follows the player's own
+  Enchancement config, names the first few enchantments, and ends with a suggested fix. Turn it off with
+  `[compat] notices` in `adjustability-server.toml`.
+
 ### Fixed
 
 - On Fabric, `/adjustability add`, `toggle`, `inspect` and `flatten` answered "Incorrect argument for command" and
