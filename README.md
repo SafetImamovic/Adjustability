@@ -46,7 +46,8 @@ Install on both the client and the server. Optional mods are client only.
 
 ### Tested with
 
-On Minecraft 26.3, with the full automated test suite (details:
+With the full automated test suite, on the Minecraft version in the row (26.3 unless noted); the two enchantment mods
+were also played through by hand (details:
 [compatibility](https://safetimamovic.github.io/Adjustability/guide/compatibility)):
 
 | Mod | Version | Loader | Result |
@@ -57,6 +58,8 @@ On Minecraft 26.3, with the full automated test suite (details:
 | [Enchantment Descriptions](https://modrinth.com/mod/enchantment-descriptions) | 26.3.0.2 | Fabric | Works |
 | [AppleSkin](https://modrinth.com/mod/appleskin) | 3.0.10 | Fabric | Works |
 | [Enchantment Switch](https://modrinth.com/mod/enchantment-switch) | 26.3.0 | Fabric | Works; its key is unbound by default, so Left Alt stays with Adjustability |
+| [Apotheosis](https://modrinth.com/mod/apotheosis) + [Apothic Enchanting](https://modrinth.com/mod/apothic-enchanting) | 9.1.0 + 2.1.0 (26.1.2) | NeoForge | Works. It writes enchantment tooltips itself, which hid the dormant lines until a fix after 0.7.0. It removes Protection from the armor exclusive set and Sharpness from the damage one, so those don't conflict and aren't made dormant |
+| [Enchancement](https://modrinth.com/mod/enchancement) | 26.3-r4 | Fabric | Works, including its own enchantments with one-sided conflicts against vanilla (Extracting / Silk Touch, Frostbite / Fire Aspect, Bouncy / Feather Falling). Tested with its config relaxed: as shipped it disallows Fortune and 35 other vanilla enchantments and limits items to one enchantment, which is its own rule |
 | [YACL](https://modrinth.com/mod/yacl) | 3.9.7 | Fabric, NeoForge | Works: the settings screen is YACL's. On NeoForge, a warning about YACL's `logoFile` shows at startup; that's YACL's own metadata ([fix pending](https://github.com/isXander/YetAnotherConfigLib/pull/359)), click Proceed |
 
 Not tested with other mods on 1.21.1 yet. Found a mod that doesn't work with it? Use the

@@ -21,6 +21,17 @@ panel, the Cycle key, hold mode and the None row in a real game client.
 
 On NeoForge, only the server-side tests ran with these mods; NeoForge has no client test framework.
 
+## Mods that add enchantments or change the anvil
+
+Adjustability reads conflicts from the game's `exclusive_set` tags, so what a mod changes there is followed, not
+fought. These ran the server-side test suite (anvil, grindstone, switching, tooltips) and were also played through by
+hand in a real client (tooltips, the Adjust panel, the anvil, mining, rejoining a world). Neither is tested on 1.21.1.
+
+| Mod | Version | Loader | Result |
+|---|---|---|---|
+| Apotheosis (+ Apothic Enchanting, Attributes, Spawners, Placebo, Patchouli) | 9.1.0 (2.1.0, 3.1.0, 2.0.1, 10.0.2, 94) | NeoForge 26.1.2 | Works, with one fix after 0.7.0: Apothic Enchanting writes enchantment tooltips itself, which hid the dormant lines; they are now added to the finished tooltip. It also removes Protection from `exclusive_set/armor` and Sharpness from `exclusive_set/damage`, so those stop conflicting and are not made dormant. 62 of 65 tests pass; the other three assume vanilla's conflicts or a vanilla enchantment list |
+| Enchancement (+ StrawberryLib) | 26.3-r4 | Fabric 26.3 | Works: all 65 tests pass, including its own enchantments with one-sided conflicts against vanilla (Extracting / Silk Touch, Frostbite / Fire Aspect, Bouncy / Feather Falling). Tested with its defaults relaxed: as shipped it disallows 36 vanilla enchantments (Fortune among them) and limits items to one enchantment, which is its own rule |
+
 ![The Adjust panel next to a pickaxe, with JEI's item list on the right](/screenshots/adjust-panel-jei.png)
 
 ## Known limits
