@@ -68,7 +68,7 @@ Not tested with other mods on 1.21.1 yet. Found a mod that doesn't work with it?
 The 2024 prototype for Forge 1.20.6 is kept under the
 [`legacy-1.20.6-forge`](https://github.com/SafetImamovic/Adjustability/tree/legacy-1.20.6-forge) tag.
 
-Design, math, API and roadmap: [ADJUSTABILITY.md](ADJUSTABILITY.md).
+Java API, configuration and how it works: the [docs site](https://safetimamovic.github.io/Adjustability/).
 
 ## What it does
 
