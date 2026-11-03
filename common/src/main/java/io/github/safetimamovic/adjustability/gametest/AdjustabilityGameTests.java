@@ -21,6 +21,7 @@ import io.github.safetimamovic.adjustability.core.Exclusivity;
 import io.github.safetimamovic.adjustability.core.GrindstoneRules;
 import io.github.safetimamovic.adjustability.core.ItemRules;
 import io.github.safetimamovic.adjustability.core.Toggler;
+import io.github.safetimamovic.adjustability.core.TooltipLines;
 import io.github.safetimamovic.adjustability.network.CycleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleEnchantmentPayload;
 import io.github.safetimamovic.adjustability.network.ToggleNetwork;
@@ -118,6 +119,7 @@ public final class AdjustabilityGameTests
                 test(registrar, "cycle_through_none", AdjustabilityGameTests::cycleThroughNone);
                 test(registrar, "advancements", AdjustabilityGameTests::advancements);
                 test(registrar, "tooltip_order", AdjustabilityGameTests::tooltipOrder);
+                test(registrar, "tooltip_fallback", AdjustabilityGameTests::tooltipFallback);
                 test(registrar, "panel_profiles", PanelProfileTests::profilesAndCodes);
                 test(registrar, "unknown_dormant_kept", RemovedEnchantmentTests::unknownDormantKept);
                 test(registrar, "unknown_in_config", RemovedEnchantmentTests::unknownInConfig);
@@ -893,6 +895,54 @@ public final class AdjustabilityGameTests
                 lines = tooltip(helper, book);
                 helper.assertValueEqual(lines.stream().filter(line -> line.contains("Silk Touch")).count(), 1L,
                         "book lists Silk Touch once: " + lines);
+                helper.succeed();
+        }
+
+        /**
+         * A mod that writes enchantment tooltips itself and cancels vanilla's (Apothic Enchanting) leaves a finished
+         * tooltip without the dormant lines, since the hooks inside vanilla's never ran. They're added to the finished
+         * list instead; a tooltip that already has them, or shows no active enchantment, is left alone.
+         */
+        private static void tooltipFallback(GameTestHelper helper)
+        {
+                Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
+                Holder<Enchantment> efficiency = enchantment(helper, Enchantments.EFFICIENCY);
+                Holder<Enchantment> unbreaking = enchantment(helper, Enchantments.UNBREAKING);
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                pickaxe.enchant(efficiency, 5);
+                pickaxe.enchant(unbreaking, 3);
+                setDormant(helper, pickaxe, single(enchantment(helper, Enchantments.SILK_TOUCH), 1));
+                Item.TooltipContext context = Item.TooltipContext.of(helper.getLevel());
+                List<Component> written = List.of(Component.literal("Diamond Pickaxe"),
+                        Enchantment.getFullname(fortune, 3), Enchantment.getFullname(efficiency, 5),
+                        Enchantment.getFullname(unbreaking, 3), Component.literal(""),
+                        Component.literal("When in Main Hand:"));
+
+                TooltipLines.tooltipStarted();
+                List<Component> fixed = TooltipLines.tooltipFinished(context, pickaxe, TooltipFlag.NORMAL, written);
+                List<String> lines = fixed.stream().map(Component::getString).toList();
+                int fortuneAt = lines.indexOf("Fortune III");
+                helper.assertTrue(fortuneAt >= 0 && lines.size() > fortuneAt + 1, "Fortune listed: " + lines);
+                helper.assertValueEqual(lines.get(fortuneAt + 1), "  ⇄ Silk Touch", "under Fortune: " + lines);
+                helper.assertValueEqual(lines.size(), written.size() + 1, "only that one line added: " + lines);
+                helper.assertValueEqual(written.size(), 6, "the list it was given is not changed");
+
+                TooltipLines.tooltipStarted();
+                TooltipLines.addDormant(context, line ->
+                {
+                }, TooltipFlag.NORMAL, pickaxe);
+                helper.assertTrue(TooltipLines.tooltipFinished(context, pickaxe, TooltipFlag.NORMAL, written) == written,
+                        "already listed by the normal path: untouched");
+
+                TooltipLines.tooltipStarted();
+                List<Component> hidden = List.of(Component.literal("Diamond Pickaxe"));
+                helper.assertTrue(TooltipLines.tooltipFinished(context, pickaxe, TooltipFlag.NORMAL, hidden) == hidden,
+                        "no active enchantment shown: untouched");
+
+                TooltipLines.tooltipStarted();
+                ItemStack plain = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
+                helper.assertTrue(TooltipLines.tooltipFinished(context, plain, TooltipFlag.NORMAL, written) == written,
+                        "no dormant enchantments: untouched");
                 helper.succeed();
         }
 

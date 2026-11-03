@@ -1,8 +1,11 @@
 package io.github.safetimamovic.adjustability.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -10,10 +13,12 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.component.DataComponentGetter;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -28,6 +33,13 @@ public final class TooltipLines
 
         /** Dormant enchantments not listed yet, while vanilla writes an item's active ones (the client thread). */
         private static final ThreadLocal<@Nullable Pending> PENDING = new ThreadLocal<>();
+
+        /**
+         * Set once {@link #addDormant} has run for the tooltip being built. A mod that writes enchantment tooltips
+         * itself and cancels vanilla's (Apothic Enchanting does) skips the hooks in {@code ItemEnchantments}, and
+         * {@link #tooltipFinished} then adds the lines to the finished list instead.
+         */
+        private static final ThreadLocal<@Nullable Boolean> LISTED = new ThreadLocal<>();
 
         private record Pending(ItemEnchantments dormant, Set<Holder<Enchantment>> off, List<Holder<Enchantment>> left)
         {
@@ -96,12 +108,108 @@ public final class TooltipLines
                 {
                         return;
                 }
+                LISTED.set(Boolean.TRUE);
+                trailing(context, flag, components, pending).forEach(consumer);
+        }
+
+        /** The tooltip build for one item starts: nothing has listed its dormant enchantments yet. */
+        public static void tooltipStarted()
+        {
+                LISTED.remove();
+        }
+
+        /**
+         * The tooltip for {@code stack} is done. If {@link #addDormant} never ran for it, because another mod replaced
+         * vanilla's enchantment lines, the dormant ones are inserted into {@code lines} where they'd have gone: under
+         * the line of the first active enchantment each conflicts with, the rest after the last enchantment line. Does
+         * nothing if none of the item's active enchantments is listed (hidden in the tooltip, or written in a form this
+         * can't recognize).
+         *
+         * @return {@code lines}, or a new list with the dormant lines added
+         */
+        public static List<Component> tooltipFinished(Item.TooltipContext context, ItemStack stack, TooltipFlag flag,
+                List<Component> lines)
+        {
+                boolean listed = LISTED.get() != null;
+                LISTED.remove();
+                HolderLookup.Provider registries = context.registries();
+                if (listed || registries == null || !DormantEnchantments.has(stack))
+                {
+                        return lines;
+                }
+                // The lines of the item's active enchantments, in tooltip order.
+                TreeMap<Integer, Holder<Enchantment>> shown = new TreeMap<>();
+                ItemEnchantments active = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
+                for (Holder<Enchantment> enchantment : active.keySet())
+                {
+                        String name = Enchantment.getFullname(enchantment, active.getLevel(enchantment)).getString();
+                        for (int i = 0; i < lines.size(); i++)
+                        {
+                                if (!shown.containsKey(i) && lines.get(i).getString().equals(name))
+                                {
+                                        shown.put(i, enchantment);
+                                        break;
+                                }
+                        }
+                }
+                if (shown.isEmpty())
+                {
+                        return lines;
+                }
+
+                Pending pending = null;
+                Map<Integer, List<Component>> under = new HashMap<>();
+                if (showDormant.getAsBoolean())
+                {
+                        ItemEnchantments dormant = DormantEnchantments.get(stack, registries);
+                        List<Holder<Enchantment>> sorted = new ArrayList<>(dormant.keySet());
+                        sorted.sort((a, b) -> Adjuster.id(a).compareTo(Adjuster.id(b)));
+                        pending = new Pending(dormant, DormantEnchantments.off(stack, registries), sorted);
+                        for (Map.Entry<Integer, Holder<Enchantment>> entry : shown.entrySet())
+                        {
+                                Pending current = pending;
+                                current.left().removeIf(other ->
+                                {
+                                        if (!Adjuster.conflict(entry.getValue(), other))
+                                        {
+                                                return false;
+                                        }
+                                        under.computeIfAbsent(entry.getKey(), key -> new ArrayList<>())
+                                                .add(line(other, current.dormant().getLevel(other)));
+                                        return true;
+                                });
+                        }
+                }
+                List<Component> trailing = trailing(context, flag, stack, pending);
+
+                int last = shown.lastKey();
+                List<Component> result = new ArrayList<>(lines.size() + trailing.size() + under.size());
+                for (int i = 0; i < lines.size(); i++)
+                {
+                        result.add(lines.get(i));
+                        result.addAll(under.getOrDefault(i, List.of()));
+                        if (i == last)
+                        {
+                                result.addAll(trailing);
+                        }
+                }
+                return result;
+        }
+
+        /**
+         * What comes after the item's enchantment lines: the dormant ones nothing active conflicts with (switched-off
+         * ones say so), with advanced tooltips the entries for enchantments that aren't registered, then the key hint.
+         */
+        private static List<Component> trailing(Item.TooltipContext context, TooltipFlag flag,
+                DataComponentGetter components, @Nullable Pending pending)
+        {
+                List<Component> lines = new ArrayList<>();
                 if (pending != null)
                 {
                         for (Holder<Enchantment> enchantment : pending.left())
                         {
                                 int level = pending.dormant().getLevel(enchantment);
-                                consumer.accept(pending.off().contains(enchantment)
+                                lines.add(pending.off().contains(enchantment)
                                         ? Component.translatable("adjustability.tooltip.off", name(enchantment, level))
                                                 .withStyle(ChatFormatting.DARK_GRAY)
                                         : line(enchantment, level));
@@ -110,15 +218,16 @@ public final class TooltipLines
                 if (flag.isAdvanced() && showDormant.getAsBoolean())
                 {
                         DormantEnchantments.unknown(components, context.registries()).forEach((id, level) ->
-                                consumer.accept(Component.translatable("adjustability.tooltip.unknown", id,
+                                lines.add(Component.translatable("adjustability.tooltip.unknown", id,
                                         Component.translatable("enchantment.level." + level))
                                         .withStyle(ChatFormatting.DARK_GRAY)));
                 }
                 Component line = hint.get();
                 if (line != null)
                 {
-                        consumer.accept(line);
+                        lines.add(line);
                 }
+                return lines;
         }
 
         private static Component line(Holder<Enchantment> enchantment, int level)
