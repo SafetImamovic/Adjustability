@@ -20,6 +20,9 @@ import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+//? if >=1.21.5 {
+import net.minecraft.world.item.component.TooltipDisplay;
+//?}
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import org.jspecify.annotations.Nullable;
@@ -152,8 +155,9 @@ public final class TooltipLines
                                 }
                         }
                 }
-                if (shown.isEmpty())
+                if (shown.isEmpty() && (!active.isEmpty() || lines.isEmpty() || enchantmentsHidden(stack)))
                 {
+                        // Either the enchantment lines are in a form this can't recognize, or they're not shown.
                         return lines;
                 }
 
@@ -182,7 +186,8 @@ public final class TooltipLines
                 }
                 List<Component> trailing = trailing(context, flag, stack, pending);
 
-                int last = shown.lastKey();
+                // With no active enchantment (all switched off) there's no line to follow: right after the item's name.
+                int last = shown.isEmpty() ? 0 : shown.lastKey();
                 List<Component> result = new ArrayList<>(lines.size() + trailing.size() + under.size());
                 for (int i = 0; i < lines.size(); i++)
                 {
@@ -194,6 +199,17 @@ public final class TooltipLines
                         }
                 }
                 return result;
+        }
+
+        /** Whether the item's tooltip leaves its enchantments out. Not known before 1.21.5, where it's a private flag. */
+        private static boolean enchantmentsHidden(ItemStack stack)
+        {
+                //? if >=1.21.5 {
+                TooltipDisplay display = stack.get(DataComponents.TOOLTIP_DISPLAY);
+                return display != null && (display.hideTooltip() || !display.shows(DataComponents.ENCHANTMENTS));
+                //?} else {
+                /*return false;
+                *///?}
         }
 
         /**
