@@ -120,6 +120,7 @@ public final class AdjustabilityGameTests
                 test(registrar, "advancements", AdjustabilityGameTests::advancements);
                 test(registrar, "tooltip_order", AdjustabilityGameTests::tooltipOrder);
                 test(registrar, "tooltip_fallback", AdjustabilityGameTests::tooltipFallback);
+                test(registrar, "modded_exclusivity", AdjustabilityGameTests::moddedExclusivity);
                 test(registrar, "panel_profiles", PanelProfileTests::profilesAndCodes);
                 test(registrar, "unknown_dormant_kept", RemovedEnchantmentTests::unknownDormantKept);
                 test(registrar, "unknown_in_config", RemovedEnchantmentTests::unknownInConfig);
@@ -955,6 +956,68 @@ public final class AdjustabilityGameTests
                 helper.assertTrue(TooltipLines.tooltipFinished(context, plain, TooltipFlag.NORMAL, written) == written,
                         "no dormant enchantments: untouched");
                 helper.succeed();
+        }
+
+        /**
+         * Enchancement's own enchantments, when it's loaded ({@code -Pcompat=enchants} on Fabric 26.3; otherwise this
+         * passes without checking anything). Their conflicts come from {@code exclusive_set} tags it ships, and are
+         * one-sided against vanilla: Extracting lists Silk Touch, Silk Touch doesn't list it. They must still be
+         * treated as conflicts both ways, be made dormant, and switch.
+         */
+        private static void moddedExclusivity(GameTestHelper helper)
+        {
+                if (modded(helper, "extracting").isEmpty())
+                {
+                        helper.succeed();
+                        return;
+                }
+                Holder<Enchantment> extracting = moddedOrFail(helper, "extracting");
+                Holder<Enchantment> frostbite = moddedOrFail(helper, "frostbite");
+                Holder<Enchantment> bouncy = moddedOrFail(helper, "bouncy");
+                Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
+                Holder<Enchantment> fireAspect = enchantment(helper, Enchantments.FIRE_ASPECT);
+                Holder<Enchantment> featherFalling = enchantment(helper, Enchantments.FEATHER_FALLING);
+                helper.assertTrue(Adjuster.conflict(extracting, silkTouch) && Adjuster.conflict(silkTouch, extracting),
+                        "Extracting / Silk Touch conflict both ways");
+                helper.assertTrue(Adjuster.conflict(frostbite, fireAspect) && Adjuster.conflict(fireAspect, frostbite),
+                        "Frostbite / Fire Aspect conflict both ways");
+                helper.assertTrue(Adjuster.conflict(bouncy, featherFalling) && Adjuster.conflict(featherFalling, bouncy),
+                        "Bouncy / Feather Falling conflict both ways");
+                helper.assertFalse(Adjuster.conflict(extracting, enchantment(helper, Enchantments.FORTUNE)),
+                        "Extracting doesn't conflict with Fortune");
+
+                var registries = helper.getLevel().registryAccess();
+                ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, extracting, 1);
+                helper.assertTrue(AdjustabilityApi.addEnchantment(pickaxe, silkTouch, 1, registries),
+                        "Silk Touch added next to Extracting");
+                helper.assertValueEqual(AdjustabilityApi.dormantEnchantments(pickaxe, registries).getLevel(silkTouch), 1,
+                        "Silk Touch dormant");
+                helper.assertValueEqual(AdjustabilityApi.activeEnchantments(pickaxe).getLevel(extracting), 1,
+                        "Extracting still active");
+
+                helper.assertValueEqual(Toggler.activate(survivalServerPlayer(helper), pickaxe, silkTouch,
+                        SwitchSource.API), SwitchResult.DONE, "switched to Silk Touch");
+                helper.assertValueEqual(AdjustabilityApi.activeEnchantments(pickaxe).getLevel(silkTouch), 1,
+                        "Silk Touch active");
+                helper.assertValueEqual(AdjustabilityApi.activeEnchantments(pickaxe).getLevel(extracting), 0,
+                        "Extracting off: its effect isn't running");
+                helper.assertValueEqual(AdjustabilityApi.dormantEnchantments(pickaxe, registries).getLevel(extracting), 1,
+                        "Extracting dormant, level kept");
+                helper.succeed();
+        }
+
+        private static Optional<Holder<Enchantment>> modded(GameTestHelper helper, String name)
+        {
+                return helper.getLevel().registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                        .get(ResourceKey.create(Registries.ENCHANTMENT, Identifier.fromNamespaceAndPath("enchancement", name)))
+                        .map(holder -> (Holder<Enchantment>) holder);
+        }
+
+        private static Holder<Enchantment> moddedOrFail(GameTestHelper helper, String name)
+        {
+                Optional<Holder<Enchantment>> holder = modded(helper, name);
+                helper.assertTrue(holder.isPresent(), "enchancement:" + name + " is registered");
+                return holder.orElseThrow();
         }
 
         private static List<String> tooltip(GameTestHelper helper, ItemStack stack)
