@@ -250,7 +250,7 @@ final class IndividualToggleTests
         @SuppressWarnings("removal")
         private static ServerPlayer player(GameTestHelper helper)
         {
-                ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                ServerPlayer player = AdjustabilityGameTests.mockServerPlayerInLevel(helper);
                 player.setGameMode(GameType.SURVIVAL);
                 return player;
         }

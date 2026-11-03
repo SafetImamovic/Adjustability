@@ -329,7 +329,7 @@ public final class AdjustabilityGameTests
         {
                 Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                 Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
-                ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                ServerPlayer player = mockServerPlayerInLevel(helper);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                 setDormant(helper, pickaxe, single(silkTouch, 1));
                 player.getInventory().setItem(0, pickaxe);
@@ -357,7 +357,7 @@ public final class AdjustabilityGameTests
                 {
                         Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                         Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
-                        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                        ServerPlayer player = mockServerPlayerInLevel(helper);
                         ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                         setDormant(helper, pickaxe, single(silkTouch, 1));
                         player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
@@ -751,12 +751,12 @@ public final class AdjustabilityGameTests
                         ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                         setDormant(helper, pickaxe, single(silkTouch, 1));
 
-                        helper.assertValueEqual(Toggler.deactivate(helper.makeMockServerPlayerInLevel(), pickaxe,
+                        helper.assertValueEqual(Toggler.deactivate(mockServerPlayerInLevel(helper), pickaxe,
                                 silkTouch, SwitchSource.API), SwitchResult.DONE, "none");
                         helper.assertTrue(Adjuster.activeOf(pickaxe).isEmpty(), "nothing active");
                         helper.assertValueEqual(dormant(helper, pickaxe).size(), 2, "both kept, dormant");
 
-                        helper.assertValueEqual(Toggler.activate(helper.makeMockServerPlayerInLevel(), pickaxe,
+                        helper.assertValueEqual(Toggler.activate(mockServerPlayerInLevel(helper), pickaxe,
                                 silkTouch, SwitchSource.API), SwitchResult.DONE, "back on");
                         helper.assertValueEqual(Adjuster.activeOf(pickaxe).getLevel(silkTouch), 1, "Silk Touch");
                         helper.assertValueEqual(dormant(helper, pickaxe).getLevel(fortune), 3, "Fortune dormant");
@@ -816,7 +816,7 @@ public final class AdjustabilityGameTests
                 {
                         Holder<Enchantment> fortune = enchantment(helper, Enchantments.FORTUNE);
                         Holder<Enchantment> silkTouch = enchantment(helper, Enchantments.SILK_TOUCH);
-                        ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                        ServerPlayer player = mockServerPlayerInLevel(helper);
                         ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, silkTouch, 1);
                         setDormant(helper, pickaxe, single(fortune, 3));
                         player.setItemInHand(InteractionHand.MAIN_HAND, pickaxe);
@@ -847,7 +847,7 @@ public final class AdjustabilityGameTests
                         helper.assertTrue(manager.get(Constants.id(name)) != null, "advancement " + name + " loads");
                 }
 
-                ServerPlayer player = helper.makeMockServerPlayerInLevel();
+                ServerPlayer player = mockServerPlayerInLevel(helper);
                 ItemStack pickaxe = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                 setDormant(helper, pickaxe, single(silkTouch, 1));
                 player.getInventory().setItem(0, pickaxe);
@@ -939,6 +939,17 @@ public final class AdjustabilityGameTests
                 helper.assertTrue(TooltipLines.tooltipFinished(context, pickaxe, TooltipFlag.NORMAL, hidden) == hidden,
                         "no active enchantment shown: untouched");
 
+                // Nothing active at all: nothing to follow, so the dormant line goes right after the item's name.
+                TooltipLines.tooltipStarted();
+                ItemStack sword = new ItemStack(Items.DIAMOND_SWORD);
+                setDormant(helper, sword, single(enchantment(helper, Enchantments.KNOCKBACK), 2));
+                List<Component> swordWritten = List.of(Component.literal("Diamond Sword"),
+                        Component.literal("When in Main Hand:"));
+                List<String> swordLines = TooltipLines.tooltipFinished(context, sword, TooltipFlag.NORMAL, swordWritten)
+                        .stream().map(Component::getString).toList();
+                helper.assertValueEqual(swordLines, List.of("Diamond Sword", "  ⇄ Knockback II", "When in Main Hand:"),
+                        "dormant only: after the name");
+
                 TooltipLines.tooltipStarted();
                 ItemStack plain = enchanted(Items.DIAMOND_PICKAXE, fortune, 3);
                 helper.assertTrue(TooltipLines.tooltipFinished(context, plain, TooltipFlag.NORMAL, written) == written,
@@ -985,24 +996,45 @@ public final class AdjustabilityGameTests
                 //? if >=26.2 {
                 return (ServerPlayer) helper.makeMockServerPlayer(GameType.SURVIVAL);
                 //?} else {
-                /*var cookie = net.minecraft.server.network.CommonListenerCookie.createInitial(
+                /*return mockServerPlayer(helper, GameType.SURVIVAL);
+                *///?}
+        }
+
+        /** Vanilla's {@code makeMockServerPlayerInLevel} gives a creative player; so does this. */
+        static ServerPlayer mockServerPlayerInLevel(GameTestHelper helper)
+        {
+                return mockServerPlayer(helper, GameType.CREATIVE);
+        }
+
+        /**
+         * A server player with a connection, like vanilla's {@code makeMockServerPlayerInLevel}, but one that never
+         * joins the server. Vanilla runs {@code PlayerList.placeNewPlayer}, which fires every mod's login handler, and
+         * those assume a real client: Apothic Spawners sends a payload the mock connection can't take, and Enchancement
+         * kicks a client that lacks its handshake. What these tests need (packets sent to the player, its inventory,
+         * advancements and level) doesn't depend on joining.
+         */
+        static ServerPlayer mockServerPlayer(GameTestHelper helper, GameType gameType)
+        {
+                var server = helper.getLevel().getServer();
+                var cookie = net.minecraft.server.network.CommonListenerCookie.createInitial(
                         new com.mojang.authlib.GameProfile(java.util.UUID.randomUUID(), "test-mock-player"), false);
-                ServerPlayer player = new ServerPlayer(helper.getLevel().getServer(), helper.getLevel(),
-                        cookie.gameProfile(), cookie.clientInformation())
+                ServerPlayer player = new ServerPlayer(server, helper.getLevel(), cookie.gameProfile(),
+                        cookie.clientInformation())
                 {
                         @Override
                         public GameType gameMode()
                         {
-                                return GameType.SURVIVAL;
+                                return gameType;
                         }
                 };
+                gameType.updatePlayerAbilities(player.getAbilities());
                 var connection = new net.minecraft.network.Connection(net.minecraft.network.protocol.PacketFlow.SERVERBOUND);
                 new io.netty.channel.embedded.EmbeddedChannel(connection);
-                helper.getLevel().getServer().getPlayerList().placeNewPlayer(connection, player, cookie);
-                // Joining gives the server's default game mode, which the GameTest server sets to creative.
-                player.setGameMode(GameType.SURVIVAL);
+                // The constructor attaches itself to the player as its connection; nothing else joins.
+                new net.minecraft.server.network.ServerGamePacketListenerImpl(server, connection, player, cookie);
+                // Joining also does this: the listener on the inventory that advancement triggers hang off.
+                player.initInventoryMenu();
                 return player;
-                *///?}
         }
 
         private static void test(ModRegistries.Registrar registrar, String name, Consumer<GameTestHelper> function)
