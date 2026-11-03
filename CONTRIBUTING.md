@@ -267,8 +267,8 @@ Maintainers only.
 3. The release workflow checks that the tag matches `gradle.properties`, builds every Minecraft version on both
    loaders, runs the GameTests and creates a GitHub Release with the mod jars, their sources, the API jars and the
    changelog section. The docs workflow deploys the docs site from the same tag, so docs changes merged since the last
-   release go live with it. Versions with a `-` (like `0.2.0-beta.1`) and every `0.x` version are marked as
-   pre-releases (Beta on Modrinth).
+   release go live with it. Only versions with a `-` (like `0.9.0-beta.1`) are marked as pre-releases (Beta on
+   Modrinth and CurseForge); every other version, `0.x` included, is a full release.
 4. The same workflow then publishes one Modrinth and one CurseForge version per Minecraft version and loader: the
    mod jar with its sources jar, the changelog section, and on Fabric the required Fabric API and Forge Config API Port
    (`.github/workflows/publish.yml`; adding a Minecraft version means adding it to its matrix). To publish a release
