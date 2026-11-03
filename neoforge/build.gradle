@@ -78,6 +78,49 @@ dependencies {
             logger.warn("-Pcompat=enchants has no NeoForge mods for Minecraft ${minecraft_version}")
         }
     }
+    // Enchancement instead of Apotheosis (rival overhauls, so a run of their own):
+    //   ./gradlew :neoforge:26.1:runGameTestServer -Pcompat=enchancement
+    // It runs on Forgified Fabric API; its builds for NeoForge are 26.1 and 26.2 only. Modrinth version IDs, not numbers:
+    // the Fabric and NeoForge builds share a version number, so the number alone resolves to the Fabric jar.
+    if (project.findProperty('compat') == 'enchancement') {
+        if (minecraft_version == '26.1.2') {
+            localRuntime('maven.modrinth:enchancement:hKDMxxRR')
+            localRuntime('maven.modrinth:strawberrylib:9cn8abyl')
+            localRuntime('maven.modrinth:forgified-fabric-api:bqnuKGQ4')
+            localRuntime('maven.modrinth:launchpad:isqNNLhL')
+            // Its defaults disallow 36 vanilla enchantments and limit items to one enchantment, so the vanilla-based
+            // tests would test nothing (as on Fabric). Dev run directory only; keeps its own enchantments.
+            def writeEnchancementConfig = tasks.register('writeEnchancementCompatConfig') {
+                def target = file('runs/gametest/config/enchancement.json')
+                doLast {
+                    target.parentFile.mkdirs()
+                    target.text = '''{
+  "disallowedEnchantments": [],
+  "invertedList": false,
+  "overhaulEnchanting": "DISABLED",
+  "enchantedBookGrinding": false,
+  "levellessEnchantments": false,
+  "enchantmentLimit": 0,
+  "disableDurability": "NONE",
+  "enhanceMobs": false,
+  "rebalanceConsumables": false,
+  "rebalanceEffects": false,
+  "rebalanceEnchantments": false,
+  "rebalanceEquipment": false,
+  "rebalanceProjectiles": false,
+  "toggleablePassives": false,
+  "fixVanillaBugs": false,
+  "enchantmentDescriptions": false,
+  "coloredEnchantmentNames": false
+}
+'''
+                }
+            }
+            tasks.matching { it.name == 'runGameTestServer' }.configureEach { dependsOn(writeEnchancementConfig) }
+        } else {
+            logger.warn("-Pcompat=enchancement has no NeoForge mods for Minecraft ${minecraft_version}")
+        }
+    }
 }
 
 // Implement mcgradleconventions loader attribute
