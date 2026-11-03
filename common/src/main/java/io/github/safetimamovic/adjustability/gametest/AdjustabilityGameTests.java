@@ -1016,14 +1016,12 @@ public final class AdjustabilityGameTests
          */
         private static void enchancementNotice(GameTestHelper helper)
         {
-                var registries = helper.getLevel().registryAccess();
                 List<Identifier> eight = Stream.of("fortune", "efficiency", "mending", "unbreaking", "sharpness",
                         "protection", "looting", "power").map(Identifier::withDefaultNamespace).toList();
-                helper.assertTrue(EnchancementNotice.lines(
-                        new EnchancementNotice.Settings(List.of(), 0, false), registries).isEmpty(),
+                helper.assertTrue(EnchancementNotice.lines(new EnchancementNotice.Settings(List.of(), 0, false)).isEmpty(),
                         "nothing changed: no notice");
 
-                List<String> lines = EnchancementNotice.lines(new EnchancementNotice.Settings(eight, 1, true), registries)
+                List<String> lines = EnchancementNotice.lines(new EnchancementNotice.Settings(eight, 1, true))
                         .stream().map(Component::getString).toList();
                 helper.assertValueEqual(lines.size(), 6, "header, disallowed, limit, levels, fix, footer: " + lines);
                 helper.assertTrue(lines.get(1).contains("8 vanilla enchantments are disallowed"), "count: " + lines.get(1));
@@ -1038,27 +1036,32 @@ public final class AdjustabilityGameTests
                         "both fixes: " + lines.get(4));
                 helper.assertTrue(lines.get(5).contains("[compat] notices"), "how to turn it off: " + lines.get(5));
 
-                List<String> onlyLimit = EnchancementNotice.lines(
-                        new EnchancementNotice.Settings(List.of(), 2, false), registries).stream()
+                List<String> onlyLimit = EnchancementNotice.lines(new EnchancementNotice.Settings(List.of(), 2, false)).stream()
                         .map(Component::getString).toList();
                 helper.assertValueEqual(onlyLimit.size(), 4, "header, limit, fix, footer: " + onlyLimit);
                 helper.assertTrue(onlyLimit.get(2).contains("set \"enchantmentLimit\" to 0")
                         && !onlyLimit.get(2).contains("disallowedEnchantments"), "only the limit fix: " + onlyLimit.get(2));
 
-                List<String> onlyDisallowed = EnchancementNotice.lines(
-                        new EnchancementNotice.Settings(eight.subList(0, 1), 0, false), registries).stream()
+                List<String> onlyDisallowed = EnchancementNotice.lines(new EnchancementNotice.Settings(eight.subList(0, 1), 0, false)).stream()
                         .map(Component::getString).toList();
                 helper.assertTrue(onlyDisallowed.get(2).contains("disallowedEnchantments")
                         && !onlyDisallowed.get(2).contains("enchantmentLimit"), "only the list fix: " + onlyDisallowed);
 
-                List<String> onlyLevels = EnchancementNotice.lines(
-                        new EnchancementNotice.Settings(List.of(), 0, true), registries).stream()
+                List<String> onlyLevels = EnchancementNotice.lines(new EnchancementNotice.Settings(List.of(), 0, true)).stream()
                         .map(Component::getString).toList();
                 helper.assertValueEqual(onlyLevels.size(), 3, "levels alone need no fix: " + onlyLevels);
 
+                // Not from the registry: Enchancement hides what it disallows from the registry's listings.
+                List<Identifier> vanilla = EnchancementNotice.vanillaEnchantments();
+                helper.assertTrue(vanilla.size() >= 36, "the vanilla list is complete: " + vanilla.size());
+                for (String name : List.of("fortune", "silk_touch", "mending", "unbreaking", "sharpness"))
+                {
+                        helper.assertTrue(vanilla.contains(Identifier.withDefaultNamespace(name)), name + " is in the vanilla list");
+                }
+
                 if (modded(helper, "extracting").isPresent())
                 {
-                        helper.assertTrue(EnchancementNotice.read(registries).isPresent(),
+                        helper.assertTrue(EnchancementNotice.read().isPresent(),
                                 "Enchancement's settings can be read");
                 }
                 helper.succeed();

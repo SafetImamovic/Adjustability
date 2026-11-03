@@ -3,21 +3,21 @@ package io.github.safetimamovic.adjustability.core;
 import io.github.safetimamovic.adjustability.Constants;
 import io.github.safetimamovic.adjustability.config.AdjustabilityConfig;
 import io.github.safetimamovic.adjustability.platform.Services;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.Commands;
-import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
 
 /**
  * Tells operators, and the log, what Enchancement does to vanilla enchantments when it is installed. With its
@@ -59,7 +59,7 @@ public final class EnchancementNotice
         }
 
         /** Enchancement's current settings, or empty if it isn't installed or can't be read. */
-        public static Optional<Settings> read(HolderLookup.Provider registries)
+        public static Optional<Settings> read()
         {
                 if (!Services.PLATFORM.isModLoaded(MOD_ID))
                 {
@@ -72,9 +72,7 @@ public final class EnchancementNotice
                         int limit = config.getField("enchantmentLimit").getInt(null);
                         boolean levelless = config.getField("levellessEnchantments").getBoolean(null);
                         List<Identifier> disallowed = new ArrayList<>();
-                        List<Identifier> vanilla = registries.lookupOrThrow(Registries.ENCHANTMENT).listElementIds()
-                                .map(key -> key.identifier()).filter(id -> id.getNamespace().equals("minecraft"))
-                                .sorted().toList();
+                        List<Identifier> vanilla = vanillaEnchantments();
                         for (Identifier id : vanilla)
                         {
                                 if (!(Boolean) allowed.invoke(null, id))
@@ -92,7 +90,7 @@ public final class EnchancementNotice
         }
 
         /** The notice for {@code settings}; empty when there is nothing to say. */
-        public static List<Component> lines(Settings settings, HolderLookup.Provider registries)
+        public static List<Component> lines(Settings settings)
         {
                 if (!settings.any())
                 {
@@ -107,7 +105,7 @@ public final class EnchancementNotice
                         lines.add(Component.translatableWithFallback("adjustability.compat.enchancement.disallowed",
                                 "  - %s vanilla enchantments are disallowed, so items can't hold them and Adjustability"
                                         + " has nothing to switch: %s",
-                                settings.disallowed().size(), names(settings.disallowed(), registries))
+                                settings.disallowed().size(), names(settings.disallowed()))
                                 .withStyle(ChatFormatting.YELLOW));
                 }
                 if (settings.limit() > 0)
@@ -161,9 +159,7 @@ public final class EnchancementNotice
                 {
                         return;
                 }
-                HolderLookup.Provider registries = server.registryAccess();
-                read(registries).ifPresent(settings -> lines(settings, registries)
-                        .forEach(line -> Constants.LOG.warn(line.getString())));
+                read().ifPresent(settings -> lines(settings).forEach(line -> Constants.LOG.warn(line.getString())));
         }
 
         /** A player joined: operators get the notice in chat. */
@@ -173,8 +169,7 @@ public final class EnchancementNotice
                 {
                         return;
                 }
-                HolderLookup.Provider registries = player.level().registryAccess();
-                read(registries).ifPresent(settings -> lines(settings, registries).forEach(player::sendSystemMessage));
+                read().ifPresent(settings -> lines(settings).forEach(player::sendSystemMessage));
         }
 
         private static boolean operator(ServerPlayer player)
@@ -185,10 +180,37 @@ public final class EnchancementNotice
                 /*return player.createCommandSourceStack().hasPermission(Commands.LEVEL_GAMEMASTERS);*/
         }
 
-        /** The first few names, then "and N more". */
-        private static Component names(List<Identifier> ids, HolderLookup.Provider registries)
+        /**
+         * Vanilla's enchantments, from the game's own list of them. Not from the registry: Enchancement hides what it
+         * disallows from the registry's listings, so listing the registry would find none of them.
+         */
+        public static List<Identifier> vanillaEnchantments()
         {
-                var lookup = registries.lookupOrThrow(Registries.ENCHANTMENT);
+                List<Identifier> ids = new ArrayList<>();
+                for (Field field : Enchantments.class.getFields())
+                {
+                        if (Modifier.isStatic(field.getModifiers()) && field.getType() == ResourceKey.class)
+                        {
+                                try
+                                {
+                                        if (field.get(null) instanceof ResourceKey<?> key)
+                                        {
+                                                ids.add(key.identifier());
+                                        }
+                                }
+                                catch (IllegalAccessException exception)
+                                {
+                                        Constants.LOG.debug("Couldn't read {}: {}", field.getName(), exception.toString());
+                                }
+                        }
+                }
+                ids.sort(null);
+                return List.copyOf(ids);
+        }
+
+        /** The first few names (their translation keys, which need no registry), then "and N more". */
+        private static Component names(List<Identifier> ids)
+        {
                 MutableComponent names = Component.empty();
                 for (int i = 0; i < Math.min(LISTED, ids.size()); i++)
                 {
@@ -197,9 +219,7 @@ public final class EnchancementNotice
                                 names.append(", ");
                         }
                         Identifier id = ids.get(i);
-                        names.append(lookup.get(ResourceKey.<Enchantment>create(Registries.ENCHANTMENT, id))
-                                .map(holder -> holder.value().description().copy())
-                                .orElseGet(() -> Component.literal(id.toString())));
+                        names.append(Component.translatable("enchantment." + id.getNamespace() + "." + id.getPath()));
                 }
                 if (ids.size() > LISTED)
                 {
