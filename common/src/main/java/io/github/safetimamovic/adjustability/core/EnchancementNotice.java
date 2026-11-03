@@ -34,7 +34,9 @@ public final class EnchancementNotice
 {
         private static final String MOD_ID = "enchancement";
         private static final String UTIL = "moriyashiine.enchancement.common.util.EnchancementUtil";
-        private static final String CONFIG = "moriyashiine.enchancement.common.EnchancementConfig";
+        /** Its settings class: renamed between versions (the 1.21 builds call it ModConfig). */
+        private static final List<String> CONFIGS = List.of("moriyashiine.enchancement.common.EnchancementConfig",
+                "moriyashiine.enchancement.common.ModConfig");
         /** Enchantment names listed before "and N more". */
         private static final int LISTED = 6;
 
@@ -68,9 +70,18 @@ public final class EnchancementNotice
                 try
                 {
                         Method allowed = Class.forName(UTIL).getMethod("isEnchantmentAllowed", Identifier.class);
-                        Class<?> config = Class.forName(CONFIG);
+                        Class<?> config = configClass();
                         int limit = config.getField("enchantmentLimit").getInt(null);
-                        boolean levelless = config.getField("levellessEnchantments").getBoolean(null);
+                        // Older builds have no such setting: no levelless enchantments.
+                        boolean levelless = false;
+                        try
+                        {
+                                levelless = config.getField("levellessEnchantments").getBoolean(null);
+                        }
+                        catch (NoSuchFieldException exception)
+                        {
+                                Constants.LOG.debug("Enchancement has no levellessEnchantments setting");
+                        }
                         List<Identifier> disallowed = new ArrayList<>();
                         List<Identifier> vanilla = vanillaEnchantments();
                         for (Identifier id : vanilla)
@@ -87,6 +98,23 @@ public final class EnchancementNotice
                         Constants.LOG.debug("Couldn't read Enchancement's settings: {}", exception.toString());
                         return Optional.empty();
                 }
+        }
+
+        private static Class<?> configClass() throws ClassNotFoundException
+        {
+                ClassNotFoundException last = new ClassNotFoundException(CONFIGS.toString());
+                for (String name : CONFIGS)
+                {
+                        try
+                        {
+                                return Class.forName(name);
+                        }
+                        catch (ClassNotFoundException exception)
+                        {
+                                last = exception;
+                        }
+                }
+                throw last;
         }
 
         /** The notice for {@code settings}; empty when there is nothing to say. */

@@ -63,7 +63,8 @@ were also played through by hand (details:
 | [Enchancement](https://modrinth.com/mod/enchancement) | 26.1-r25 | NeoForge 26.1.2 | The notice and its own enchantments' conflicts work. This build removes Unbreaking from items whatever its config says, which is its own behavior |
 | [YACL](https://modrinth.com/mod/yacl) | 3.9.7 | Fabric, NeoForge | Works: the settings screen is YACL's. On NeoForge, a warning about YACL's `logoFile` shows at startup; that's YACL's own metadata ([fix pending](https://github.com/isXander/YetAnotherConfigLib/pull/359)), click Proceed |
 
-Not tested with other mods on 1.21.1 yet. Found a mod that doesn't work with it? Use the
+1.21.1 has no automated tests: there, Apotheosis 8.9.0 (NeoForge) and Enchancement 1.21-r14 (Fabric) were played
+through by hand, and other mods are untested. Found a mod that doesn't work with it? Use the
 [compat issue form](https://github.com/SafetImamovic/Adjustability/issues/new/choose).
 
 The 2024 prototype for Forge 1.20.6 is kept under the

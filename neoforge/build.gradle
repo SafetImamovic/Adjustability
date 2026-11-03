@@ -74,6 +74,14 @@ dependencies {
             localRuntime('maven.modrinth:apothic-spawners:26.1.2-2.0.1')
             localRuntime('maven.modrinth:placebo:26.1.2-10.0.2')
             localRuntime('maven.modrinth:patchouli:26.1-94-beta')
+        } else if (minecraft_version == '1.21.1') {
+            // By hand only: there are no GameTests on 1.21.1 (./gradlew :neoforge:1.21.1:runClient -Pcompat=enchants).
+            localRuntime('maven.modrinth:apotheosis:1.21.1-8.9.0')
+            localRuntime('maven.modrinth:apothic-enchanting:1.21.1-1.6.4')
+            localRuntime('maven.modrinth:apothic-attributes:1.21.1-2.11.0')
+            localRuntime('maven.modrinth:apothic-spawners:1.21.1-1.4.0')
+            localRuntime('maven.modrinth:placebo:1.21.1-9.9.4')
+            localRuntime('maven.modrinth:patchouli:1.21.1-93-neoforge')
         } else {
             logger.warn("-Pcompat=enchants has no NeoForge mods for Minecraft ${minecraft_version}")
         }

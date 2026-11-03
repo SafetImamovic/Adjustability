@@ -25,7 +25,9 @@ On NeoForge, only the server-side tests ran with these mods; NeoForge has no cli
 
 Adjustability reads conflicts from the game's `exclusive_set` tags, so what a mod changes there is followed, not
 fought. These ran the server-side test suite (anvil, grindstone, switching, tooltips) and were also played through by
-hand in a real client (tooltips, the Adjust panel, the anvil, mining, rejoining a world). Neither is tested on 1.21.1.
+hand in a real client (tooltips, the Adjust panel, the anvil, mining, rejoining a world). 1.21.1 has no automated
+tests; there, Apotheosis 8.9.0 (with Apothic Enchanting 1.6.4) on NeoForge and Enchancement 1.21-r14 on Fabric were
+played through by hand only, including the Enchancement notice and the dormant tooltip lines.
 
 | Mod | Version | Loader | Result |
 |---|---|---|---|
